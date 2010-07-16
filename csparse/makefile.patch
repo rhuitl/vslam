@@ -1,0 +1,10 @@
+--- Lib/Makefile~	2009-01-20 12:38:47.000000000 -0800
++++ Lib/Makefile	2010-01-30 17:46:26.000000000 -0800
+@@ -1,6 +1,6 @@
+ # Modify the "-O" optimization option for best performance (-O3 on Linux):
+ CC = cc
+-CFLAGS = -O -I../Include
++CFLAGS = -O3 -fPIC -I../Include
+ 
+ AR = ar cr
+ RANLIB = ranlib

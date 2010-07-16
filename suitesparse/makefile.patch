@@ -1,0 +1,312 @@
+diff -u -r AMD/Lib/GNUmakefile /u/konolige/SuiteSparse/AMD/Lib/GNUmakefile
+--- AMD/Lib/GNUmakefile	2009-03-25 08:34:31.000000000 -0700
++++ /u/konolige/SuiteSparse/AMD/Lib/GNUmakefile	2010-03-22 00:19:25.000000000 -0700
+@@ -2,7 +2,7 @@
+ # AMD Makefile for compiling on Unix systems (for GNU make only)
+ #-------------------------------------------------------------------------------
+ 
+-default: ../Lib/libamd.a
++default: ../Lib/libamd.a ../Lib/libamd.so
+ 
+ include ../../UFconfig/UFconfig.mk
+ 
+@@ -47,6 +47,10 @@
+ 	$(AR) ../Lib/libamd.a $^
+ 	- $(RANLIB) ../Lib/libamd.a
+ 
++../Lib/libamd.so: amd_global.o $(AMDI) $(AMDL)
++	$(LD) -shared -Wl,-soname,libamd.so -o ../Lib/libamd.so $^
++
++
+ #-------------------------------------------------------------------------------
+ # compile the Fortran versions and the libamdf77.a library
+ #-------------------------------------------------------------------------------
+@@ -75,4 +79,4 @@
+ purge: distclean
+ 
+ distclean: clean
+-	- $(RM) ../Lib/libamd.a ../Lib/libamdf77.a
++	- $(RM) ../Lib/libamd.a ../Lib/libamd.so ../Lib/libamdf77.a
+Only in /u/konolige/SuiteSparse/AMD/Lib: GNUmakefile~
+diff -u -r AMD/Lib/Makefile /u/konolige/SuiteSparse/AMD/Lib/Makefile
+--- AMD/Lib/Makefile	2007-05-06 05:32:40.000000000 -0700
++++ /u/konolige/SuiteSparse/AMD/Lib/Makefile	2010-03-22 00:19:25.000000000 -0700
+@@ -45,6 +45,13 @@
+ 	    amd_l_defaults.o amd_l_order.o amd_l_control.o amd_l_info.o \
+ 	    amd_l_valid.o amd_i_preprocess.o amd_l_preprocess.o amd_global.o
+ 	- $(RANLIB) ../Lib/libamd.a
++	$(LD) -shared -Wl,-soname,libamd.so -o ../Lib/libamd.so \
++            amd_i_aat.o amd_i_1.o amd_i_2.o amd_i_dump.o \
++	    amd_i_postorder.o amd_i_post_tree.o amd_i_defaults.o amd_i_order.o \
++	    amd_i_control.o amd_i_info.o amd_i_valid.o amd_l_aat.o amd_l_1.o \
++	    amd_l_2.o amd_l_dump.o amd_l_postorder.o amd_l_post_tree.o \
++	    amd_l_defaults.o amd_l_order.o amd_l_control.o amd_l_info.o \
++	    amd_l_valid.o amd_i_preprocess.o amd_l_preprocess.o amd_global.o
+ 
+ #-------------------------------------------------------------------------------
+ # compile the Fortran versions and the libamdf77.a library
+@@ -66,4 +73,4 @@
+ purge: distclean
+ 
+ distclean: clean
+-	- $(RM) ../Lib/libamd.a ../Lib/libamdf77.a
++	- $(RM) ../Lib/libamd.a ../Lib/libamd.so ../Lib/libamdf77.a
+Only in /u/konolige/SuiteSparse/AMD/Lib: Makefile~
+diff -u -r CAMD/Lib/GNUmakefile /u/konolige/SuiteSparse/CAMD/Lib/GNUmakefile
+--- CAMD/Lib/GNUmakefile	2007-05-05 07:29:25.000000000 -0700
++++ /u/konolige/SuiteSparse/CAMD/Lib/GNUmakefile	2010-03-22 00:19:25.000000000 -0700
+@@ -2,7 +2,7 @@
+ # CAMD Makefile for compiling on Unix systems (for GNU make only)
+ #-------------------------------------------------------------------------------
+ 
+-default: libcamd.a
++default: libcamd.a libcamd.so
+ 
+ include ../../UFconfig/UFconfig.mk
+ 
+@@ -47,6 +47,9 @@
+ 	$(AR) libcamd.a $^
+ 	- $(RANLIB) libcamd.a
+ 
++libcamd.so: camd_global.o $(CAMDI) $(CAMDL)
++	$(LD) -shared -Wl,-soname,libcamd.so -o ../Lib/libcamd.so $^
++
+ #-------------------------------------------------------------------------------
+ # Remove all but the files in the original distribution
+ #-------------------------------------------------------------------------------
+@@ -57,4 +60,4 @@
+ purge: distclean
+ 
+ distclean: clean
+-	- $(RM) libcamd.a
++	- $(RM) libcamd.a libcamd.so
+Only in /u/konolige/SuiteSparse/CAMD/Lib: GNUmakefile~
+diff -u -r CCOLAMD/Lib/Makefile /u/konolige/SuiteSparse/CCOLAMD/Lib/Makefile
+--- CCOLAMD/Lib/Makefile	2009-03-31 10:46:41.000000000 -0700
++++ /u/konolige/SuiteSparse/CCOLAMD/Lib/Makefile	2010-03-22 00:19:25.000000000 -0700
+@@ -2,7 +2,7 @@
+ # CCOLAMD Makefile
+ #-------------------------------------------------------------------------------
+ 
+-default: libccolamd.a
++default: libccolamd.a libccolamd.so
+ 
+ include ../../UFconfig/UFconfig.mk
+ 
+@@ -19,9 +19,15 @@
+ 	$(CC) $(CFLAGS) $(I) -c ../Source/ccolamd.c -DDLONG -o ccolamd_l.o
+ 	$(AR) libccolamd.a ccolamd.o ccolamd_l.o ccolamd_global.o
+ 
+-ccode: libccolamd.a
++libccolamd.so:  $(SRC) $(INC)
++	$(CC) $(CFLAGS) $(I) -c ../Source/ccolamd_global.c
++	$(CC) $(CFLAGS) $(I) -c ../Source/ccolamd.c
++	$(CC) $(CFLAGS) $(I) -c ../Source/ccolamd.c -DDLONG -o ccolamd_l.o
++	$(LD) -shared -Wl,-soname,libccolamd.so -o libccolamd.so ccolamd.o ccolamd_l.o ccolamd_global.o
++
++ccode: libccolamd.a libccolamd.so
+ 
+-library: libccolamd.a
++library: libccolamd.a libccolamd.so
+ 
+ clean:
+ 	- $(RM) $(CLEAN)
+@@ -29,4 +35,4 @@
+ purge: distclean
+ 
+ distclean: clean
+-	- $(RM) libccolamd.a
++	- $(RM) libccolamd.a libccolamd.so
+Only in /u/konolige/SuiteSparse/CCOLAMD/Lib: Makefile~
+diff -u -r CHOLMOD/Lib/Makefile /u/konolige/SuiteSparse/CHOLMOD/Lib/Makefile
+--- CHOLMOD/Lib/Makefile	2007-05-05 07:36:56.000000000 -0700
++++ /u/konolige/SuiteSparse/CHOLMOD/Lib/Makefile	2010-03-22 00:19:23.000000000 -0700
+@@ -10,14 +10,14 @@
+ 
+ C = $(CC) $(CFLAGS) $(CHOLMOD_CONFIG)
+ 
+-all: libcholmod.a
++all: libcholmod.a libcholmod.so
+ 
+-library: libcholmod.a
++library: libcholmod.a libcholmod.so
+ 
+ purge: distclean
+ 
+ distclean: clean
+-	- $(RM) libcholmod.a
++	- $(RM) libcholmod.a libcholmod.so
+ 
+ clean:
+ 	- $(RM) $(CLEAN)
+@@ -113,6 +113,9 @@
+ 	$(AR) libcholmod.a $(OBJ)
+ 	$(RANLIB) libcholmod.a
+ 
++libcholmod.so: $(OBJ)
++	$(LD) -shared -Wl,-soname,libcholmod.so -o libcholmod.so $(OBJ)
++
+ $(OBJ): $(INC)
+ 
+ I = -I../../AMD/Include -I../../AMD/Source -I../../COLAMD/Include \
+Only in /u/konolige/SuiteSparse/CHOLMOD/Lib: Makefile~
+diff -u -r COLAMD/Lib/Makefile /u/konolige/SuiteSparse/COLAMD/Lib/Makefile
+--- COLAMD/Lib/Makefile	2007-05-05 06:41:47.000000000 -0700
++++ /u/konolige/SuiteSparse/COLAMD/Lib/Makefile	2010-03-22 00:19:28.000000000 -0700
+@@ -2,7 +2,7 @@
+ # COLAMD Makefile
+ #-------------------------------------------------------------------------------
+ 
+-default: libcolamd.a
++default: libcolamd.a libcolamd.so
+ 
+ include ../../UFconfig/UFconfig.mk
+ 
+@@ -19,9 +19,15 @@
+ 	$(CC) $(CFLAGS) $(I) -c ../Source/colamd.c -DDLONG -o colamd_l.o
+ 	$(AR) libcolamd.a colamd.o colamd_l.o colamd_global.o
+ 
+-ccode: libcolamd.a
++libcolamd.so:  $(SRC) $(INC)
++	$(CC) $(CFLAGS) $(I) -c ../Source/colamd_global.c
++	$(CC) $(CFLAGS) $(I) -c ../Source/colamd.c
++	$(CC) $(CFLAGS) $(I) -c ../Source/colamd.c -DDLONG -o colamd_l.o
++	$(LD) -shared -Wl,-soname,libcolamd.so -o libcolamd.so colamd.o colamd_l.o colamd_global.o
++
++ccode: libcolamd.a libcolamd.so
+ 
+-library: libcolamd.a
++library: libcolamd.a libcolamd.so
+ 
+ clean:
+ 	- $(RM) $(CLEAN)
+@@ -29,4 +35,4 @@
+ purge: distclean
+ 
+ distclean: clean
+-	- $(RM) libcolamd.a
++	- $(RM) libcolamd.a libcolamd.so
+Only in /u/konolige/SuiteSparse/COLAMD/Lib: Makefile~
+Only in /u/konolige/SuiteSparse/COLAMD: Makefile~
+diff -u -r UFconfig/UFconfig.mk /u/konolige/SuiteSparse/UFconfig/UFconfig.mk
+--- UFconfig/UFconfig.mk	2009-05-20 11:06:04.000000000 -0700
++++ /u/konolige/SuiteSparse/UFconfig/UFconfig.mk	2010-03-22 00:19:25.000000000 -0700
+@@ -42,6 +42,7 @@
+ # ranlib, and ar, for generating libraries
+ RANLIB = ranlib
+ AR = ar cr
++LD = g++
+ 
+ # delete and rename a file
+ RM = rm -f
+@@ -122,13 +123,13 @@
+ # The path is relative to where it is used, in CHOLMOD/Lib, CHOLMOD/MATLAB, etc.
+ # You may wish to use an absolute path.  METIS is optional.  Compile
+ # CHOLMOD with -DNPARTITION if you do not wish to use METIS.
+-METIS_PATH = ../../metis-4.0
+-METIS = ../../metis-4.0/libmetis.a
++#METIS_PATH = ../../metis-4.0
++#METIS = ../../metis-4.0/libmetis.a
+ 
+ # If you use CHOLMOD_CONFIG = -DNPARTITION then you must use the following
+ # options:
+-# METIS_PATH =
+-# METIS =
++METIS_PATH =
++METIS =
+ 
+ #------------------------------------------------------------------------------
+ # UMFPACK configuration:
+@@ -184,7 +185,7 @@
+ # -DNSUNPERF	    for Solaris only.  If defined, do not use the Sun
+ #			Performance Library
+ 
+-CHOLMOD_CONFIG =
++CHOLMOD_CONFIG = -DNPARTITION
+ 
+ #------------------------------------------------------------------------------
+ # SuiteSparseQR configuration:
+@@ -198,7 +199,7 @@
+ # -DHAVE_TBB        enable the use of Intel's Threading Building Blocks (TBB)
+ 
+ # default, without timing, without TBB:
+-SPQR_CONFIG =
++SPQR_CONFIG = -DNPARTITION
+ # with timing and TBB:
+ # SPQR_CONFIG = -DTIMING -DHAVE_TBB
+ # with timing
+@@ -220,21 +221,21 @@
+ 
+ # Using default compilers:
+ # CC = gcc
+-CFLAGS = -O3 -fexceptions
++CFLAGS = -O3 -fexceptions -fPIC
+ 
+ # alternatives:
+ # CFLAGS = -g -fexceptions \
+-   	-Wall -W -Wshadow -Wmissing-prototypes -Wstrict-prototypes \
+-    	-Wredundant-decls -Wnested-externs -Wdisabled-optimization -ansi
++	-Wall -W -Wshadow -Wmissing-prototypes -Wstrict-prototypes \
++	-Wredundant-decls -Wnested-externs -Wdisabled-optimization -ansi
+ # CFLAGS = -O3 -fexceptions \
+-   	-Wall -W -Werror -Wshadow -Wmissing-prototypes -Wstrict-prototypes \
+-    	-Wredundant-decls -Wnested-externs -Wdisabled-optimization -ansi
++	-Wall -W -Werror -Wshadow -Wmissing-prototypes -Wstrict-prototypes \
++	-Wredundant-decls -Wnested-externs -Wdisabled-optimization -ansi
+ # CFLAGS = -O3 -fexceptions -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE
+ # CFLAGS = -O3
+ # CFLAGS = -O3 -g -fexceptions
+ # CFLAGS = -g -fexceptions \
+-   	-Wall -W -Wshadow \
+-    	-Wredundant-decls -Wdisabled-optimization -ansi
++	-Wall -W -Wshadow \
++	-Wredundant-decls -Wdisabled-optimization -ansi
+ 
+ # consider:
+ # -fforce-addr -fmove-all-movables -freduce-all-givs -ftsp-ordering
+Only in /u/konolige/SuiteSparse/UFconfig: UFconfig.mk~
+diff -ur CSparse/Lib/Makefile /u/konolige/SuiteSparse/CSparse/Lib/Makefile
+--- CSparse/Lib/Makefile	2009-01-20 12:38:47.000000000 -0800
++++ /u/konolige/SuiteSparse/CSparse/Lib/Makefile	2010-03-22 11:50:00.000000000 -0700
+@@ -1,11 +1,12 @@
+ # Modify the "-O" optimization option for best performance (-O3 on Linux):
+ CC = cc
+-CFLAGS = -O -I../Include
++CFLAGS = -O3 -fPIC -I../Include
+ 
+ AR = ar cr
+ RANLIB = ranlib
++LD = g++
+ 
+-all: libcsparse.a
++all: libcsparse.a libcsparse.so
+ 
+ CS = cs_add.o cs_amd.o cs_chol.o cs_cholsol.o cs_counts.o cs_cumsum.o \
+ 	cs_droptol.o cs_dropzeros.o cs_dupl.o cs_entry.o \
+@@ -26,10 +27,14 @@
+ 	$(AR) libcsparse.a $(CS)
+ 	$(RANLIB) libcsparse.a
+ 
++libcsparse.so: $(CS)
++	$(LD) -shared -Wl,-soname,libcsparse.so -o libcsparse.so  $(CS)
++
++
+ clean:
+ 	rm -f *.o
+ 
+ purge: distclean
+ 
+ distclean: clean
+-	rm -f *.a
++	rm -f *.a *.so
+--- UFconfig/UFconfig.mk	2010-03-22 15:21:01.000000000 -0700
++++ /u/konolige/SuiteSparse/UFconfig/UFconfig.mk	2010-03-22 15:22:34.000000000 -0700
+@@ -90,7 +90,7 @@
+ # BLAS = -lgoto -lgfortran -lgfortranbegin -lg2c
+ 
+ # This is probably slow ... it might connect to the Standard Reference BLAS:
+-BLAS = -lblas -lgfortran -lgfortranbegin -lg2c
++BLAS = -lblas -lgfortran -lgfortranbegin # -lg2c
+ LAPACK = -llapack
+ 
+ # Using non-optimized versions:

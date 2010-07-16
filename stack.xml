@@ -1,0 +1,12 @@
+<stack>
+  <description brief="vslam">Visual SLAM with sparse bundle adjustment</description>
+  <author>Kurt Konolige, Patrick Mihelich, Helen Oleynikova</author>
+  <license>BSD,Public Domain,LGPL,LGPL/GPL</license>  
+  <review status="experimental" notes=""/>
+  <url>http://ros.org/wiki/vslam</url>
+  <depend stack="common_msgs" /> <!-- geometry_msgs -->
+  <depend stack="geometry" /> <!-- eigen -->
+  <depend stack="ros" /> <!-- rostest, std_msgs, roscpp -->
+  <depend stack="visualization_common" /> <!-- visualization_msgs -->
+
+</stack>

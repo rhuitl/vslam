@@ -1,0 +1,5 @@
+# Request - point
+geometry_msgs/PointStamped point
+---
+# Response - point index
+int32 index
