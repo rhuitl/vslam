@@ -1,7 +1,7 @@
 all: SuiteSparse
 
 TARBALL = build/SuiteSparse.tar.gz
-TARBALL_URL = http://www.cise.ufl.edu/research/sparse/SuiteSparse/SuiteSparse-3.4.0.tar.gz
+TARBALL_URL = http://pr.willowgarage.com/downloads/SuiteSparse-3.4.0.tar.gz
 TARBALL_PATCH = makefile.patch
 SOURCE_DIR = build/SuiteSparse
 MD5SUM_FILE = SuiteSparse.tar.gz.md5sum
