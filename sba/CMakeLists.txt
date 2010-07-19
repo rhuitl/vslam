@@ -60,8 +60,8 @@ rosbuild_add_gtest(test/mono_test test/mono_test.cpp test/spiral_setup.cpp)
 target_link_libraries(test/mono_test sba)
 
 # File IO
-#rosbuild_add_gtest(test/file_io_test test/file_io_test.cpp)
-#target_link_libraries(test/file_io_test  sba)
+rosbuild_add_gtest(test/file_io_test test/file_io_test.cpp)
+target_link_libraries(test/file_io_test  sba)
 
 ######################################################################
 # executables

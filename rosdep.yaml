@@ -6,7 +6,7 @@ gfortran:
     8.04: libgfortran2 gfortran-4.2
 lapack-blas-atlas:
   ubuntu: 
-    10.04: libatlas3gf-base liblapack-dev 
-    9.10: libatlas3gf-base liblapack-dev
-    9.04: libatlas3gf-base liblapack-dev
-    8.04: libatlas3gf-base liblapack-dev
+    10.04: libatlas3gf-base liblapack-dev libblas-dev
+    9.10: libatlas3gf-base liblapack-dev libblas-dev
+    9.04: libatlas3gf-base liblapack-dev libblas-dev
+    8.04: libatlas3gf-base liblapack-dev libblas-dev
