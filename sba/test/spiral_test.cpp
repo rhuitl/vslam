@@ -37,6 +37,7 @@
 
 #include "sba/sba.h"
 #include "sba/sba_setup.h"
+#include "sba/sba_file_io.h"
 using namespace Eigen;
 using namespace sba;
 
@@ -193,7 +194,7 @@ TEST(TestSBA, SpiralSystem_init90n)
   sba.printStats();
 
   for (int i=0; i<3; i++)
-    cout << "Quaternion: " << sba.nodes[i].qrot.transpose() << endl;
+    cout << "Quaternion: " << sba.nodes[i].qrot.coeffs().transpose() << endl;
   cout << endl;
 
 
@@ -206,7 +207,7 @@ TEST(TestSBA, SpiralSystem_init90n)
   printf("[TestSBA] Accepted iterations: %d\n", niters);
 
   for (int i=0; i<3; i++)
-    cout << "Quaternion: " << sba.nodes[i].qrot.transpose() << endl;
+    cout << "Quaternion: " << sba.nodes[i].qrot.coeffs().transpose() << endl;
   cout << endl;
 
 
@@ -231,7 +232,7 @@ TEST(TestSBA, SpiralSystem_init90n)
   // find number of projection measurements
   int nms = 0;
   for (int i=0; i<(int)sba.tracks.size(); i++)
-    nms += sba.tracks[i].size();
+    nms += sba.tracks[i].projections.size();
   double cost = sba.calcCost();
   cost = sqrt(cost/nms);
   EXPECT_EQ_ABS(cost,0.0,0.01); // RMS pixel error should be low
@@ -257,7 +258,7 @@ TEST(TestSBA, SpiralSystem_init0)
                0.0, 0.05, 0.01); // image noise (pixels), frame noise (meters)
 
   for (int i=0; i<3; i++)
-    cout << "Quaternion: " << sba.nodes[i].qrot.transpose() << endl;
+    cout << "Quaternion: " << sba.nodes[i].qrot.coeffs().transpose() << endl;
   cout << endl;
 
   long long t0, t1;
@@ -269,7 +270,7 @@ TEST(TestSBA, SpiralSystem_init0)
   printf("[TestSBA] Accepted iterations: %d\n", niters);
 
   for (int i=0; i<3; i++)
-    cout << "Quaternion: " << sba.nodes[i].qrot.transpose() << endl;
+    cout << "Quaternion: " << sba.nodes[i].qrot.coeffs().transpose() << endl;
   cout << endl;
 
 
@@ -318,7 +319,7 @@ TEST(TestSBA, SpiralSystem_global_init0)
   //  (sba.tracks[0])[0].isValid = false;
 
   for (int i=0; i<3; i++)
-    cout << "Quaternion: " << sba.nodes[i].qrot.transpose() << endl;
+    cout << "Quaternion: " << sba.nodes[i].qrot.coeffs().transpose() << endl;
   cout << endl;
 
 
@@ -331,7 +332,7 @@ TEST(TestSBA, SpiralSystem_global_init0)
   printf("[TestSBA] Accepted iterations: %d\n", niters);
 
   for (int i=0; i<3; i++)
-    cout << "Quaternion: " << sba.nodes[i].qrot.transpose() << endl;
+    cout << "Quaternion: " << sba.nodes[i].qrot.coeffs().transpose() << endl;
   cout << endl;
 
 
@@ -379,7 +380,7 @@ TEST(TestSBA, SpiralSystem_init90)
   //  (sba.tracks[0])[0].isValid = false;
 
   for (int i=0; i<3; i++)
-    cout << "Quaternion: " << sba.nodes[i].qrot.transpose() << endl;
+    cout << "Quaternion: " << sba.nodes[i].qrot.coeffs().transpose() << endl;
   cout << endl;
 
 
@@ -392,7 +393,7 @@ TEST(TestSBA, SpiralSystem_init90)
   printf("[TestSBA] Accepted iterations: %d\n", niters);
 
   for (int i=0; i<3; i++)
-    cout << "Quaternion: " << sba.nodes[i].qrot.transpose() << endl;
+    cout << "Quaternion: " << sba.nodes[i].qrot.coeffs().transpose() << endl;
   cout << endl;
 
 
@@ -443,7 +444,7 @@ TEST(TestSBA, SpiralSystem_init180)
   //  (sba.tracks[0])[0].isValid = false;
 
   for (int i=0; i<3; i++)
-    cout << "Quaternion: " << sba.nodes[i].qrot.transpose() << endl;
+    cout << "Quaternion: " << sba.nodes[i].qrot.coeffs().transpose() << endl;
   cout << endl;
 
 
@@ -456,7 +457,7 @@ TEST(TestSBA, SpiralSystem_init180)
   printf("[TestSBA] Accepted iterations: %d\n", niters);
 
   for (int i=0; i<3; i++)
-    cout << "Quaternion: " << sba.nodes[i].qrot.transpose() << endl;
+    cout << "Quaternion: " << sba.nodes[i].qrot.coeffs().transpose() << endl;
   cout << endl;
 
 
@@ -505,7 +506,7 @@ TEST(TestSBA, SpiralSystem_global_init180)
   //  (sba.tracks[0])[0].isValid = false;
 
   for (int i=0; i<3; i++)
-    cout << "Quaternion: " << sba.nodes[i].qrot.transpose() << endl;
+    cout << "Quaternion: " << sba.nodes[i].qrot.coeffs().transpose() << endl;
   cout << endl;
 
 
@@ -518,7 +519,7 @@ TEST(TestSBA, SpiralSystem_global_init180)
   printf("[TestSBA] Accepted iterations: %d\n", niters);
 
   for (int i=0; i<3; i++)
-    cout << "Quaternion: " << sba.nodes[i].qrot.transpose() << endl;
+    cout << "Quaternion: " << sba.nodes[i].qrot.coeffs().transpose() << endl;
   cout << endl;
 
 
@@ -570,7 +571,7 @@ TEST(TestSBA, SpiralSystem_global_init90n)
   cout << "[Spiral] Initial cost is " << sba.calcCost() << endl;
 
   for (int i=0; i<3; i++)
-    cout << "Quaternion: " << sba.nodes[i].qrot.transpose() << endl;
+    cout << "Quaternion: " << sba.nodes[i].qrot.coeffs().transpose() << endl;
   cout << endl;
 
   sba.nFixed = 1;               // one fixed frame
@@ -584,7 +585,7 @@ TEST(TestSBA, SpiralSystem_global_init90n)
   printf("[TestSBA] Accepted iterations: %d\n", niters);
 
   for (int i=0; i<3; i++)
-    cout << "Quaternion: " << sba.nodes[i].qrot.transpose() << endl;
+    cout << "Quaternion: " << sba.nodes[i].qrot.coeffs().transpose() << endl;
   cout << endl;
 
 
@@ -609,7 +610,7 @@ TEST(TestSBA, SpiralSystem_global_init90n)
   // find number of projection measurements
   int nms = 0;
   for (int i=0; i<(int)sba.tracks.size(); i++)
-    nms += sba.tracks[i].size();
+    nms += sba.tracks[i].projections.size();
   double cost = sba.calcCost();
   cost = sqrt(cost/nms);
   EXPECT_EQ_ABS(cost,0.0,0.01); // RMS pixel error should be low
@@ -638,7 +639,7 @@ TEST(TestSBA, SpiralSystem_global_400)
   sba.printStats();
 
   for (int i=0; i<3; i++)
-    cout << "Quaternion: " << sba.nodes[i].qrot.transpose() << endl;
+    cout << "Quaternion: " << sba.nodes[i].qrot.coeffs().transpose() << endl;
   cout << endl;
 
 
@@ -659,7 +660,7 @@ TEST(TestSBA, SpiralSystem_global_400)
   niters = sba.doSBA(5);
 
   for (int i=0; i<3; i++)
-    cout << "Quaternion: " << sba.nodes[i].qrot.transpose() << endl;
+    cout << "Quaternion: " << sba.nodes[i].qrot.coeffs().transpose() << endl;
   cout << endl;
 
 
@@ -684,7 +685,7 @@ TEST(TestSBA, SpiralSystem_global_400)
   // find number of projection measurements
   int nms = 0;
   for (int i=0; i<(int)sba.tracks.size(); i++)
-    nms += sba.tracks[i].size();
+    nms += sba.tracks[i].projections.size();
 
   double cost = sba.calcCost();
   cost = sqrt(cost/nms);
@@ -716,7 +717,7 @@ TEST(TestSBA, SpiralSystem_54)
   //  sba.writeFile("700cams.txt");
 
   for (int i=0; i<3; i++)
-    cout << "Quaternion: " << sba.nodes[i].qrot.transpose() << endl;
+    cout << "Quaternion: " << sba.nodes[i].qrot.coeffs().transpose() << endl;
   cout << endl;
 
 
@@ -743,7 +744,7 @@ TEST(TestSBA, SpiralSystem_54)
   niters = sba.doSBA(10,1.0e-4,true);
 
   for (int i=0; i<3; i++)
-    cout << "Quaternion: " << sba.nodes[i].qrot.transpose() << endl;
+    cout << "Quaternion: " << sba.nodes[i].qrot.coeffs().transpose() << endl;
   cout << endl;
 
 
@@ -768,7 +769,7 @@ TEST(TestSBA, SpiralSystem_54)
   // find number of projection measurements
   int nms = 0;
   for (int i=0; i<(int)sba.tracks.size(); i++)
-    nms += sba.tracks[i].size();
+    nms += sba.tracks[i].projections.size();
 
   double cost = sba.calcCost();
   cost = sqrt(cost/nms);
@@ -799,11 +800,11 @@ TEST(TestSBA, SpiralSystem_400)
 
 #if 1
   cout << "[SBAsys] Writing file" << endl;
-  sba.writeFile("spiral-4000");
+  writeLourakisFile("spiral-4000", sba);
 #endif
 
   for (int i=0; i<3; i++)
-    cout << "Quaternion: " << sba.nodes[i].qrot.transpose() << endl;
+    cout << "Quaternion: " << sba.nodes[i].qrot.coeffs().transpose() << endl;
   cout << endl;
 
 
@@ -850,7 +851,7 @@ TEST(TestSBA, SpiralSystem_400)
   // find number of projection measurements
   int nms = 0;
   for (int i=0; i<(int)sba.tracks.size(); i++)
-    nms += sba.tracks[i].size();
+    nms += sba.tracks[i].projections.size();
 
   double cost = sba.calcCost();
   cost = sqrt(cost/nms);

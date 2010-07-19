@@ -27,7 +27,7 @@ namespace sba
    * Note: documentation of the Bundler format can be found at 
    * http://phototour.cs.washington.edu/bundler/bundler-v0.3-manual.html .
    */
-  int readBundlerFile(char *filename, sba::SysSBA& sbaout);
+  int readBundlerFile(const char *filename, sba::SysSBA& sbaout);
 
   /** \brief Writes bundle adjustment data from an instance of SysSBA to a Bundler file.
    *
@@ -40,11 +40,11 @@ namespace sba
    * Note: documentation of the Bundler format can be found at 
    * http://phototour.cs.washington.edu/bundler/bundler-v0.3-manual.html .
    */
-  int writeBundlerFile(char *filename, sba::SysSBA& sbain);
+  int writeBundlerFile(const char *filename, sba::SysSBA& sbain);
 
   /** \brief A low-level parser for bundler files. */
   int 
-  ParseBundlerFile(char *fin,	// input file
+  ParseBundlerFile(const char *fin,	// input file
 		  std::vector< Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d> > &camp, // cam params <f d1 d2>
 		  std::vector< Eigen::Matrix3d, Eigen::aligned_allocator<Eigen::Matrix3d> > &camR, // cam rotation matrix
 		  std::vector< Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d> > &camt, // cam translation
@@ -54,9 +54,9 @@ namespace sba
     );
 
   /// write out system in SBA form
-  void writeLourakisFile(char *fname, SysSBA& sba);
-  void writeA(char *fname, SysSBA& sba); // save precision matrix
-  void writeSparseA(char *fname, SysSBA& sba); // save precision matrix in CSPARSE format
+  void writeLourakisFile(const char *fname, SysSBA& sba);
+  void writeA(const char *fname, SysSBA& sba); // save precision matrix
+  void writeSparseA(const char *fname, SysSBA& sba); // save precision matrix in CSPARSE format
 
 }; // namespace SBA
 

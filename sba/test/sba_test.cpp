@@ -95,7 +95,7 @@ TEST(SBAtest, SimpleSystem)
   for (int i=0; i<pts.rows(); i++)
     {
       Point pt(pts.row(i));
-      sys.points.push_back(pt);
+      sys.addPoint(pt);
     }
 
   Node::initDr();               // set up fixed matrices
@@ -125,7 +125,7 @@ TEST(SBAtest, SimpleSystem)
 
   Node nd2;
   nd2.qrot = frq2.coeffs();	
-  cout << "Quaternion: " << nd2.qrot.transpose() << endl;
+  cout << "Quaternion: " << nd2.qrot.coeffs().transpose() << endl;
   nd2.trans = frt2;
   cout << "Translation: " << nd2.trans.transpose() << endl << endl;
   nd2.setTransform();		// set up world2node transform
@@ -139,7 +139,7 @@ TEST(SBAtest, SimpleSystem)
 
   Node nd3;
   nd3.qrot = frq3.coeffs();	
-  cout << "Quaternion: " << nd3.qrot.transpose() << endl;
+  cout << "Quaternion: " << nd3.qrot.coeffs().transpose() << endl;
   nd3.trans = frt3;
   cout << "Translation: " << nd3.trans.transpose() << endl << endl;
   nd3.setTransform();		// set up world2node transform
@@ -160,35 +160,33 @@ TEST(SBAtest, SimpleSystem)
   double inoise = 0.5;
   Vector2d n2;
 
-  for(vector<Point,Eigen::aligned_allocator<Point> >::iterator itr = sys.points.begin(); itr!=sys.points.end(); itr++)
+  for(int i = 0; i < 0; i++)
     {
-      Point pt = *itr;      
-      vector<Proj,Eigen::aligned_allocator<Proj> > prjs;	// new point track
+      Point pt = sys.tracks[i].point;      
+      ProjMap &prjs = sys.tracks[i].projections;	// new point track
       Proj prj;
       prj.isValid = true;
-      prj.pti = ind;
-      prj.kpi = ind;
       Vector2d ipt;
 
       n2.setRandom();
       nd1.project2im(ipt,pt);	// set up projection measurement
       prj.ndi = 0;		// nd1 index
-      prj.kp = ipt + n2*inoise;
-      prjs.push_back(prj);
+      prj.kp.start<2>() = ipt + n2*inoise;
+      prjs[prjs.size()] = prj;
 
       n2.setRandom();
       nd2.project2im(ipt,pt);	// set up projection measurement
       prj.ndi = 1;		// nd2 index
-      prj.kp = ipt + n2*inoise;
-      prjs.push_back(prj);
+      prj.kp.start<2>() = ipt + n2*inoise;
+      prjs[prjs.size()] = prj;
 
       n2.setRandom();
       nd3.project2im(ipt,pt);	// set up projection measurement
       prj.ndi = 2;		// nd3 index
-      prj.kp = ipt + n2*inoise;
-      prjs.push_back(prj);
+      prj.kp.start<2>() = ipt + n2*inoise;
+      prjs[prjs.size()] = prj;
 
-      sys.tracks.push_back(prjs);
+      //sys.tracks.push_back(prjs);
       ind++;
     }
 
@@ -196,9 +194,9 @@ TEST(SBAtest, SimpleSystem)
   double tnoise = 0.05;		// in meters
 
   // add random noise to node positions
-  nd2.qrot.start<3>() += qnoise*Vector3d::Random();
+  nd2.qrot.coeffs().start<3>() += qnoise*Vector3d::Random();
   nd2.normRot();
-  cout << "Quaternion: " << nd2.qrot.transpose() << endl << endl;
+  cout << "Quaternion: " << nd2.qrot.coeffs().transpose() << endl << endl;
   nd2.trans.start<3>() += tnoise*Vector3d::Random();
   nd2.setTransform();		// set up world2node transform
   nd2.setProjection();
@@ -209,7 +207,7 @@ TEST(SBAtest, SimpleSystem)
 #endif
   sys.nodes[1] = nd2;		// reset node
   
-  nd3.qrot.start<3>() += qnoise*Vector3d::Random();
+  nd3.qrot.coeffs().start<3>() += qnoise*Vector3d::Random();
   nd3.normRot();
   //  cout << "Quaternion: " << nd3.qrot.transpose() << endl << endl;
   nd3.trans.start<3>() += tnoise*Vector3d::Random();
@@ -245,14 +243,14 @@ TEST(SBAtest, SimpleSystem)
   sys.nFixed = 1;		// number of fixed cameras
   sys.doSBA(10);
 
-  cout << endl << "Quaternion: " << sys.nodes[1].qrot.transpose() << endl;
+  cout << endl << "Quaternion: " << sys.nodes[1].qrot.coeffs().transpose() << endl;
   // normalize output translation
   Vector4d frt2a = sys.nodes[1].trans;
   double s = frt2.start<3>().norm() / frt2a.start<3>().norm();
   frt2a.start<3>() *= s;
   cout << "Translation: " << frt2a.transpose() << endl << endl;
 
-  cout << "Quaternion: " << sys.nodes[2].qrot.transpose() << endl;
+  cout << "Quaternion: " << sys.nodes[2].qrot.coeffs().transpose() << endl;
   Vector4d frt3a = sys.nodes[2].trans;
   s = frt3.start<3>().norm() / frt3a.start<3>().norm();
   frt3a.start<3>() *= s;
@@ -264,9 +262,9 @@ TEST(SBAtest, SimpleSystem)
   // cameras should be close to their original positions,
   //   adjusted for scale on translations
   for (int i=0; i<4; i++)
-    EXPECT_EQ_ABS(sys.nodes[1].qrot(i),frq2.coeffs()[i],0.01);
+    EXPECT_EQ_ABS(sys.nodes[1].qrot.coeffs()[i],frq2.coeffs()[i],0.01);
   for (int i=0; i<4; i++)
-    EXPECT_EQ_ABS(sys.nodes[2].qrot(i),frq3.coeffs()[i],0.01);
+    EXPECT_EQ_ABS(sys.nodes[2].qrot.coeffs()[i],frq3.coeffs()[i],0.01);
   for (int i=0; i<3; i++)
     EXPECT_EQ_ABS(frt2a(i),frt2(i),0.01);
   for (int i=0; i<3; i++)

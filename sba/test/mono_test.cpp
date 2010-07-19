@@ -166,7 +166,7 @@ TEST(TestJacobians, TestJacScale)
 
   // set up frame transform
   Node nd1;
-  nd1.qrot = frq1.coeffs();
+  nd1.qrot = frq1;
   nd1.trans = frt1;
   nd1.setTransform();		// set up world2node transform
   nd1.setDr(true);              // local angles
@@ -197,7 +197,7 @@ TEST(TestJacobians, TestJacScale)
   // compare distance, varying translation params
   {
     Vector4d ti(dq,0,0,0);      // incremental x change
-    ndd.qrot = frq1.coeffs();
+    ndd.qrot = frq1;
     ndd.trans = frt1+ti;
     ndd.setTransform();		// set up world2node transform
   
@@ -211,7 +211,7 @@ TEST(TestJacobians, TestJacScale)
 
   {
     Vector4d ti(0,dq,0,0);      // incremental x change
-    ndd.qrot = frq1.coeffs();
+    ndd.qrot = frq1;
     ndd.trans = frt1+ti;
     ndd.setTransform();		// set up world2node transform
   
@@ -225,7 +225,7 @@ TEST(TestJacobians, TestJacScale)
 
   {
     Vector4d ti(0,0,dq,0);      // incremental x change
-    ndd.qrot = frq1.coeffs();
+    ndd.qrot = frq1;
     ndd.trans = frt1+ti;
     ndd.setTransform();		// set up world2node transform
   
@@ -239,7 +239,7 @@ TEST(TestJacobians, TestJacScale)
 
   {
     Vector4d ti(dq,0,0,0);      // incremental x change
-    ndd.qrot = frq2.coeffs();
+    ndd.qrot = frq2;
     ndd.trans = frt2+ti;
     ndd.setTransform();		// set up world2node transform
   
@@ -253,7 +253,7 @@ TEST(TestJacobians, TestJacScale)
 
   {
     Vector4d ti(0,dq,0,0);      // incremental x change
-    ndd.qrot = frq2.coeffs();
+    ndd.qrot = frq2;
     ndd.trans = frt2+ti;
     ndd.setTransform();		// set up world2node transform
   
@@ -267,7 +267,7 @@ TEST(TestJacobians, TestJacScale)
 
   {
     Vector4d ti(0,0,dq,0);      // incremental x change
-    ndd.qrot = frq2.coeffs();
+    ndd.qrot = frq2;
     ndd.trans = frt2+ti;
     ndd.setTransform();		// set up world2node transform
   
@@ -292,7 +292,7 @@ TEST(TestMono, TestMonoLocalScale)
   double kfrad = kfang*M_PI/180.0;
 
   spa.nFixed = 3;               // three fixed frames
-  spa_spiral_setup(spa, cps,
+  spa_spiral_setup(spa, true, cps,
 #if 1
                    n2prec, n2vprec, n2aprec, n2bprec,  // rank-deficient
 #else
@@ -416,8 +416,8 @@ TEST(TestMono, TestMonoLocalScale)
 
     con.tmean = nd0.w2n * trans; // translation offset
     Quaternion<double> q0,q1,qm;
-    q0.coeffs() = nd0.qrot;
-    q1.coeffs() = nd1.qrot;
+    q0 = nd0.qrot;
+    q1 = nd1.qrot;
     con.qpmean = (q0.inverse()*q1).inverse();
 
     spa.p2cons.push_back(con);
@@ -444,7 +444,7 @@ TEST(TestMono, TestMonoLocalScale)
       qr.vec() = cp.block<3,1>(3,0);
       qr.w() = sqrt(1.0 - qr.vec().squaredNorm());
       Quaternion<double> qn;
-      qn.coeffs() = spa.nodes[i].qrot;
+      qn = spa.nodes[i].qrot;
       double da = qr.angularDistance(qn);
       asqerr += da;
 
@@ -512,7 +512,7 @@ TEST(TestMono, TestMonoLocalScale)
       qr.vec() = cp.block<3,1>(3,0);
       qr.w() = sqrt(1.0 - qr.vec().squaredNorm());
       Quaternion<double> qn;
-      qn.coeffs() = spa.nodes[i].qrot;
+      qn = spa.nodes[i].qrot;
       double da = qr.angularDistance(qn);
       asqerr += da;
 

@@ -5,7 +5,7 @@ using namespace Eigen;
 using namespace frame_common;
 using namespace std;
 
-int sba::readBundlerFile(char *filename, SysSBA& sbaout)
+int sba::readBundlerFile(const char *filename, SysSBA& sbaout)
 { 
     // Create vectors to hold the data from the bundler file. 
     vector< Vector3d, Eigen::aligned_allocator<Vector3d> > camps;	// cam params <f d1 d2>
@@ -110,7 +110,7 @@ int sba::readBundlerFile(char *filename, SysSBA& sbaout)
     return 0;
 }
 
-int sba::writeBundlerFile(char *filename, SysSBA& sbain)
+int sba::writeBundlerFile(const char *filename, SysSBA& sbain)
 {
     ofstream outfile(filename, ios_base::trunc);
     if (outfile == NULL)
@@ -193,7 +193,7 @@ int sba::writeBundlerFile(char *filename, SysSBA& sbain)
     return 0;
 } 
 
-int  sba::ParseBundlerFile(char *fin,	// input file
+int  sba::ParseBundlerFile(const char *fin,	// input file
 		vector< Vector3d, Eigen::aligned_allocator<Vector3d> > &camp, // cam params <f d1 d2>
 		vector< Matrix3d, Eigen::aligned_allocator<Matrix3d> > &camR, // cam rotation matrix
 		vector< Vector3d, Eigen::aligned_allocator<Vector3d> > &camt, // cam translation
@@ -318,7 +318,7 @@ int  sba::ParseBundlerFile(char *fin,	// input file
 //   Cameras are represented by the w2n transform, converted to
 //   a quaternion and translation vector
 //
-void sba::writeLourakisFile(char *fname, SysSBA& sba)
+void sba::writeLourakisFile(const char *fname, SysSBA& sba)
 {
     char name[1024];
     sprintf(name,"%s-cams.txt",fname);
@@ -397,7 +397,7 @@ void sba::writeLourakisFile(char *fname, SysSBA& sba)
 
 
 // write out the precision matrix
-void sba::writeA(char *fname, SysSBA& sba)
+void sba::writeA(const char *fname, SysSBA& sba)
 {
     ofstream ofs(fname);
     if (ofs == NULL)
@@ -414,7 +414,7 @@ void sba::writeA(char *fname, SysSBA& sba)
 
 
 // write out the precision matrix for CSparse
-void sba::writeSparseA(char *fname, SysSBA& sba)
+void sba::writeSparseA(const char *fname, SysSBA& sba)
 {
     char name[1024];
     sprintf(name,"%s-A.tri",fname);

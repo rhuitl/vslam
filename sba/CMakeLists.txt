@@ -36,10 +36,10 @@ rosbuild_add_compile_flags(sba -O3 -DNDEBUG -Wno-missing-field-initializers -mss
 #
 
 # basic transforms and jacobians
-rosbuild_add_gtest(test/sba_jac_test test/sba_jac.cpp)
-target_link_libraries(test/sba_jac_test sba)
-rosbuild_add_gtest(test/sbast_jac_test test/sbast_jac.cpp)
-target_link_libraries(test/sbast_jac_test sba)
+#rosbuild_add_gtest(test/sba_jac_test test/sba_jac.cpp)
+#target_link_libraries(test/sba_jac_test sba)
+#rosbuild_add_gtest(test/sbast_jac_test test/sbast_jac.cpp)
+#target_link_libraries(test/sbast_jac_test sba)
 
 # SBA
 rosbuild_add_gtest(test/sba_test test/sba_test.cpp)
@@ -48,7 +48,7 @@ rosbuild_add_gtest(test/sbast_test test/sbast_test.cpp)
 target_link_libraries(test/sbast_test sba)
 
 # Spiral SBA
-rosbuild_add_gtest(test/spiral_test test/spiral_test.cpp test/spiral_setup.cpp)
+rosbuild_add_gtest(test/spiral_test test/spiral_test.cpp test/spiral_setup.cpp TIMEOUT 1000.0)
 target_link_libraries(test/spiral_test sba)
 
 # SPA 2D
@@ -59,6 +59,9 @@ target_link_libraries(test/spa2d_test sba)
 rosbuild_add_gtest(test/mono_test test/mono_test.cpp test/spiral_setup.cpp)
 target_link_libraries(test/mono_test sba)
 
+# File IO
+#rosbuild_add_gtest(test/file_io_test test/file_io_test.cpp)
+#target_link_libraries(test/file_io_test  sba)
 
 ######################################################################
 # executables
