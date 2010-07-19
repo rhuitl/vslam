@@ -7,7 +7,7 @@ SOURCE_DIR = build/SuiteSparse
 MD5SUM_FILE = SuiteSparse.tar.gz.md5sum
 include $(shell rospack find mk)/download_unpack_build.mk
 
-SuiteSparse: $(SOURCE_DIR)/unpacked
+SuiteSparse: wiped $(SOURCE_DIR)/unpacked
 	-rm -rf lib include
 	mkdir -p lib
 	mkdir -p include/SuiteSparse
@@ -30,3 +30,7 @@ clean:
 	rm -rf lib include $(SOURCE_DIR)
 wipe: clean
 	-rm -rf build SuiteSparse
+
+wiped: Makefile $(TARBALL_PATCH)
+	make wipe
+	touch wiped
