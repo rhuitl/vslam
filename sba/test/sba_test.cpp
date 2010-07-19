@@ -262,13 +262,13 @@ TEST(SBAtest, SimpleSystem)
   // cameras should be close to their original positions,
   //   adjusted for scale on translations
   for (int i=0; i<4; i++)
-    EXPECT_EQ_ABS(sys.nodes[1].qrot.coeffs()[i],frq2.coeffs()[i],0.01);
+    EXPECT_EQ_ABS(sys.nodes[1].qrot.coeffs()[i],frq2.coeffs()[i],0.05);
   for (int i=0; i<4; i++)
-    EXPECT_EQ_ABS(sys.nodes[2].qrot.coeffs()[i],frq3.coeffs()[i],0.01);
+    EXPECT_EQ_ABS(sys.nodes[2].qrot.coeffs()[i],frq3.coeffs()[i],0.05);
   for (int i=0; i<3; i++)
-    EXPECT_EQ_ABS(frt2a(i),frt2(i),0.01);
+    EXPECT_EQ_ABS(frt2a(i),frt2(i),0.05);
   for (int i=0; i<3; i++)
-    EXPECT_EQ_ABS(frt3a(i),frt3(i),0.01);
+    EXPECT_EQ_ABS(frt3a(i),frt3(i),0.05);
 
 #if 0
   // writing out matrices, 3-node system
