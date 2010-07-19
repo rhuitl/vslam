@@ -160,7 +160,7 @@ TEST(SBAtest, SimpleSystem)
   double inoise = 0.5;
   Vector2d n2;
 
-  for(int i = 0; i < 0; i++)
+  for(unsigned int i = 0; i < sys.tracks.size(); i++)
     {
       Point pt = sys.tracks[i].point;      
       ProjMap &prjs = sys.tracks[i].projections;	// new point track
