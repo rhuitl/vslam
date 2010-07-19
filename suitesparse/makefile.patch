@@ -1,6 +1,6 @@
-diff -ur ../tmp/SuiteSparse/AMD/Lib/GNUmakefile ./AMD/Lib/GNUmakefile
+diff -urN ../tmp/SuiteSparse/AMD/Lib/GNUmakefile ./AMD/Lib/GNUmakefile
 --- ../tmp/SuiteSparse/AMD/Lib/GNUmakefile	2009-03-25 08:34:31.000000000 -0700
-+++ ./AMD/Lib/GNUmakefile	2010-07-19 08:21:20.000000000 -0700
++++ ./AMD/Lib/GNUmakefile	2010-07-19 14:11:50.000000000 -0700
 @@ -2,7 +2,7 @@
  # AMD Makefile for compiling on Unix systems (for GNU make only)
  #-------------------------------------------------------------------------------
@@ -27,9 +27,9 @@ diff -ur ../tmp/SuiteSparse/AMD/Lib/GNUmakefile ./AMD/Lib/GNUmakefile
  distclean: clean
 -	- $(RM) ../Lib/libamd.a ../Lib/libamdf77.a
 +	- $(RM) ../Lib/libamd.a ../Lib/libamd.so ../Lib/libamdf77.a
-diff -ur ../tmp/SuiteSparse/AMD/Lib/Makefile ./AMD/Lib/Makefile
+diff -urN ../tmp/SuiteSparse/AMD/Lib/Makefile ./AMD/Lib/Makefile
 --- ../tmp/SuiteSparse/AMD/Lib/Makefile	2007-05-06 05:32:40.000000000 -0700
-+++ ./AMD/Lib/Makefile	2010-07-19 08:21:20.000000000 -0700
++++ ./AMD/Lib/Makefile	2010-07-19 14:11:50.000000000 -0700
 @@ -45,6 +45,13 @@
  	    amd_l_defaults.o amd_l_order.o amd_l_control.o amd_l_info.o \
  	    amd_l_valid.o amd_i_preprocess.o amd_l_preprocess.o amd_global.o
@@ -50,9 +50,9 @@ diff -ur ../tmp/SuiteSparse/AMD/Lib/Makefile ./AMD/Lib/Makefile
  distclean: clean
 -	- $(RM) ../Lib/libamd.a ../Lib/libamdf77.a
 +	- $(RM) ../Lib/libamd.a ../Lib/libamd.so ../Lib/libamdf77.a
-diff -ur ../tmp/SuiteSparse/CAMD/Lib/GNUmakefile ./CAMD/Lib/GNUmakefile
+diff -urN ../tmp/SuiteSparse/CAMD/Lib/GNUmakefile ./CAMD/Lib/GNUmakefile
 --- ../tmp/SuiteSparse/CAMD/Lib/GNUmakefile	2007-05-05 07:29:25.000000000 -0700
-+++ ./CAMD/Lib/GNUmakefile	2010-07-19 08:21:20.000000000 -0700
++++ ./CAMD/Lib/GNUmakefile	2010-07-19 14:11:50.000000000 -0700
 @@ -2,7 +2,7 @@
  # CAMD Makefile for compiling on Unix systems (for GNU make only)
  #-------------------------------------------------------------------------------
@@ -78,9 +78,9 @@ diff -ur ../tmp/SuiteSparse/CAMD/Lib/GNUmakefile ./CAMD/Lib/GNUmakefile
  distclean: clean
 -	- $(RM) libcamd.a
 +	- $(RM) libcamd.a libcamd.so
-diff -ur ../tmp/SuiteSparse/CCOLAMD/Lib/Makefile ./CCOLAMD/Lib/Makefile
+diff -urN ../tmp/SuiteSparse/CCOLAMD/Lib/Makefile ./CCOLAMD/Lib/Makefile
 --- ../tmp/SuiteSparse/CCOLAMD/Lib/Makefile	2009-03-31 10:46:41.000000000 -0700
-+++ ./CCOLAMD/Lib/Makefile	2010-07-19 08:21:20.000000000 -0700
++++ ./CCOLAMD/Lib/Makefile	2010-07-19 14:11:50.000000000 -0700
 @@ -2,7 +2,7 @@
  # CCOLAMD Makefile
  #-------------------------------------------------------------------------------
@@ -114,9 +114,9 @@ diff -ur ../tmp/SuiteSparse/CCOLAMD/Lib/Makefile ./CCOLAMD/Lib/Makefile
  distclean: clean
 -	- $(RM) libccolamd.a
 +	- $(RM) libccolamd.a libccolamd.so
-diff -ur ../tmp/SuiteSparse/CHOLMOD/Lib/Makefile ./CHOLMOD/Lib/Makefile
+diff -urN ../tmp/SuiteSparse/CHOLMOD/Lib/Makefile ./CHOLMOD/Lib/Makefile
 --- ../tmp/SuiteSparse/CHOLMOD/Lib/Makefile	2007-05-05 07:36:56.000000000 -0700
-+++ ./CHOLMOD/Lib/Makefile	2010-07-19 08:21:20.000000000 -0700
++++ ./CHOLMOD/Lib/Makefile	2010-07-19 14:11:50.000000000 -0700
 @@ -10,14 +10,14 @@
  
  C = $(CC) $(CFLAGS) $(CHOLMOD_CONFIG)
@@ -145,9 +145,9 @@ diff -ur ../tmp/SuiteSparse/CHOLMOD/Lib/Makefile ./CHOLMOD/Lib/Makefile
  $(OBJ): $(INC)
  
  I = -I../../AMD/Include -I../../AMD/Source -I../../COLAMD/Include \
-diff -ur ../tmp/SuiteSparse/COLAMD/Lib/Makefile ./COLAMD/Lib/Makefile
+diff -urN ../tmp/SuiteSparse/COLAMD/Lib/Makefile ./COLAMD/Lib/Makefile
 --- ../tmp/SuiteSparse/COLAMD/Lib/Makefile	2007-05-05 06:41:47.000000000 -0700
-+++ ./COLAMD/Lib/Makefile	2010-07-19 08:21:20.000000000 -0700
++++ ./COLAMD/Lib/Makefile	2010-07-19 14:11:50.000000000 -0700
 @@ -2,7 +2,7 @@
  # COLAMD Makefile
  #-------------------------------------------------------------------------------
@@ -181,9 +181,9 @@ diff -ur ../tmp/SuiteSparse/COLAMD/Lib/Makefile ./COLAMD/Lib/Makefile
  distclean: clean
 -	- $(RM) libcolamd.a
 +	- $(RM) libcolamd.a libcolamd.so
-diff -ur ../tmp/SuiteSparse/CSparse/Lib/Makefile ./CSparse/Lib/Makefile
+diff -urN ../tmp/SuiteSparse/CSparse/Lib/Makefile ./CSparse/Lib/Makefile
 --- ../tmp/SuiteSparse/CSparse/Lib/Makefile	2009-01-20 12:38:47.000000000 -0800
-+++ ./CSparse/Lib/Makefile	2010-07-19 08:21:20.000000000 -0700
++++ ./CSparse/Lib/Makefile	2010-07-19 14:11:50.000000000 -0700
 @@ -1,11 +1,12 @@
  # Modify the "-O" optimization option for best performance (-O3 on Linux):
  CC = cc
@@ -215,9 +215,9 @@ diff -ur ../tmp/SuiteSparse/CSparse/Lib/Makefile ./CSparse/Lib/Makefile
  distclean: clean
 -	rm -f *.a
 +	rm -f *.a *.so
-diff -ur ../tmp/SuiteSparse/Makefile ./Makefile
+diff -urN ../tmp/SuiteSparse/Makefile ./Makefile
 --- ../tmp/SuiteSparse/Makefile	2008-09-23 08:16:41.000000000 -0700
-+++ ./Makefile	2010-07-19 08:30:14.000000000 -0700
++++ ./Makefile	2010-07-19 14:11:50.000000000 -0700
 @@ -8,18 +8,18 @@
  default:
  	( cd UFconfig/xerbla ; $(MAKE) )
@@ -249,9 +249,9 @@ diff -ur ../tmp/SuiteSparse/Makefile ./Makefile
  #	( cd LPDASA ; $(MAKE) )
  #	( cd PARAKLETE ; $(MAKE) )
  
-diff -ur ../tmp/SuiteSparse/UFconfig/UFconfig.mk ./UFconfig/UFconfig.mk
+diff -urN ../tmp/SuiteSparse/UFconfig/UFconfig.mk ./UFconfig/UFconfig.mk
 --- ../tmp/SuiteSparse/UFconfig/UFconfig.mk	2009-05-20 11:06:04.000000000 -0700
-+++ ./UFconfig/UFconfig.mk	2010-07-19 08:21:20.000000000 -0700
++++ ./UFconfig/UFconfig.mk	2010-07-19 14:11:50.000000000 -0700
 @@ -42,6 +42,7 @@
  # ranlib, and ar, for generating libraries
  RANLIB = ranlib
@@ -334,4 +334,15 @@ diff -ur ../tmp/SuiteSparse/UFconfig/UFconfig.mk ./UFconfig/UFconfig.mk
  
  # consider:
  # -fforce-addr -fmove-all-movables -freduce-all-givs -ftsp-ordering
-Only in .: unpacked
+diff -urN ../tmp/SuiteSparse/UMFPACK/Makefile ./UMFPACK/Makefile
+--- ../tmp/SuiteSparse/UMFPACK/Makefile	2007-10-30 15:03:55.000000000 -0700
++++ ./UMFPACK/Makefile	2010-07-19 14:12:26.000000000 -0700
+@@ -22,7 +22,7 @@
+ library:
+ 	( cd ../AMD ; $(MAKE) library )
+ 	( cd Lib    ; $(MAKE) )
+-	( cd Demo   ; $(MAKE) )
++	#( cd Demo   ; $(MAKE) )
+ 	- cat Doc/License
+ 
+ # compile the FORTRAN interface and demo program
