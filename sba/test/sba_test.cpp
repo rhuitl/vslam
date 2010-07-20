@@ -36,6 +36,7 @@
 
 // Bring in my package's API, which is what I'm testing
 #include "sba/sba.h"
+#include "sba/sba_file_io.h"
 
 // Bring in gtest
 #include <gtest/gtest.h>
@@ -176,23 +177,19 @@ TEST(SBAtest, SimpleSystem)
       prj.ndi = 0;		// nd1 index
       prj.kp.start<2>() = ipt + n2*inoise;
       prjs[0] = prj;
-      cout << "Projection 0: " << prj.kp << endl;
 
       n2.setRandom();
       nd2.project2im(ipt,pt);	// set up projection measurement
       prj.ndi = 1;		// nd2 index
       prj.kp.start<2>() = ipt + n2*inoise;
       prjs[1] = prj;
-      cout << "Projection 1: " << prj.kp << endl;
 
       n2.setRandom();
       nd3.project2im(ipt,pt);	// set up projection measurement
       prj.ndi = 2;		// nd3 index
       prj.kp.start<2>() = ipt + n2*inoise;
       prjs[2] = prj;
-      cout << "Projection 2: " << prj.kp << endl;
 
-      //sys.tracks.push_back(prjs);
       ind++;
     }
 
@@ -247,6 +244,7 @@ TEST(SBAtest, SimpleSystem)
 #endif
 
   sys.nFixed = 1;		// number of fixed cameras
+  
   sys.doSBA(10);
 
   cout << endl << "Quaternion: " << sys.nodes[1].qrot.coeffs().transpose() << endl;
