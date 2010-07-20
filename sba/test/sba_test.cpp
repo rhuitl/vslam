@@ -116,6 +116,7 @@ TEST(SBAtest, SimpleSystem)
   nd1.trans = Vector4d::Zero();	// or translation
   nd1.setTransform();		// set up world2node transform
   nd1.setKcam(cpars);		// set up node2image projection
+  nd1.setProjection();
 #ifdef LOCAL_ANGLES
   nd1.setDr(true);              // set rotational derivatives
 #else
@@ -124,12 +125,13 @@ TEST(SBAtest, SimpleSystem)
   nd1.isFixed = true;
 
   Node nd2;
-  nd2.qrot = frq2.coeffs();	
+  nd2.qrot = frq2;	
   cout << "Quaternion: " << nd2.qrot.coeffs().transpose() << endl;
   nd2.trans = frt2;
   cout << "Translation: " << nd2.trans.transpose() << endl << endl;
   nd2.setTransform();		// set up world2node transform
   nd2.setKcam(cpars);		// set up node2image projection
+  nd2.setProjection();
 #ifdef LOCAL_ANGLES
   nd2.setDr(true);              // set rotational derivatives
 #else
@@ -138,12 +140,13 @@ TEST(SBAtest, SimpleSystem)
   nd2.isFixed = false;
 
   Node nd3;
-  nd3.qrot = frq3.coeffs();	
+  nd3.qrot = frq3;	
   cout << "Quaternion: " << nd3.qrot.coeffs().transpose() << endl;
   nd3.trans = frt3;
   cout << "Translation: " << nd3.trans.transpose() << endl << endl;
   nd3.setTransform();		// set up world2node transform
   nd3.setKcam(cpars);		// set up node2image projection
+  nd3.setProjection();
 #ifdef LOCAL_ANGLES
   nd3.setDr(true);              // set rotational derivatives
 #else
@@ -157,7 +160,7 @@ TEST(SBAtest, SimpleSystem)
 
   // set up projections onto nodes
   int ind = 0;
-  double inoise = 0.5;
+  double inoise = 0;//0.5;
   Vector2d n2;
 
   for(unsigned int i = 0; i < sys.tracks.size(); i++)
@@ -172,26 +175,29 @@ TEST(SBAtest, SimpleSystem)
       nd1.project2im(ipt,pt);	// set up projection measurement
       prj.ndi = 0;		// nd1 index
       prj.kp.start<2>() = ipt + n2*inoise;
-      prjs[prjs.size()] = prj;
+      prjs[0] = prj;
+      cout << "Projection 0: " << prj.kp << endl;
 
       n2.setRandom();
       nd2.project2im(ipt,pt);	// set up projection measurement
       prj.ndi = 1;		// nd2 index
       prj.kp.start<2>() = ipt + n2*inoise;
-      prjs[prjs.size()] = prj;
+      prjs[1] = prj;
+      cout << "Projection 1: " << prj.kp << endl;
 
       n2.setRandom();
       nd3.project2im(ipt,pt);	// set up projection measurement
       prj.ndi = 2;		// nd3 index
       prj.kp.start<2>() = ipt + n2*inoise;
-      prjs[prjs.size()] = prj;
+      prjs[2] = prj;
+      cout << "Projection 2: " << prj.kp << endl;
 
       //sys.tracks.push_back(prjs);
       ind++;
     }
 
-  double qnoise = 10*M_PI/180;	// in radians
-  double tnoise = 0.05;		// in meters
+  double qnoise = 0;//10*M_PI/180;	// in radians
+  double tnoise = 0;//0.05;		// in meters
 
   // add random noise to node positions
   nd2.qrot.coeffs().start<3>() += qnoise*Vector3d::Random();
@@ -262,9 +268,9 @@ TEST(SBAtest, SimpleSystem)
   // cameras should be close to their original positions,
   //   adjusted for scale on translations
   for (int i=0; i<4; i++)
-    EXPECT_EQ_ABS(sys.nodes[1].qrot.coeffs()[i],frq2.coeffs()[i],0.05);
+    EXPECT_EQ_ABS(sys.nodes[1].qrot.coeffs()[i],frq2.coeffs()[i],0.01);
   for (int i=0; i<4; i++)
-    EXPECT_EQ_ABS(sys.nodes[2].qrot.coeffs()[i],frq3.coeffs()[i],0.05);
+    EXPECT_EQ_ABS(sys.nodes[2].qrot.coeffs()[i],frq3.coeffs()[i],0.01);
   for (int i=0; i<3; i++)
     EXPECT_EQ_ABS(frt2a(i),frt2(i),0.05);
   for (int i=0; i<3; i++)

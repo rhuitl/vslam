@@ -42,8 +42,8 @@ rosbuild_add_compile_flags(sba -O3 -DNDEBUG -Wno-missing-field-initializers -mss
 #target_link_libraries(test/sbast_jac_test sba)
 
 # SBA
-rosbuild_add_gtest(test/sba_test test/sba_test.cpp)
-target_link_libraries(test/sba_test sba)
+#rosbuild_add_gtest(test/sba_test test/sba_test.cpp)
+#target_link_libraries(test/sba_test sba)
 rosbuild_add_gtest(test/sbast_test test/sbast_test.cpp)
 target_link_libraries(test/sbast_test sba)
 

@@ -196,9 +196,9 @@ TEST_F(SBAFileIOTest, WriteRead)
     
     for (unsigned int i = 0; i < points.size(); i++)
     {
-      EXPECT_NEAR(points[i].x(), testsys.tracks[i].point.x(), 0.15);
-      EXPECT_NEAR(points[i].y(), testsys.tracks[i].point.y(), 0.15);
-      EXPECT_NEAR(points[i].z(), testsys.tracks[i].point.z(), 0.15);
+      EXPECT_NEAR(points[i].x(), testsys.tracks[i].point.x(), 0.2);
+      EXPECT_NEAR(points[i].y(), testsys.tracks[i].point.y(), 0.2);
+      EXPECT_NEAR(points[i].z(), testsys.tracks[i].point.z(), 0.2);
     }
     
     // Don't check nodes yet because we don't store node information. To do!    
