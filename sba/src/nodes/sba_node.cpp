@@ -2,16 +2,13 @@
 #include <ros/time.h>
 
 // Messages
-#include <sba/CameraNode.h>
-#include <sba/Projection.h>
-#include <geometry_msgs/PointStamped.h>
-#include <sba/MergeTracks.h>
-#include <sba/AddNode.h>
-#include <sba/AddPoint.h>
+#include <sba/Frame.h>
 #include <visualization_msgs/Marker.h>
 
 #include <sba/sba.h>
 #include <sba/visualization.h>
+
+#include <map>
 
 using namespace sba;
 
@@ -20,46 +17,76 @@ class SBANode
   public:
     SysSBA sba;
     ros::NodeHandle n;
-    //ros::Subscriber node_sub;
-    //ros::Subscriber point_sub;
-    ros::Subscriber proj_sub;
-    ros::ServiceServer merge_tracks_serv;
-    ros::ServiceServer add_node_serv;
-    ros::ServiceServer add_point_serv;
+    ros::Subscriber frame_sub;
     ros::Publisher cam_marker_pub;
     ros::Publisher point_marker_pub;
     
     ros::Timer timer;
     
-    void addNode(const sba::CameraNode::ConstPtr& msg)
+    // Mapping from external point index to internal (sba) point index
+    std::map<unsigned int, unsigned int> point_indices;
+    
+    // Mapping from external node index to internal (sba) node index
+    std::map<unsigned int, unsigned int> node_indices;
+    
+    void addFrame(const sba::Frame::ConstPtr& msg)
     {
-      Vector4d trans(msg->trans.translation.x, msg->trans.translation.y, msg->trans.translation.z, 1.0);
-      Quaternion<double> qrot(msg->trans.rotation.x, msg->trans.rotation.y, msg->trans.rotation.z, msg->trans.rotation.w);
+      unsigned int i = 0;
+      
+      //printf("nodes.size: %u, points.size: %u, proj.size: %u", msg->nodes.size(), msg->points.size(), msg->projections.size());
+      
+      // Add all nodes
+      for (i=0; i < msg->nodes.size(); i++)
+      {
+        addNode(msg->nodes[i]);
+      }
+      
+      // Add all points
+      for (i=0; i < msg->points.size(); i++)
+      {
+        addPoint(msg->points[i]);
+      }
+      
+      // Add all projections
+      for (i=0; i < msg->projections.size(); i++)
+      { 
+        addProj(msg->projections[i]);
+      }
+    }
+    
+    void addNode(const sba::CameraNode& msg)
+    {
+      Vector4d trans(msg.transform.translation.x, msg.transform.translation.y, msg.transform.translation.z, 1.0);
+      Quaternion<double> qrot(msg.transform.rotation.x, msg.transform.rotation.y, msg.transform.rotation.z, msg.transform.rotation.w);
       
       frame_common::CamParams cam_params;
-      cam_params.fx = msg->fx;
-      cam_params.fy = msg->fy;
-      cam_params.cx = msg->cx;
-      cam_params.cy = msg->cy;
-      cam_params.tx = msg->baseline;
+      cam_params.fx = msg.fx;
+      cam_params.fy = msg.fy;
+      cam_params.cx = msg.cx;
+      cam_params.cy = msg.cy;
+      cam_params.tx = msg.baseline;
       
-      bool fixed = msg->fixed;
+      bool fixed = msg.fixed;
       
-      sba.addNode(trans, qrot, cam_params, fixed);
+      unsigned int newindex = sba.addNode(trans, qrot, cam_params, fixed);
+      
+      node_indices[msg.index] = newindex;  
     }
     
-    void addPoint(const geometry_msgs::PointStamped::ConstPtr& msg)
+    void addPoint(const sba::WorldPoint& msg)
     {
-      Vector4d point(msg->point.x, msg->point.y, msg->point.z, 1.0);
-      sba.addPoint(point);
+      Vector4d point(msg.x, msg.y, msg.z, msg.w);
+      unsigned int newindex = sba.addPoint(point);
+      
+      point_indices[msg.index] = newindex;
     }
     
-    void addProj(const sba::Projection::ConstPtr& msg)
+    void addProj(const sba::Projection& msg)
     {
-      int camindex = msg->camindex;
-      int pointindex = msg->pointindex;
-      Vector3d keypoint(msg->u, msg->v, msg->d);
-      bool stereo = msg->stereo;
+      int camindex = node_indices[msg.camindex];
+      int pointindex = point_indices[msg.pointindex];
+      Vector3d keypoint(msg.u, msg.v, msg.d);
+      bool stereo = msg.stereo;
       
       // Make sure it's valid before adding it.
       if (pointindex < (int)sba.tracks.size() && camindex < (int)sba.nodes.size())
@@ -78,20 +105,20 @@ class SBANode
       if (sba.nodes.size() > 0)
       {
         // Copied from vslam.cpp: refine()
-        sba.doSBA(3, 1.0e-4, SBA_SPARSE_CHOLESKY);
+        //sba.doSBA(3, 1.0e-4, SBA_SPARSE_CHOLESKY);
         
         double cost = sba.calcRMSCost();
         
-        if (!(cost == cost)) // is NaN?
+        if (isnan(cost) || isinf(cost)) // is NaN?
         {
           ROS_INFO("NaN cost!");  
         }
         else
         { 
-          if (sba.calcRMSCost() > 4.0)
+          /*if (sba.calcRMSCost() > 4.0)
             sba.doSBA(10, 1.0e-4, SBA_SPARSE_CHOLESKY);  // do more
           if (sba.calcRMSCost() > 4.0)
-            sba.doSBA(10, 1.0e-4, SBA_SPARSE_CHOLESKY);  // do more
+            sba.doSBA(10, 1.0e-4, SBA_SPARSE_CHOLESKY);  // do more*/
         }
       }
       
@@ -110,60 +137,11 @@ class SBANode
          drawGraph(sba, cam_marker_pub, point_marker_pub);
       }
     }
-    
-    bool mergeTracks(sba::MergeTracks::Request &req,
-                     sba::MergeTracks::Response &res)
-    {
-      res.trackid = sba.mergeTracksSt(req.trackid0, req.trackid1);
-      
-      ROS_INFO("Merging tracks %d and %d into track %d.", 
-                req.trackid0, req.trackid1, res.trackid);
-      
-      return true;
-    }
-    
-    bool addNodeServ(sba::AddNode::Request &req,
-                     sba::AddNode::Response &res)
-    {
-      sba::CameraNode msg = req.node;
-      
-      Vector4d trans(msg.trans.translation.x, msg.trans.translation.y, msg.trans.translation.z, 1.0);
-      Quaternion<double> qrot(msg.trans.rotation.x, msg.trans.rotation.y, msg.trans.rotation.z, msg.trans.rotation.w);
-      
-      frame_common::CamParams cam_params;
-      cam_params.fx = msg.fx;
-      cam_params.fy = msg.fy;
-      cam_params.cx = msg.cx;
-      cam_params.cy = msg.cy;
-      cam_params.tx = msg.baseline;
-      bool fixed = msg.fixed;
-      
-      res.index = sba.addNode(trans, qrot, cam_params, fixed);
-      
-      return true;
-    }
-    
-    bool addPointServ(sba::AddPoint::Request &req,
-                      sba::AddPoint::Response &res)
-    {
-      geometry_msgs::PointStamped msg = req.point;
-      Vector4d point(msg.point.x, msg.point.y, msg.point.z, 1.0);
-      res.index = sba.addPoint(point);
-      
-      return true;
-    }
   
     SBANode()
     {
       // Subscribe to topics.
-      // node_sub = n.subscribe<sba::CameraNode>("/sba/nodes", 5000, &SBANode::addNode, this);
-      // point_sub = n.subscribe<geometry_msgs::PointStamped>("/sba/points", 5000, &SBANode::addPoint, this);
-      proj_sub = n.subscribe<sba::Projection>("/sba/projections", 5000, &SBANode::addProj, this);
-      
-      // Advertise services.
-      add_node_serv = n.advertiseService("/sba/add_node", &SBANode::addNodeServ, this);
-      add_point_serv = n.advertiseService("/sba/add_point", &SBANode::addPointServ, this);
-      merge_tracks_serv = n.advertiseService("/sba/merge_tracks", &SBANode::mergeTracks, this);
+      frame_sub = n.subscribe<sba::Frame>("/sba/frames", 5000, &SBANode::addFrame, this);
       
       // Advertise visualization topics.
       cam_marker_pub = n.advertise<visualization_msgs::Marker>("/sba/cameras", 1);
@@ -181,3 +159,4 @@ int main(int argc, char** argv)
   SBANode sbanode;
   ros::spin();
 }
+

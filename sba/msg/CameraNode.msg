@@ -1,8 +1,8 @@
-# Node parameters
-Header header
+# Node Parameters
+uint32 index
 
 # Contains a translation and rotation
-geometry_msgs/Transform trans
+geometry_msgs/Transform transform
 
 # Camera parameters from the K matrix
 float64 fx

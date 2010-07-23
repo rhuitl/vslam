@@ -75,19 +75,7 @@ namespace sba
     
     /// Normalize quaternion coefficient to unit;
     /// problem with derivatives near w=0, solved by a hack for now
-    inline 
-      void normRot()
-    { 
-      //      std::cout << "[NormRot] qrot start = " << qrot.transpose() << std::endl;
-      if (qrot.w() < 0) qrot.coeffs().start<3>() = -qrot.coeffs().start<3>();
-      double sn = qrot.coeffs().start<3>().squaredNorm();
-      if (sn >= 0.9999)            // too close to high derivatives
-        qrot.coeffs().start<3>() *= -1.0/(sqrt(sn)*1.0001); // switch sides; 1e-4 seems to work well
-      qrot.w() = sqrt(1.0 - qrot.coeffs().start<3>().squaredNorm());
-      if (isnan(qrot.x()) || isnan(qrot.y()) || isnan(qrot.z()) || isnan(qrot.w()) )
-        { printf("[NormRot] Bad quaternion\n"); *(int *)0x0 = 0; }
-      //      std::cout << "[NormRot] qrot end   = " << qrot.transpose() << std::endl;
-    }
+    void normRot();
     
     void normRotLocal();
 

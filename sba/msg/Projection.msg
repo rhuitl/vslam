@@ -1,5 +1,4 @@
 # Projection
-Header header
 
 # Camera index
 uint32 camindex
