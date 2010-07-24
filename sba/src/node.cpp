@@ -45,7 +45,7 @@ namespace sba
     if (isnan(qrot.x()) || isnan(qrot.y()) || isnan(qrot.z()) || isnan(qrot.w()) )
       { 
         printf("[NormRot] Bad quaternion: %f %f %f %f\n", qrot.x(), qrot.y(), qrot.z(), qrot.w()); 
-        *(int *)0x0 = 0; 
+        exit(1); 
       }
     //      std::cout << "[NormRot] qrot end   = " << qrot.transpose() << std::endl;
   }
@@ -124,7 +124,10 @@ namespace sba
       qrot.normalize();
       if (qrot.w() < 0) qrot.coeffs().start<3>() = -qrot.coeffs().start<3>();
       if (isnan(qrot.x()) || isnan(qrot.y()) || isnan(qrot.z()) || isnan(qrot.w()) )
-        { printf("[NormRot] Bad quaternion\n"); *(int *)0x0 = 0; }
+        { 
+          printf("[NormRot] Bad quaternion in normRotLocal(): %f %f %f %f\n", qrot.x(), qrot.y(), qrot.z(), qrot.w());
+          exit(1); 
+        }
       //      std::cout << "[NormRot] qrot end   = " << qrot.transpose() << std::endl;
    }
 

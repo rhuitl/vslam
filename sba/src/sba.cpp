@@ -93,7 +93,7 @@ namespace sba
     nd.setTransform(); // set up world2node transform
     nd.setDr(true); // set rotational derivatives
     // Should this be local or global?
-    nd.normRotLocal();
+    nd.normRot();//Local();
     nodes.push_back(nd);
     return nodes.size()-1;
   }
@@ -268,7 +268,7 @@ namespace sba
     
     for(size_t i=0; i<tracks.size(); i++)
       {
-        ProjMap &prjs = tracks[i].projections;
+        /*ProjMap &prjs = tracks[i].projections;
         if (prjs.size() == 0) continue;
         for(ProjMap::iterator itr = prjs.begin(); itr != prjs.end(); itr++)
           {
@@ -277,7 +277,10 @@ namespace sba
             prj.calcErr(nodes[prj.ndi],tracks[i].point);
             if (prj.err[0] == 0.0 && prj.err[1] == 0.0)
               count++;
-          }
+          }*/
+          
+          if (tracks[i].point.z() < 0)
+            count++;
       }
 
     return count;
@@ -1367,7 +1370,7 @@ void SysSBA::setupSys(double sLambda)
               tracks[i].point = oldpoints[i];
             }
             // reset cams
-            for(int i=0; i<ncams; i++)
+            for(int i=0; i < nodes.size(); i++)
               {
                 Node &nd = nodes[i];
                 if (nd.isFixed) continue; // not to be updated
@@ -1378,6 +1381,11 @@ void SysSBA::setupSys(double sLambda)
                 nd.setDr(useLocalAngles);
               }
             cost = calcCost();  // need to reset errors
+            if (isinf(cost))
+            {
+              cout << "Cost is inf!";
+              exit(1);
+            }
 	          if (verbose > 0)
 	            cout << iter << " Downdated cost: " << cost << endl;
                   // NOTE: shouldn't need to redo all calcs in setupSys

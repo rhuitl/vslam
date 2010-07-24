@@ -21,7 +21,8 @@ class SBANode
     ros::Publisher cam_marker_pub;
     ros::Publisher point_marker_pub;
     
-    ros::Timer timer;
+    ros::Timer timer_sba;
+    ros::Timer timer_vis;
     
     // Mapping from external point index to internal (sba) point index
     std::map<unsigned int, unsigned int> point_indices;
@@ -113,24 +114,27 @@ class SBANode
         {
           ROS_INFO("NaN cost!");  
         }
-        else
+        /*else
         { 
-          /*if (sba.calcRMSCost() > 4.0)
+          if (sba.calcRMSCost() > 4.0)
             sba.doSBA(10, 1.0e-4, SBA_SPARSE_CHOLESKY);  // do more
           if (sba.calcRMSCost() > 4.0)
-            sba.doSBA(10, 1.0e-4, SBA_SPARSE_CHOLESKY);  // do more*/
-        }
+            sba.doSBA(10, 1.0e-4, SBA_SPARSE_CHOLESKY);  // do more
+        }*/
       }
       
       unsigned int projs = 0;
       // For debugging.
       for (int i = 0; i < (int)sba.tracks.size(); i++)
       {
-        projs += sba.tracks.size();
+        projs += sba.tracks[i].projections.size();
       }
       ROS_INFO("SBA Nodes: %d, Points: %d, Projections: %d", (int)sba.nodes.size(),
         (int)sba.tracks.size(), projs);
-        
+    }
+    
+    void publishTopics(const ros::TimerEvent& event)
+    {
       // Visualization
       if (cam_marker_pub.getNumSubscribers() > 0 || point_marker_pub.getNumSubscribers() > 0)
       { 
@@ -147,7 +151,8 @@ class SBANode
       cam_marker_pub = n.advertise<visualization_msgs::Marker>("/sba/cameras", 1);
       point_marker_pub = n.advertise<visualization_msgs::Marker>("/sba/points", 1);
 
-      timer = n.createTimer(ros::Duration(10), &SBANode::doSBA, this);
+      timer_sba = n.createTimer(ros::Duration(10), &SBANode::doSBA, this);
+      timer_vis = n.createTimer(ros::Duration(1), &SBANode::publishTopics, this);
       
       sba.useCholmod(true);
     }
