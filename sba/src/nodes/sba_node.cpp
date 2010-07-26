@@ -4,6 +4,7 @@
 // Messages
 #include <sba/Frame.h>
 #include <visualization_msgs/Marker.h>
+#include <sba/sba_file_io.h>
 
 #include <sba/sba.h>
 #include <sba/visualization.h>
@@ -58,7 +59,7 @@ class SBANode
     void addNode(const sba::CameraNode& msg)
     {
       Vector4d trans(msg.transform.translation.x, msg.transform.translation.y, msg.transform.translation.z, 1.0);
-      Quaternion<double> qrot(msg.transform.rotation.x, msg.transform.rotation.y, msg.transform.rotation.z, msg.transform.rotation.w);
+      Quaterniond qrot(msg.transform.rotation.w, msg.transform.rotation.x, msg.transform.rotation.y, msg.transform.rotation.z);
       
       frame_common::CamParams cam_params;
       cam_params.fx = msg.fx;
@@ -115,9 +116,9 @@ class SBANode
       if (sba.nodes.size() > 0)
       {
         // Copied from vslam.cpp: refine()
-        sba.doSBA(3, 1.0e-4, SBA_SPARSE_CHOLESKY);
+        //sba.doSBA(10, 1.0e-4, SBA_SPARSE_CHOLESKY);
         
-        double cost = sba.calcRMSCost();
+        //double cost = sba.calcRMSCost();
         
         /*if (isnan(cost) || isinf(cost)) // is NaN?
         {
@@ -130,6 +131,8 @@ class SBANode
           if (sba.calcRMSCost() > 4.0)
             sba.doSBA(10, 1.0e-4, SBA_SPARSE_CHOLESKY);  // do more
         }*/
+        
+        sba::writeBundlerFile("omnomnom.out", sba);
       }
     }
     

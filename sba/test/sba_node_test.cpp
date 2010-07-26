@@ -8,6 +8,7 @@
 
 #include <visualization_msgs/Marker.h>
 #include <sba/Frame.h>
+#include <sba/sba_file_io.h>
 
 using namespace sba;
 using namespace std;
@@ -192,10 +193,6 @@ void processSBA(ros::NodeHandle nh)
     // Provide some information about the data read in.
     ROS_INFO("Cameras (nodes): %d, Points: %d",
         (int)sys.nodes.size(), (int)sys.tracks.size());
-        
-    // Perform SBA with 10 iterations, an initial lambda step-size of 1e-3, 
-    // and using CSPARSE.
-    //sys.doSBA(10, 1e-3, SBA_SPARSE_CHOLESKY);
     
     // Create camera parameters.
     frame_common::CamParams cp;
@@ -234,10 +231,12 @@ void processSBA(ros::NodeHandle nh)
       
       sba_frames_pub.publish(framemsg);
       ros::spinOnce();
-      ros::Duration(5.0).sleep();
+      //ros::Duration(5.0).sleep();
       
       ROS_INFO("Publishing node #%d", i);
     }
+    
+    sba::writeBundlerFile("omnomnom_groundtruth.out", sys);
 }
 
 int main(int argc, char **argv)
