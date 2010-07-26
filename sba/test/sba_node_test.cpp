@@ -69,15 +69,16 @@ void setupSBA(SysSBA &sys)
     // Set the random seed.
     unsigned short seed = (unsigned short)time(NULL);
     seed48(&seed);
+    double ptscale = 1.0;
         
     // Add points into the system, and add noise.
     for (i = 0; i < points.size(); i++)
     {
       // Add up to .5 points of noise.
       Vector4d temppoint = points[i];
-      temppoint.x() += 0;//drand48() - 0.5;
-      temppoint.y() += 0;//drand48() - 0.5;
-      temppoint.z() += 0;//drand48() - 0.5;
+      temppoint.x() += ptscale*(drand48() - 0.5);
+      temppoint.y() += ptscale*(drand48() - 0.5);
+      temppoint.z() += ptscale*(drand48() - 0.5);
       sys.addPoint(temppoint);
     }
     
@@ -94,17 +95,18 @@ void setupSBA(SysSBA &sys)
         
         // If valid (within the range of the image size), add the monocular 
         // projection to SBA.
-        if (proj.x() > 0 && proj.x() < maxx && proj.y() > 0 && proj.y() < maxy)
+        if (proj.x() > 0 && proj.x() < maxx-1 && proj.y() > 0 && proj.y() < maxy-1)
         {
           sys.addMonoProj(j, i, proj);
+          //printf("Adding projection: Node: %d Point: %d Proj: %f %f\n", j, i, proj.x(), proj.y());
         }
       }
     }
     
     // Add noise to node position.
     
-    double transscale = 0;//1.0;
-    double rotscale = 0;//0.2;
+    double transscale = 1.0;
+    double rotscale = 0.2;
     
     // Don't actually add noise to the first node, since it's fixed.
     for (i = 1; i < sys.nodes.size(); i++)
@@ -191,8 +193,14 @@ void processSBA(ros::NodeHandle nh)
     setupSBA(sys);
     
     // Provide some information about the data read in.
-    ROS_INFO("Cameras (nodes): %d, Points: %d",
-        (int)sys.nodes.size(), (int)sys.tracks.size());
+    // For debugging.
+    unsigned int projs = 0;
+    for (int i = 0; i < (int)sys.tracks.size(); i++)
+    {
+      projs += sys.tracks[i].projections.size();
+    }
+    ROS_INFO("SBA Nodes: %d, Points: %d, Projections: %d", (int)sys.nodes.size(),
+      (int)sys.tracks.size(), projs);
     
     // Create camera parameters.
     frame_common::CamParams cp;
@@ -223,20 +231,22 @@ void processSBA(ros::NodeHandle nh)
         
         sba::Projection prjmsg;
         
-        sba::Proj &prj = sys.tracks[j].projections[i];
-        publishProjection(i, j, prj.kp, false, prjmsg);
+        ProjMap::iterator iter = sys.tracks[j].projections.find(i);
+	      if (iter != sys.tracks[j].projections.end()) 
+        {
+          sba::Proj &prj = iter->second;
+          publishProjection(i, j, prj.kp, false, prjmsg);
         
-        framemsg.projections.push_back(prjmsg);
+          framemsg.projections.push_back(prjmsg);
+        }
       }
       
       sba_frames_pub.publish(framemsg);
       ros::spinOnce();
-      //ros::Duration(5.0).sleep();
+      ros::Duration(5.0).sleep();
       
       ROS_INFO("Publishing node #%d", i);
     }
-    
-    sba::writeBundlerFile("omnomnom_groundtruth.out", sys);
 }
 
 int main(int argc, char **argv)

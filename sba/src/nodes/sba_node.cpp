@@ -35,7 +35,9 @@ class SBANode
     {
       unsigned int i = 0;
       
-      //printf("nodes.size: %u, points.size: %u, proj.size: %u", msg->nodes.size(), msg->points.size(), msg->projections.size());
+      //printf("nodes.size: %u, points.size: %u, proj.size: %u", 
+      //(unsigned int)msg->nodes.size(), (unsigned int)msg->points.size(), 
+      //(unsigned int)msg->projections.size());
       
       // Add all nodes
       for (i=0; i < msg->nodes.size(); i++)
@@ -54,6 +56,10 @@ class SBANode
       { 
         addProj(msg->projections[i]);
       }
+      
+      printf("[SBA] Added frame with %u nodes, %u points, and %u projections\n", 
+              (unsigned int)msg->nodes.size(), (unsigned int)msg->points.size(), 
+              (unsigned int)msg->projections.size());
     }
     
     void addNode(const sba::CameraNode& msg)
@@ -116,11 +122,11 @@ class SBANode
       if (sba.nodes.size() > 0)
       {
         // Copied from vslam.cpp: refine()
-        //sba.doSBA(10, 1.0e-4, SBA_SPARSE_CHOLESKY);
+        sba.doSBA(10, 1.0e-4, SBA_SPARSE_CHOLESKY);
         
-        //double cost = sba.calcRMSCost();
+        double cost = sba.calcRMSCost();
         
-        /*if (isnan(cost) || isinf(cost)) // is NaN?
+        if (isnan(cost) || isinf(cost)) // is NaN?
         {
           ROS_INFO("NaN cost!");  
         }
@@ -130,9 +136,7 @@ class SBANode
             sba.doSBA(10, 1.0e-4, SBA_SPARSE_CHOLESKY);  // do more
           if (sba.calcRMSCost() > 4.0)
             sba.doSBA(10, 1.0e-4, SBA_SPARSE_CHOLESKY);  // do more
-        }*/
-        
-        sba::writeBundlerFile("omnomnom.out", sba);
+        }
       }
     }
     
@@ -158,6 +162,8 @@ class SBANode
       timer_vis = n.createTimer(ros::Duration(1), &SBANode::publishTopics, this);
       
       sba.useCholmod(true);
+      
+      printf("[SBA] Initialization complete.\n");
     }
 };
 

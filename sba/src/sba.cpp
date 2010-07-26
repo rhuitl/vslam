@@ -1381,11 +1381,6 @@ void SysSBA::setupSys(double sLambda)
                 nd.setDr(useLocalAngles);
               }
             cost = calcCost();  // need to reset errors
-            if (isinf(cost))
-            {
-              cout << "Cost is inf!";
-              exit(1);
-            }
 	          if (verbose > 0)
 	            cout << iter << " Downdated cost: " << cost << endl;
                   // NOTE: shouldn't need to redo all calcs in setupSys

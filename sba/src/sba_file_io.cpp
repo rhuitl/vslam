@@ -369,7 +369,7 @@ void sba::writeLourakisFile(const char *fname, SysSBA& sba)
           {
             Proj &prj = itr->second;      
             if (!prj.isValid) continue;
-            int cami = prj.ndi;
+            int cami = itr->first;//prj.ndi;
             // NOTE: Lourakis projected y is reversed (???)
             fprintf(fn," %d %f %f ",cami,prj.kp[0],prj.kp[1]);
           }
