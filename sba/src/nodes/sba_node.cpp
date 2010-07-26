@@ -103,26 +103,6 @@ class SBANode
     
     void doSBA(const ros::TimerEvent& event)
     {
-      if (sba.nodes.size() > 0)
-      {
-        // Copied from vslam.cpp: refine()
-        //sba.doSBA(3, 1.0e-4, SBA_SPARSE_CHOLESKY);
-        
-        double cost = sba.calcRMSCost();
-        
-        if (isnan(cost) || isinf(cost)) // is NaN?
-        {
-          ROS_INFO("NaN cost!");  
-        }
-        /*else
-        { 
-          if (sba.calcRMSCost() > 4.0)
-            sba.doSBA(10, 1.0e-4, SBA_SPARSE_CHOLESKY);  // do more
-          if (sba.calcRMSCost() > 4.0)
-            sba.doSBA(10, 1.0e-4, SBA_SPARSE_CHOLESKY);  // do more
-        }*/
-      }
-      
       unsigned int projs = 0;
       // For debugging.
       for (int i = 0; i < (int)sba.tracks.size(); i++)
@@ -131,6 +111,26 @@ class SBANode
       }
       ROS_INFO("SBA Nodes: %d, Points: %d, Projections: %d", (int)sba.nodes.size(),
         (int)sba.tracks.size(), projs);
+      
+      if (sba.nodes.size() > 0)
+      {
+        // Copied from vslam.cpp: refine()
+        sba.doSBA(3, 1.0e-4, SBA_SPARSE_CHOLESKY);
+        
+        double cost = sba.calcRMSCost();
+        
+        /*if (isnan(cost) || isinf(cost)) // is NaN?
+        {
+          ROS_INFO("NaN cost!");  
+        }
+        else
+        { 
+          if (sba.calcRMSCost() > 4.0)
+            sba.doSBA(10, 1.0e-4, SBA_SPARSE_CHOLESKY);  // do more
+          if (sba.calcRMSCost() > 4.0)
+            sba.doSBA(10, 1.0e-4, SBA_SPARSE_CHOLESKY);  // do more
+        }*/
+      }
     }
     
     void publishTopics(const ros::TimerEvent& event)

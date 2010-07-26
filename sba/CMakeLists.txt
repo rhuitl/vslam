@@ -99,6 +99,10 @@ target_link_libraries(test/run_sba_sphere sba)
 rosbuild_add_executable(bin/sba_node src/nodes/sba_node.cpp)
 target_link_libraries(bin/sba_node sba_ros)
 
+# Test code for the SBA Node
+rosbuild_add_executable(test/sba_node_test test/sba_node_test.cpp)
+target_link_libraries(test/sba_node_test sba)
+
 ######################################################################
 # visualization
 #
