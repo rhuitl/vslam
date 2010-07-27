@@ -11,6 +11,9 @@
 
 #include <map>
 
+#include <ros/callback_queue.h>
+
+
 using namespace sba;
 
 class SBANode
@@ -35,18 +38,14 @@ class SBANode
     void addNode(const sba::CameraNode& msg);
     void addPoint(const sba::WorldPoint& msg);
     void addProj(const sba::Projection& msg);
-    void doSBA(const ros::TimerEvent& event);
-    void publishTopics(const ros::TimerEvent& event);
+    void doSBA(/*const ros::TimerEvent& event*/);
+    void publishTopics(/*const ros::TimerEvent& event*/);
     SBANode();
 };
     
 void SBANode::addFrame(const sba::Frame::ConstPtr& msg)
 {
   unsigned int i = 0;
-  
-  //printf("nodes.size: %u, points.size: %u, proj.size: %u", 
-  //(unsigned int)msg->nodes.size(), (unsigned int)msg->points.size(), 
-  //(unsigned int)msg->projections.size());
   
   ros::Time beginning = ros::Time::now();
   
@@ -66,6 +65,14 @@ void SBANode::addFrame(const sba::Frame::ConstPtr& msg)
   for (i=0; i < msg->projections.size(); i++)
   { 
     addProj(msg->projections[i]);
+  }
+  
+  publishTopics();
+  
+  // Do SBA Every 10 frames.
+  if (sba.nodes.size() % 10 == 0)
+  {
+    doSBA();
   }
   
   ros::Time end = ros::Time::now();
@@ -121,7 +128,7 @@ void SBANode::addProj(const sba::Projection& msg)
   }
 }
 
-void SBANode::doSBA(const ros::TimerEvent& event)
+void SBANode::doSBA(/*const ros::TimerEvent& event*/)
 {
   unsigned int projs = 0;
   // For debugging.
@@ -143,17 +150,17 @@ void SBANode::doSBA(const ros::TimerEvent& event)
     {
       ROS_INFO("NaN cost!");  
     }
-    /*else
+    else
     { 
       if (sba.calcRMSCost() > 4.0)
         sba.doSBA(10, 1.0e-4, SBA_SPARSE_CHOLESKY);  // do more
       if (sba.calcRMSCost() > 4.0)
         sba.doSBA(10, 1.0e-4, SBA_SPARSE_CHOLESKY);  // do more
-    }*/
+    }
   }
 }
 
-void SBANode::publishTopics(const ros::TimerEvent& event)
+void SBANode::publishTopics(/*const ros::TimerEvent& event*/)
 {
   // Visualization
   if (cam_marker_pub.getNumSubscribers() > 0 || point_marker_pub.getNumSubscribers() > 0)
@@ -168,8 +175,8 @@ SBANode::SBANode()
   cam_marker_pub = n.advertise<visualization_msgs::Marker>("/sba/cameras", 1);
   point_marker_pub = n.advertise<visualization_msgs::Marker>("/sba/points", 1);
 
-  timer_sba = n.createTimer(ros::Duration(5.0), &SBANode::doSBA, this);
-  timer_vis = n.createTimer(ros::Duration(1.0), &SBANode::publishTopics, this);
+  //timer_sba = n.createTimer(ros::Duration(5.0), &SBANode::doSBA, this);
+  //timer_vis = n.createTimer(ros::Duration(1.0), &SBANode::publishTopics, this);
   
   // Subscribe to topics.
   frame_sub = n.subscribe<sba::Frame>("/sba/frames", 5000, &SBANode::addFrame, this);
@@ -183,6 +190,7 @@ int main(int argc, char** argv)
 {
   ros::init(argc, argv, "sba_node");
   SBANode sbanode;
+
   ros::spin();
 }
 

@@ -250,11 +250,11 @@ namespace sba
     err(2) = p2(0)/p2(2);
     if (p1(2) <= 0.0) 
     {
-//#ifdef DEBUG
+#ifdef DEBUG
       printf("[CalcErr] negative Z! Node %d\n",ndi);
       if (isnan(err[0]) || isnan(err[1]) ) printf("[CalcErr] NaN!\n"); 
-//#endif
-      err = Eigen::Vector3d(100.0,100.0,100.0);
+#endif
+      err = Eigen::Vector3d(0.0,0.0,0.0);
       return 100.0;
     }
     err -= kp;
