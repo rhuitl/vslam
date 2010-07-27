@@ -243,7 +243,7 @@ namespace sba
 
     double invp1 = 1.0/p1(2);
     
-    err.start(2) = p1.start(2)*invp1;
+    err.start<2>() = p1.start<2>()*invp1;
     // right camera px
     p2 = nd.Kcam*(p2-pb);
  
