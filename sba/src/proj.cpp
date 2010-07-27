@@ -1,4 +1,5 @@
 #include <sba/proj.h>
+#include <ros/console.h> // DEBUG
 
 namespace sba
 {
@@ -239,21 +240,29 @@ namespace sba
     Eigen::Vector3d p1 = nd.w2i * pt; 
     Eigen::Vector3d p2 = nd.w2n * pt; 
     Eigen::Vector3d pb(nd.baseline,0,0);
+
     double invp1 = 1.0/p1(2);
+    
     err.start(2) = p1.start(2)*invp1;
     // right camera px
     p2 = nd.Kcam*(p2-pb);
+ 
     err(2) = p2(0)/p2(2);
     if (p1(2) <= 0.0) 
     {
-#ifdef DEBUG
-      printf("[CalcErr] negative Z! Node %d point %d\n",ndi,pti);
+//#ifdef DEBUG
+      printf("[CalcErr] negative Z! Node %d\n",ndi);
       if (isnan(err[0]) || isnan(err[1]) ) printf("[CalcErr] NaN!\n"); 
-#endif
-      err = Eigen::Vector3d(0.0,0.0,0.0);
-      return 0.0;
+//#endif
+      err = Eigen::Vector3d(100.0,100.0,100.0);
+      return 100.0;
     }
     err -= kp;
+    
+    if (abs(err(0)) > 1e6 || abs(err(1)) > 1e6 || abs(err(2)) > 1e6)
+    {
+      ROS_FATAL("\n\n[CalcErr] Excessive error.\n");
+    }
     return err.squaredNorm(); 
   }
   

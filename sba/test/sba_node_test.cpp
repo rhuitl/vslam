@@ -243,7 +243,7 @@ void processSBA(ros::NodeHandle nh)
       
       sba_frames_pub.publish(framemsg);
       ros::spinOnce();
-      ros::Duration(5.0).sleep();
+      //ros::Duration(5.0).sleep();
       
       ROS_INFO("Publishing node #%d", i);
     }

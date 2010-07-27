@@ -128,7 +128,7 @@ namespace sba
     /// 6DOF pose as a unit quaternion and translation vector, saving
     /// for LM step
     Eigen::Matrix<double,4,1> oldtrans; // homogeneous coordinates, last element is 1.0
-    Eigen::Quaternion<double> oldqrot;  // this is the quaternion as coefficients, note xyzw order
+    Eigen::Quaternion<double> oldqrot;  // this is the quaternion
   };
   
   

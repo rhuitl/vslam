@@ -268,7 +268,7 @@ namespace sba
     
     for(size_t i=0; i<tracks.size(); i++)
       {
-        /*ProjMap &prjs = tracks[i].projections;
+        ProjMap &prjs = tracks[i].projections;
         if (prjs.size() == 0) continue;
         for(ProjMap::iterator itr = prjs.begin(); itr != prjs.end(); itr++)
           {
@@ -277,10 +277,10 @@ namespace sba
             prj.calcErr(nodes[prj.ndi],tracks[i].point);
             if (prj.err[0] == 0.0 && prj.err[1] == 0.0)
               count++;
-          }*/
+          }
           
-          if (tracks[i].point.z() < 0)
-            count++;
+          /*if (tracks[i].point.z() < 0)
+            count++;*/
       }
 
     return count;
@@ -1083,7 +1083,7 @@ void SysSBA::setupSys(double sLambda)
         Hpp.diagonal() *= lam;
         Matrix3d Hppi = Hpp.inverse(); // Which inverse should we use???? Note Hpp is symmetric; but this is not a bottleneck
         Vector3d &tp = tps[pi];
-        tp = Hppi * bp;           
+        tp = Hppi * bp;      
 
         // "outer product of track" in Step 4
         for(ProjMap::iterator itr = prjs.begin(); itr != prjs.end(); itr++)
@@ -1155,6 +1155,7 @@ void SysSBA::setupSys(double sLambda)
   int SysSBA::doSBA(int niter, double sLambda, int useCSparse)
   {
     // set aux buffer
+    oldpoints.clear();
     oldpoints.resize(tracks.size());
     
 
@@ -1167,7 +1168,13 @@ void SysSBA::setupSys(double sLambda)
     int nprjs = 0;
     for(size_t i=0; i<tracks.size(); i++)
     {
+      oldpoints[i] = tracks[i].point;
       nprjs += tracks[i].projections.size();
+    }
+    
+    if (nprjs == 0 || npts == 0 || ncams == 0)
+    {
+      return -1;
     }
 
     // initialize vars
@@ -1245,9 +1252,12 @@ void SysSBA::setupSys(double sLambda)
         t1 = utime();
         if (useCSparse)
           {
-            bool ok = csp.doChol();
-            if (!ok)
-              cout << "[DoSBA] Sparse Cholesky failed!" << endl;
+            if (csp.B.rows() != 0)
+            {
+              bool ok = csp.doChol();
+              if (!ok)
+                cout << "[DoSBA] Sparse Cholesky failed!" << endl;
+            }
           }
         else
           {
@@ -1365,7 +1375,7 @@ void SysSBA::setupSys(double sLambda)
             lambda *= laminc;   // increase lambda
             laminc *= 2.0;      // increase the increment
             // reset points
-            for(int i=0; i<tracks.size(); i++)
+            for(int i=0; i < tracks.size(); i++)
             {
               tracks[i].point = oldpoints[i];
             }
