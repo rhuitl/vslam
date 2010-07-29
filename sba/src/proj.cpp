@@ -4,10 +4,10 @@
 namespace sba
 {
   Proj::Proj(int ci, Eigen::Vector3d &q, bool stereo)
-      : ndi(ci), kp(q), stereo(stereo), isValid(true) {}
+      : ndi(ci), kp(q), stereo(stereo), isValid(true), useCovar(false) {}
       
   Proj::Proj(int ci, Eigen::Vector2d &q) 
-      : ndi(ci), kp(q(0), q(1), 0), stereo(false), isValid(true) {}
+      : ndi(ci), kp(q(0), q(1), 0), stereo(false), isValid(true), useCovar(false) {}
   
   Proj::Proj() 
       : ndi(0), kp(0, 0, 0), isValid(false) {}
@@ -43,7 +43,17 @@ namespace sba
     else
       return err.start<2>().squaredNorm();
   }
-
+  
+  void Proj::setCovariance(const Eigen::Matrix3d &covar)
+  {
+    useCovar = true;
+    covarmat = covar;
+  }
+  
+  void Proj::clearCovariance()
+  {
+    useCovar = false;
+  }
 
   void Proj::setJacobiansMono_(const Node &nd, const Point &pt)
   {
@@ -222,12 +232,21 @@ namespace sba
     for (int i=0; i<2; i++)
       for (int j=0; j<6; j++)
         if (isnan(jacc(i,j)) ) { printf("[SetJac] NaN in jacc(%d,%d)\n", i, j);  *(int *)0x0 = 0; }
-#endif        
+#endif
+    if (useCovar)
+    {
+      double lambda = 0.0001;
+      jacc = covarmat * jacc + lambda*Eigen::Matrix<double,3,6>::Identity();
+      jacp = covarmat * jacp + lambda*Eigen::Matrix<double,3,3>::Identity();
+    }
 
     // Set Hessians + extras.
     Hpp = jacp.transpose() * jacp;
     Hcc = jacc.transpose() * jacc;
     Hpc = jacp.transpose() * jacc;
+    //if (useCovar)
+    //  JcTE = jacc.transpose() * covarmat * err;
+    //else
     JcTE = jacc.transpose() * err;
     Bp = jacp.transpose() * err;
     
@@ -255,7 +274,7 @@ namespace sba
       if (isnan(err[0]) || isnan(err[1]) ) printf("[CalcErr] NaN!\n"); 
 #endif
       err = Eigen::Vector3d(0.0,0.0,0.0);
-      return 100.0;
+      return 0.0;
     }
     err -= kp;
     
@@ -263,7 +282,14 @@ namespace sba
     {
       ROS_FATAL("\n\n[CalcErr] Excessive error.\n");
     }
-    return err.squaredNorm(); 
+    
+    if (useCovar)
+    {
+      err = covarmat*err;
+      return err.squaredNorm();//(err.transpose()*covarmat*err)(0);
+    }
+    else
+      return err.squaredNorm();
   }
   
   // Constructors for track.

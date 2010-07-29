@@ -156,6 +156,13 @@ namespace sba
     tracks[pi].projections[ci] = Proj(ci, q);
     return true;
   }
+  
+  // Sets the covariance matrix of a projection.
+  void SysSBA::setProjCovariance(int ci, int pi, Eigen::Matrix3d &covar)
+  {
+    // TODO Check if the projection exists instead.
+    tracks[pi].projections[ci].setCovariance(covar);
+  }
 
   // error measure, squared
   // assumes node projection matrices have already been calculated
@@ -275,7 +282,7 @@ namespace sba
             Proj &prj = itr->second;      
             if (!prj.isValid) continue;
             prj.calcErr(nodes[prj.ndi],tracks[i].point);
-            if (prj.err[0] == 0.0 && prj.err[1] == 0.0)
+            if (prj.err[0] == 0.0 && prj.err[1] == 0.0 && prj.err[2] == 0.0)
               count++;
           }
           

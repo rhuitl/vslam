@@ -199,6 +199,14 @@ namespace sba
       /// in an image).
       bool addStereoProj(int ci, int pi, Eigen::Vector3d &q);
       
+      /// \brief Sets the covariance matrix of a projection.
+      /// \param ci camera/node index (same as in nodes structure).
+      /// \param pi point index (same as in tracks structure).
+      /// \param covar 3x3 covariance matrix that affects the cost of the
+      /// projection. Instead of the cost being ||err||, the cost is now
+      /// (err)T*covar*(err).
+      void setProjCovariance(int ci, int pi, Eigen::Matrix3d &covar);
+      
       /// linear system matrix and vector
       Eigen::MatrixXd A;
       Eigen::VectorXd B;

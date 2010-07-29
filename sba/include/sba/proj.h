@@ -103,6 +103,22 @@ namespace sba
       /// not sure if this is needed, it's close to 1.0
       const static double qScale = 1.0;
       
+      /// Use a Covariance matrix?
+      bool useCovar;
+      
+      /// Covariance matrix for cost calculation.
+      Eigen::Matrix<double,3,3> covarmat;
+      
+      /// Set the covariance matrix to use for cost calculation.
+      /// Without the covariance matrix, cost is calculated by:
+      /// cost = ||err||
+      /// With a covariance matrix, the cost is calculated by:
+      /// cost = (err)T*covar*(err)
+      void setCovariance(const Eigen::Matrix3d &covar);
+      
+      /// Clear the covariance matrix and no longer use it.
+      void clearCovariance();
+      
       EIGEN_MAKE_ALIGNED_OPERATOR_NEW // needed for 16B alignment
       
     protected:
@@ -117,7 +133,6 @@ namespace sba
       
       /// Calculate error function for stereo.
       double calcErrStereo_(const Node &nd, const Point &pt);
-      
   };
     
   class Track

@@ -103,6 +103,13 @@ target_link_libraries(bin/sba_node sba_ros)
 rosbuild_add_executable(test/sba_node_test test/sba_node_test.cpp)
 target_link_libraries(test/sba_node_test sba)
 
+# Test code for point-plane matching
+rosbuild_add_executable(test/sba_icp_test test/sba_icp_test.cpp)
+target_link_libraries(test/sba_icp_test sba_ros)
+
+rosbuild_add_executable(test/sba_icp_test_planes test/sba_icp_test_planes.cpp)
+target_link_libraries(test/sba_icp_test_planes sba_ros)
+
 ######################################################################
 # visualization
 #
