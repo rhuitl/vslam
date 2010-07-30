@@ -61,7 +61,11 @@ target_link_libraries(test/mono_test sba)
 
 # File IO
 rosbuild_add_gtest(test/file_io_test test/file_io_test.cpp)
-target_link_libraries(test/file_io_test  sba)
+target_link_libraries(test/file_io_test sba)
+
+# Point-to-plane Matching
+rosbuild_add_gtest(test/point_plane_test test/point_plane_test.cpp)
+target_link_libraries(test/point_plane_test sba)
 
 ######################################################################
 # executables
@@ -103,12 +107,9 @@ target_link_libraries(bin/sba_node sba_ros)
 rosbuild_add_executable(test/sba_node_test test/sba_node_test.cpp)
 target_link_libraries(test/sba_node_test sba)
 
-# Test code for point-plane matching
-rosbuild_add_executable(test/sba_icp_test test/sba_icp_test.cpp)
-target_link_libraries(test/sba_icp_test sba_ros)
-
-rosbuild_add_executable(test/sba_icp_test_planes test/sba_icp_test_planes.cpp)
-target_link_libraries(test/sba_icp_test_planes sba_ros)
+# Point to Plane matching
+rosbuild_add_executable(test/point_plane_vis test/point_plane_vis.cpp)
+target_link_libraries(test/point_plane_vis sba_ros)
 
 ######################################################################
 # visualization

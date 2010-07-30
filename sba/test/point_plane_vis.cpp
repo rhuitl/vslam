@@ -7,10 +7,66 @@
 #include <time.h>
 
 #include <visualization_msgs/Marker.h>
-#include <sba/sba_file_io.h>
 
 using namespace sba;
 using namespace std;
+
+const double PI = 3.141592;
+
+class Plane
+{
+  public:
+    vector<Point, Eigen::aligned_allocator<Point> > points;
+    Eigen::Vector3d normal;
+    
+    void rotate(const Eigen::Quaterniond& qrot)
+    {
+      Eigen::Matrix3d rotmat = qrot.toRotationMatrix();
+      
+      for (unsigned int i = 0; i < points.size(); i++)
+      {
+        points[i].start<3>() = rotmat*points[i].start<3>();
+      }
+      
+      normal = rotmat*normal;
+    }
+    
+    void rotate(double angle, double x, double y, double z)
+    {
+      Eigen::AngleAxis<double> angleaxis(angle, Vector3d(x, y, z));
+      rotate(Eigen::Quaterniond(angleaxis));
+    }
+         
+    void translate(const Eigen::Vector3d& trans)
+    {
+      for (unsigned int i = 0; i < points.size(); i++)
+      {
+        points[i].start<3>() += trans;
+      }
+    }
+    
+    void translate(double x, double y, double z)
+    {
+      Vector3d trans(x, y, z);
+      translate(trans);
+    }
+    
+    // Creates a plane with origin at (0,0,0) and opposite corner at (width, height, 0).
+    void resize(double width, double height, int nptsx, int nptsy)
+    {
+      for (int ix = 0; ix < nptsx ; ix++)
+      {
+        for (int iy = 0; iy < nptsy ; iy++)
+        {
+          // Create a point on the plane in a grid.
+          points.push_back(Point(width/nptsx*(ix+.5), -height/nptsy*(iy+.5), 0.0, 1.0));
+        }
+      }
+      
+      normal << 0, 0, -1;
+    }
+};
+
 
 void setupSBA(SysSBA &sys)
 {
@@ -20,35 +76,53 @@ void setupSBA(SysSBA &sys)
     cam_params.fy = 430; // Focal length in y
     cam_params.cx = 320; // X position of principal point
     cam_params.cy = 240; // Y position of principal point
-    cam_params.tx = -30;   // Baseline (no baseline since this is monocular)
+    cam_params.tx = -30; // Baseline (no baseline since this is monocular)
 
     // Define dimensions of the image.
     int maxx = 640;
     int maxy = 480;
 
     // Create a plane containing a wall of points.
-    int npts_x = 10; // Number of points on the plane in x
-    int npts_y = 5;  // Number of points on the plane in y
+    Plane middleplane;
+    middleplane.resize(3, 2, 10, 5);
+    middleplane.translate(0.0, 0.0, 5.0);
     
-    double plane_width = 3;     // Width of the plane on which points are positioned (x)
-    double plane_height = 2.5;    // Height of the plane on which points are positioned (y)
-    double plane_distance = 5; // Distance of the plane from the cameras (z)
+    Plane leftplane;
+    leftplane.resize(1, 2, 6, 12);
+    leftplane.rotate(-PI/4.0, 0, 1, 0);
+    leftplane.translate(0, 0, 5.0);
+    
+    Plane rightplane;
+    rightplane.resize(1, 2, 6, 12);
+    rightplane.rotate(PI/4.0, 0, 1, 0);
+    rightplane.translate(2, 0, 5.0);
+    
+    Plane topplane;
+    topplane.resize(1, 1.5, 6, 12);
+    topplane.rotate(PI/4.0, 1, 0, 0);
+    topplane.translate(2, 0, 5.0);
 
     // Vector containing the true point positions.
+    rightplane.normal = rightplane.normal; 
+  
     vector<Point, Eigen::aligned_allocator<Point> > points;
-
-    for (int ix = 0; ix < npts_x ; ix++)
-    {
-      for (int iy = 0; iy < npts_y ; iy++)
-      {
-        // Create a point on the plane in a grid.
-        points.push_back(Point(plane_width/npts_x*(ix+.5), -plane_height/npts_y*(iy+.5), plane_distance, 1.0));
-      }
-    }
+    vector<Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d> > normals;
+    
+    points.insert(points.end(), middleplane.points.begin(), middleplane.points.end());
+    normals.insert(normals.end(), middleplane.points.size(), middleplane.normal);
+    
+    points.insert(points.end(), leftplane.points.begin(), leftplane.points.end());
+    normals.insert(normals.end(), leftplane.points.size(), leftplane.normal);
+    
+    points.insert(points.end(), rightplane.points.begin(), rightplane.points.end());
+    normals.insert(normals.end(), rightplane.points.size(), rightplane.normal);
+    
+    points.insert(points.end(), topplane.points.begin(), topplane.points.end());
+    normals.insert(normals.end(), topplane.points.size(), topplane.normal);
     
     // Create nodes and add them to the system.
     unsigned int nnodes = 2; // Number of nodes.
-    double path_length = 1.5; // Length of the path the nodes traverse.
+    double path_length = 2; // Length of the path the nodes traverse.
     
     unsigned int i = 0, j = 0;
     
@@ -86,7 +160,6 @@ void setupSBA(SysSBA &sys)
     Vector3d proj, pc, baseline;
     
     Vector3d imagenormal(0, 0, 1);
-    Vector3d wallnormal(0, 0, -1);
     
     Matrix3d covar0;
     covar0 << sqrt(imagenormal(0)), 0, 0, 0, sqrt(imagenormal(1)), 0, 0, 0, sqrt(imagenormal(2));
@@ -95,10 +168,12 @@ void setupSBA(SysSBA &sys)
     Quaterniond rotation;
     Matrix3d rotmat;
     
-    // We can just calculate the rotation once; not the case with real data.
-    rotation.setFromTwoVectors(imagenormal, wallnormal);
-    rotmat = rotation.toRotationMatrix();
-    covar = rotmat.transpose()*covar0*rotmat;
+    unsigned int midindex = middleplane.points.size();
+    unsigned int leftindex = midindex + leftplane.points.size();
+    unsigned int rightindex = leftindex + rightplane.points.size();
+    printf("Normal for Middle Plane: [%f %f %f], index %d -> %d\n", middleplane.normal.x(), middleplane.normal.y(), middleplane.normal.z(), 0, midindex-1);
+    printf("Normal for Left Plane:   [%f %f %f], index %d -> %d\n", leftplane.normal.x(), leftplane.normal.y(), leftplane.normal.z(), midindex, leftindex-1);
+    printf("Normal for Right Plane:  [%f %f %f], index %d -> %d\n", rightplane.normal.x(), rightplane.normal.y(), rightplane.normal.z(), leftindex, rightindex-1);
     
     // Project points into nodes.
     for (i = 0; i < points.size(); i++)
@@ -116,7 +191,7 @@ void setupSBA(SysSBA &sys)
         proj.start<2>() = proj2d;
         proj(2) = pc(0)/pc(2);
         
-        // If valid (within the range of the image size), add the monocular 
+        // If valid (within the range of the image size), add the stereo 
         // projection to SBA.
         if (proj.x() > 0 && proj.x() < maxx && proj.y() > 0 && proj.y() < maxy)
         {
@@ -127,7 +202,11 @@ void setupSBA(SysSBA &sys)
           // wall normal = [0 0 -1]
           // covar = (R)T*[0 0 0;0 0 0;0 0 1]*R
           
-          //if (!(i % 10 == 0))
+          rotation.setFromTwoVectors(imagenormal, normals[i]);
+          rotmat = rotation.toRotationMatrix();
+          covar = rotmat.transpose()*covar0*rotmat;
+          
+          if (!(i % sys.nodes.size() == j))
             sys.setProjCovariance(j, i, covar);
         }
       }
@@ -135,8 +214,8 @@ void setupSBA(SysSBA &sys)
     
     // Add noise to node position.
     
-    double transscale = 0.0;//2.0;
-    double rotscale = 0.0;//0.2;
+    double transscale = 2.0;
+    double rotscale = 0.2;
     
     // Don't actually add noise to the first node, since it's fixed.
     for (i = 1; i < sys.nodes.size(); i++)
@@ -172,8 +251,8 @@ void processSBA(ros::NodeHandle node)
     ros::Publisher point_marker_pub = node.advertise<visualization_msgs::Marker>("/sba/points", 1);
     ros::spinOnce();
     
-    ROS_INFO("Sleeping for 2 seconds to publish topics...");
-    ros::Duration(2.0).sleep();
+    //ROS_INFO("Sleeping for 2 seconds to publish topics...");
+    ros::Duration(0.2).sleep();
     
     // Create an empty SBA system.
     SysSBA sys;
@@ -181,15 +260,17 @@ void processSBA(ros::NodeHandle node)
     setupSBA(sys);
     
     // Provide some information about the data read in.
-    ROS_INFO("Cameras (nodes): %d, Points: %d",
-        (int)sys.nodes.size(), (int)sys.tracks.size());
+    unsigned int projs = 0;
+    // For debugging.
+    for (int i = 0; i < (int)sys.tracks.size(); i++)
+    {
+      projs += sys.tracks[i].projections.size();
+    }
+    ROS_INFO("SBA Nodes: %d, Points: %d, Projections: %d", (int)sys.nodes.size(),
+      (int)sys.tracks.size(), projs);
         
-    // Publish markers
-    drawGraph(sys, cam_marker_pub, point_marker_pub);
-    ros::spinOnce();
-    
-    ROS_INFO("Sleeping for 5 seconds to publish pre-SBA markers.");
-    ros::Duration(5.0).sleep();
+    //ROS_INFO("Sleeping for 5 seconds to publish pre-SBA markers.");
+    //ros::Duration(5.0).sleep();
         
     // Perform SBA with 10 iterations, an initial lambda step-size of 1e-3, 
     // and using CSPARSE.
@@ -210,8 +291,8 @@ void processSBA(ros::NodeHandle node)
     // Publish markers
     drawGraph(sys, cam_marker_pub, point_marker_pub);
     ros::spinOnce();
-    ROS_INFO("Sleeping for 5 seconds to publish post-SBA markers.");
-    ros::Duration(5.0).sleep();
+    //ROS_INFO("Sleeping for 2 seconds to publish post-SBA markers.");
+    ros::Duration(0.2).sleep();
 }
 
 int main(int argc, char **argv)

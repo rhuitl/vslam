@@ -236,8 +236,8 @@ namespace sba
     if (useCovar)
     {
       double lambda = 0.0001;
-      jacc = covarmat * jacc + lambda*Eigen::Matrix<double,3,6>::Identity();
-      jacp = covarmat * jacp + lambda*Eigen::Matrix<double,3,3>::Identity();
+      jacc = covarmat * jacc;// + lambda*Eigen::Matrix<double,3,6>::Identity();
+      jacp = covarmat * jacp;// + lambda*Eigen::Matrix<double,3,3>::Identity();
     }
 
     // Set Hessians + extras.

@@ -2,11 +2,11 @@
 #include <sba/sba.h>
 #include <sba/visualization.h>
 
+// Bring in gtest
+#include <gtest/gtest.h>
 
 // For random seed.
 #include <time.h>
-
-#include <visualization_msgs/Marker.h>
 
 using namespace sba;
 using namespace std;
@@ -23,7 +23,7 @@ class Plane
     {
       Eigen::Matrix3d rotmat = qrot.toRotationMatrix();
       
-      for (int i = 0; i < points.size(); i++)
+      for (unsigned int i = 0; i < points.size(); i++)
       {
         points[i].start<3>() = rotmat*points[i].start<3>();
       }
@@ -39,7 +39,7 @@ class Plane
          
     void translate(const Eigen::Vector3d& trans)
     {
-      for (int i = 0; i < points.size(); i++)
+      for (unsigned int i = 0; i < points.size(); i++)
       {
         points[i].start<3>() += trans;
       }
@@ -67,8 +67,20 @@ class Plane
     }
 };
 
+class SBAPointPlaneTest : public :: testing::Test
+{
+  public:
+    // actual SBA object
+    SysSBA sys;
+    
+    // Vector containing the true point positions.
+    vector<Point, Eigen::aligned_allocator<Point> > points;
+    
+    void SetUp();
+    
+};
 
-void setupSBA(SysSBA &sys)
+void SBAPointPlaneTest::SetUp()
 {
     // Create camera parameters.
     frame_common::CamParams cam_params;
@@ -76,7 +88,7 @@ void setupSBA(SysSBA &sys)
     cam_params.fy = 430; // Focal length in y
     cam_params.cx = 320; // X position of principal point
     cam_params.cy = 240; // Y position of principal point
-    cam_params.tx = -30; // Baseline (no baseline since this is monocular)
+    cam_params.tx = 0;   // Baseline (no baseline since this is monocular)
 
     // Define dimensions of the image.
     int maxx = 640;
@@ -84,18 +96,23 @@ void setupSBA(SysSBA &sys)
 
     // Create a plane containing a wall of points.
     Plane middleplane;
-    middleplane.resize(3, 2.5, 10, 5);
+    middleplane.resize(3, 2, 10, 5);
     middleplane.translate(0.0, 0.0, 5.0);
     
     Plane leftplane;
-    leftplane.resize(1, 2.5, 6, 12);
+    leftplane.resize(1, 2, 6, 12);
     leftplane.rotate(-PI/4.0, 0, 1, 0);
-    leftplane.translate(-.5, 0, 4.5);
+    leftplane.translate(0, 0, 5.0);
     
     Plane rightplane;
-    rightplane.resize(1, 2.5, 6, 12);
+    rightplane.resize(1, 2, 6, 12);
     rightplane.rotate(PI/4.0, 0, 1, 0);
-    rightplane.translate(3, 0, 5.0);
+    rightplane.translate(2, 0, 5.0);
+    
+    Plane topplane;
+    topplane.resize(1, 1.5, 6, 12);
+    topplane.rotate(PI/4.0, 1, 0, 0);
+    topplane.translate(2, 0, 5.0);
 
     // Vector containing the true point positions.
     rightplane.normal = rightplane.normal; 
@@ -112,9 +129,12 @@ void setupSBA(SysSBA &sys)
     points.insert(points.end(), rightplane.points.begin(), rightplane.points.end());
     normals.insert(normals.end(), rightplane.points.size(), rightplane.normal);
     
+    points.insert(points.end(), topplane.points.begin(), topplane.points.end());
+    normals.insert(normals.end(), topplane.points.size(), topplane.normal);
+    
     // Create nodes and add them to the system.
-    unsigned int nnodes = 5; // Number of nodes.
-    double path_length = 3; // Length of the path the nodes traverse.
+    unsigned int nnodes = 2; // Number of nodes.
+    double path_length = 2; // Length of the path the nodes traverse.
     
     unsigned int i = 0, j = 0;
     
@@ -154,19 +174,20 @@ void setupSBA(SysSBA &sys)
     Vector3d imagenormal(0, 0, 1);
     
     Matrix3d covar0;
-    covar0 << sqrt(imagenormal(0)), 0, 0, 0, sqrt(imagenormal(1)), 0, 0, 0, sqrt(imagenormal(2));
+    covar0 << sqrt(imagenormal(0)), 0, 0, 
+              0, sqrt(imagenormal(1)), 0, 
+              0, 0, sqrt(imagenormal(2));
     Matrix3d covar;
     
     Quaterniond rotation;
     Matrix3d rotmat;
     
-    unsigned int midindex = middleplane.points.size();
-    unsigned int leftindex = midindex + leftplane.points.size();
-    unsigned int rightindex = leftindex + rightplane.points.size();
-    printf("Normal for Middle Plane: [%f %f %f], index %d -> %d\n", middleplane.normal.x(), middleplane.normal.y(), middleplane.normal.z(), 0, midindex-1);
-    printf("Normal for Left Plane:   [%f %f %f], index %d -> %d\n", leftplane.normal.x(), leftplane.normal.y(), leftplane.normal.z(), midindex, leftindex-1);
-    printf("Normal for Right Plane:  [%f %f %f], index %d -> %d\n", rightplane.normal.x(), rightplane.normal.y(), rightplane.normal.z(), leftindex, rightindex-1);
-    
+    printf("Normal for Middle Plane: [%f %f %f]\n", 
+      middleplane.normal.x(), middleplane.normal.y(), middleplane.normal.z());
+    printf("Normal for Left Plane:   [%f %f %f]\n", 
+      leftplane.normal.x(), leftplane.normal.y(), leftplane.normal.z());
+    printf("Normal for Right Plane:  [%f %f %f]\n", 
+      rightplane.normal.x(), rightplane.normal.y(), rightplane.normal.z());
     
     // Project points into nodes.
     for (i = 0; i < points.size(); i++)
@@ -184,7 +205,7 @@ void setupSBA(SysSBA &sys)
         proj.start<2>() = proj2d;
         proj(2) = pc(0)/pc(2);
         
-        // If valid (within the range of the image size), add the monocular 
+        // If valid (within the range of the image size), add the stereo 
         // projection to SBA.
         if (proj.x() > 0 && proj.x() < maxx && proj.y() > 0 && proj.y() < maxy)
         {
@@ -199,7 +220,7 @@ void setupSBA(SysSBA &sys)
           rotmat = rotation.toRotationMatrix();
           covar = rotmat.transpose()*covar0*rotmat;
           
-          if (!(i % 5 == 0))
+          if (!(i % sys.nodes.size() == j))
             sys.setProjCovariance(j, i, covar);
         }
       }
@@ -207,7 +228,7 @@ void setupSBA(SysSBA &sys)
     
     // Add noise to node position.
     
-    double transscale = 2.0;
+    double transscale = 1.0;
     double rotscale = 0.2;
     
     // Don't actually add noise to the first node, since it's fixed.
@@ -237,64 +258,26 @@ void setupSBA(SysSBA &sys)
         
 }
 
-void processSBA(ros::NodeHandle node)
+TEST_F(SBAPointPlaneTest, WriteRead)
 {
-    // Create publisher topics.
-    ros::Publisher cam_marker_pub = node.advertise<visualization_msgs::Marker>("/sba/cameras", 1);
-    ros::Publisher point_marker_pub = node.advertise<visualization_msgs::Marker>("/sba/points", 1);
-    ros::spinOnce();
-    
-    //ROS_INFO("Sleeping for 2 seconds to publish topics...");
-    ros::Duration(0.2).sleep();
-    
-    // Create an empty SBA system.
-    SysSBA sys;
-    
-    setupSBA(sys);
-    
-    // Provide some information about the data read in.
-    ROS_INFO("Cameras (nodes): %d, Points: %d",
-        (int)sys.nodes.size(), (int)sys.tracks.size());
-        
-    // Publish markers
-    drawGraph(sys, cam_marker_pub, point_marker_pub);
-    ros::spinOnce();
-    
-    //ROS_INFO("Sleeping for 5 seconds to publish pre-SBA markers.");
-    //ros::Duration(5.0).sleep();
-        
     // Perform SBA with 10 iterations, an initial lambda step-size of 1e-3, 
     // and using CSPARSE.
-    sys.doSBA(20, 1e-4, SBA_SPARSE_CHOLESKY);
+    sys.doSBA(10, 1e-3, SBA_SPARSE_CHOLESKY);
+    //testsys.doSBA(10, 1e-4, SBA_SPARSE_CHOLESKY);
     
-    int npts = sys.tracks.size();
-
-    ROS_INFO("Bad projs (> 10 pix): %d, Cost without: %f", 
-        (int)sys.countBad(10.0), sqrt(sys.calcCost(10.0)/npts));
-    ROS_INFO("Bad projs (> 5 pix): %d, Cost without: %f", 
-        (int)sys.countBad(5.0), sqrt(sys.calcCost(5.0)/npts));
-    ROS_INFO("Bad projs (> 2 pix): %d, Cost without: %f", 
-        (int)sys.countBad(2.0), sqrt(sys.calcCost(2.0)/npts));
+    for (unsigned int i = 0; i < points.size(); i++)
+    {
+      EXPECT_NEAR(points[i].x(), sys.tracks[i].point.x(), 0.01);
+      EXPECT_NEAR(points[i].y(), sys.tracks[i].point.y(), 0.01);
+      EXPECT_NEAR(points[i].z(), sys.tracks[i].point.z(), 0.01);
+    }
     
-    ROS_INFO("Cameras (nodes): %d, Points: %d",
-        (int)sys.nodes.size(), (int)sys.tracks.size());
-        
-    // Publish markers
-    drawGraph(sys, cam_marker_pub, point_marker_pub);
-    ros::spinOnce();
-    //ROS_INFO("Sleeping for 2 seconds to publish post-SBA markers.");
-    //ros::Duration(2.0).sleep();
+    // Don't check nodes yet because we don't store node information. To do!    
 }
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "sba_system_setup");
-    
-    ros::NodeHandle node;
-    
-    processSBA(node);
-    ros::spinOnce();
-
-    return 0;
+    testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }
 
