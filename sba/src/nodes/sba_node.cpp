@@ -70,7 +70,7 @@ void SBANode::addFrame(const sba::Frame::ConstPtr& msg)
   publishTopics();
   
   // Do SBA Every 10 frames.
-  if (sba.nodes.size() % 10 == 0)
+  if (sba.nodes.size() % 5 == 0)
   {
     doSBA();
   }

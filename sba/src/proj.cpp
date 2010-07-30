@@ -235,9 +235,8 @@ namespace sba
 #endif
     if (useCovar)
     {
-      double lambda = 0.0001;
-      jacc = covarmat * jacc;// + lambda*Eigen::Matrix<double,3,6>::Identity();
-      jacp = covarmat * jacp;// + lambda*Eigen::Matrix<double,3,3>::Identity();
+      jacc = covarmat * jacc;
+      jacp = covarmat * jacp;
     }
 
     // Set Hessians + extras.
@@ -274,6 +273,7 @@ namespace sba
       if (isnan(err[0]) || isnan(err[1]) ) printf("[CalcErr] NaN!\n"); 
 #endif
       err = Eigen::Vector3d(0.0,0.0,0.0);
+      
       return 0.0;
     }
     err -= kp;
@@ -281,12 +281,14 @@ namespace sba
     if (abs(err(0)) > 1e6 || abs(err(1)) > 1e6 || abs(err(2)) > 1e6)
     {
       ROS_FATAL("\n\n[CalcErr] Excessive error.\n");
+      
+      isValid = false;
     }
     
     if (useCovar)
     {
       err = covarmat*err;
-      return err.squaredNorm();//(err.transpose()*covarmat*err)(0);
+      return err.squaredNorm();
     }
     else
       return err.squaredNorm();
