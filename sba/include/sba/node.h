@@ -44,11 +44,8 @@ namespace sba
   typedef Eigen::Vector4d Point;
 
 
-  /// NODE holds graph nodes corresponding to frames, for use in
-  /// sparse bundle adjustment 
-
-  /// type double must be <double> or <float>
-  ///
+  /// \brief NODE holds graph nodes corresponding to frames, for use in
+  /// sparse bundle adjustment.
   /// Each node has a 6DOF pose, encoded as a translation vector and
   /// rotation unit quaternion (Eigen classes).  These represent the
   /// pose of the node in the world frame.
@@ -104,12 +101,17 @@ namespace sba
       setProjection();
     }
 
-    /// projects <p> onto <pi>
+    /// The transform from world to image coordinates.
     Eigen::Matrix<double,3,4> w2i;
+    
+    /// Project a point into image coordinates.
+    /// \param pi The u, v projection of the point into image coordinates.
+    /// \param p The 3D point in world coordinates to be projected.
     void project2im(Eigen::Vector2d &pi, const Point &p)
           { Eigen::Vector3d p1 = w2i * p; pi = p1.start(2)/p1(2); }
 
-    /// just set up projection matrix, assumes frame is present
+    /// Set up world-to-image projection matrix (w2i), assumes camera parameters
+    /// are filled.
     void setProjection()
           { w2i = Kcam * w2n; }
 

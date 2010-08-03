@@ -115,11 +115,18 @@ void SBANode::addProj(const sba::Projection& msg)
   int pointindex = point_indices[msg.pointindex];
   Vector3d keypoint(msg.u, msg.v, msg.d);
   bool stereo = msg.stereo;
+  bool usecovariance = msg.usecovariance;
+  Eigen::Matrix3d covariance;
+  covariance << msg.covariance[0], msg.covariance[1], msg.covariance[2],
+                msg.covariance[3], msg.covariance[4], msg.covariance[5],
+                msg.covariance[6], msg.covariance[7], msg.covariance[8];
   
   // Make sure it's valid before adding it.
   if (pointindex < (int)sba.tracks.size() && camindex < (int)sba.nodes.size())
   {
     sba.addProj(camindex, pointindex, keypoint, stereo);
+    if (usecovariance)
+      sba.setProjCovariance(camindex, pointindex, covariance);
   }
   else
   {
