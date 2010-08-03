@@ -67,17 +67,17 @@ namespace sba
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW // needed for 16B alignment
 
     /// 6DOF pose as a unit quaternion and translation vector
-    Eigen::Matrix<double,4,1> trans;    // homogeneous coordinates, last element is 1.0
-    Eigen::Quaternion<double> qrot;     // this is a unit quaternion as coefficients, note xyzw order
+    Eigen::Matrix<double,4,1> trans; /// Translation in homogeneous coordinates, last element is 1.0.
+    Eigen::Quaternion<double> qrot;  /// Rotation of the node expressed as a Quaternion.
     
-    /// Normalize quaternion coefficient to unit;
-    /// problem with derivatives near w=0, solved by a hack for now
+    /// \brief Normalize quaternion to unit. 
+    /// Problem with derivatives near w=0, solved by a hack for now.
     void normRot();
     
+    /// \brief Normalize quaternion to unit, without w=0 considerations.
     void normRotLocal();
 
-    /// Resultant transform from world to node coordinates;
-    Eigen::Matrix<double,3,4> w2n;
+    Eigen::Matrix<double,3,4> w2n; /// Resultant transform from world to node coordinates.
     void setTransform();
 
     /// Covariance matrix, 6x6.  Variables are [trans,rot], with the
@@ -141,8 +141,6 @@ namespace sba
   /// Based on translation vector and unit quaternion rotation, which
   /// gives the frame's pose in world coordinates.  Assumes quaternion
   /// is normalized (unit).  
-  ///
-
   void transformW2F(Eigen::Matrix<double,3,4> &m, 
                     const Eigen::Matrix<double,4,1> &trans, 
                     const Eigen::Quaternion<double> &qrot);

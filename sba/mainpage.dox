@@ -2,7 +2,7 @@
 \mainpage
 \htmlinclude manifest.html
 
-\b Sparse Bundle Adjustment, or SBA, is used for reconstructing 3D structure 
+Sparse Bundle Adjustment, or <b>SBA</b>, is used for reconstructing 3D structure 
 and camera pose from a series of monocular or stereo images. The technique is 
 usually used for refining existing estimates of 3D geometry and camera pose. 
 
@@ -13,7 +13,7 @@ Provide an overview of your package.
 
 \section codeapi Code API
 
-In most cases, you will want to use the sba::sysSBA class to set up a system
+In most cases, you will want to use the sba::SysSBA class to set up a system
 consisting of sba::Node and sba::Track.
 
 Each sba::Node represents a camera pose and also contains camera projection 

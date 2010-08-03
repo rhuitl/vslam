@@ -17,24 +17,24 @@ namespace sba
   /// projections in tracks.
   typedef std::map<const int, Proj, std::less<int>, Eigen::aligned_allocator<Proj> > ProjMap;
 
-  /// PROJ holds a projection measurement of a point onto a
+  /// \brief PROJ holds a projection measurement of a point onto a
   /// frame.  They are a repository for the link between the frame and
-  /// the point, with aux info such as jacobians
+  /// the point, with auxillary info such as jacobians.
   class Proj
   {
     public:
-      /// General & stereo constructor. To construct a monocular projection, 
-      /// either use stereo = false or the other constructor.
+      /// \brief General & stereo constructor. To construct a monocular 
+      /// projection, either use stereo = false or the other constructor.
       /// NOTE: sets the projection to be valid.
       Proj(int ci, Eigen::Vector3d &q, bool stereo = true);
       
-      /// Monocular constructor. To construct a stereo projection, use other
-      /// constructor.
+      /// \brief Monocular constructor. To construct a stereo projection, 
+      /// use other constructor.
       /// NOTE: sets the projection to be valid.
       Proj(int ci, Eigen::Vector2d &q);
       
-      /// Default constructor. Initializes to default values, kp = <0 0 0>
-      /// and ndi = <0>. Also sets the projection to be invalid.
+      /// \brief Default constructor. Initializes to default values, 
+      /// kp = <0 0 0> and ndi = <0>. Also sets the projection to be invalid.
       Proj();
       
       /// Node index, the camera node for this projection
@@ -49,17 +49,18 @@ namespace sba
       /// Whether the projection is Stereo (True) or Monocular (False).
       bool stereo;
       
-      /// calculates re-projection error and stores it in <err>
+      /// Calculates re-projection error and stores it in #err.
       double calcErr(const Node &nd, const Point &pt);
       
-      /// Get the correct squared norm of the error, depending on whether the
-      /// point is monocular or stereo.
+      /// \brief Get the correct squared norm of the error, depending on 
+      /// whether the projection is monocular or stereo.
       double getErrSquaredNorm();
       
-      /// Get the correct norm of the error, depending on whether the point is
-      /// monocular or stereo.
+      /// \brief Get the correct norm of the error, depending on whether the 
+      /// projection is monocular or stereo.
       double getErrNorm();
       
+      /// Sets the jacobians and hessians for the projection to use for SBA.
       /** Monocular:
       
           dpc/dq = dR'/dq [pw-t], in homogeneous form, with q a quaternion param
@@ -103,13 +104,13 @@ namespace sba
       /// not sure if this is needed, it's close to 1.0
       const static double qScale = 1.0;
       
-      /// Use a Covariance matrix?
+      /// Use a covariance matrix?
       bool useCovar;
       
       /// Covariance matrix for cost calculation.
       Eigen::Matrix<double,3,3> covarmat;
       
-      /// Set the covariance matrix to use for cost calculation.
+      /// \brief Set the covariance matrix to use for cost calculation.
       /// Without the covariance matrix, cost is calculated by:
       /// cost = ||err||
       /// With a covariance matrix, the cost is calculated by:
@@ -138,18 +139,18 @@ namespace sba
   class Track
   {
     public:
-      /// Constructor for a Track at point <p>.
+      /// Constructor for a Track at point p.
       Track(Point p);
       
       /// Default constructor for Track.
       Track();
       
-      /// A map of all the projections of the point with camera index as key, 
-      /// based off an STL map.
+      /// \brief A map of all the projections of the point with camera index 
+      /// as key, based off an STL map.
       ProjMap projections;
       
-      /// An Eigen 4-vector containing the <x, y, z, w> coordinates of the point
-      /// associated with the track.
+      /// \brief An Eigen 4-vector containing the <x, y, z, w> coordinates of 
+      /// the point associated with the track.
       Point point;
   };
   
