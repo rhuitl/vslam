@@ -15,6 +15,6 @@
   <depend package="visualization_msgs"/>
   <depend package="geometry_msgs"/>
   <export>
-    <cpp cflags="-DSBA_CHOLMOD -I${prefix}/include -I${prefix}/msg/cpp" lflags="-L${prefix}/lib -Wl,-rpath,${prefix}/lib -lsba" />
+    <cpp cflags="-DSBA_CHOLMOD -I${prefix}/include -I${prefix}/msg/cpp" lflags="-L${prefix}/lib -Wl,-rpath,${prefix}/lib -lsba -lsba_ros" />
   </export>
 </package>
