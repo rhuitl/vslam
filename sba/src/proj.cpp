@@ -1,5 +1,4 @@
 #include <sba/proj.h>
-#include <ros/console.h> // DEBUG
 
 namespace sba
 {
@@ -280,7 +279,7 @@ namespace sba
     
     if (abs(err(0)) > 1e6 || abs(err(1)) > 1e6 || abs(err(2)) > 1e6)
     {
-      ROS_FATAL("\n\n[CalcErr] Excessive error.\n");
+      printf("\n\n[CalcErr] Excessive error.\n");
       
       isValid = false;
     }
