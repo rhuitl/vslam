@@ -1,4 +1,5 @@
 #include "sba/sba_file_io.h"
+#include <map>
 
 using namespace sba;
 using namespace Eigen;
@@ -483,3 +484,336 @@ void sba::writeSparseA(const char *fname, SysSBA& sba)
     }
 }
 
+
+int sba::readGraphFile(const char *filename, SysSBA& sbaout)
+{ 
+    // Create vectors to hold the data from the graph file. 
+    vector< Vector4d, Eigen::aligned_allocator<Vector4d> > camps;	// cam params <f d1 d2>
+    vector< Vector4d, Eigen::aligned_allocator<Vector4d> > camqs;	// cam rotation matrix
+    vector< Vector3d, Eigen::aligned_allocator<Vector3d> > camts;	// cam translation
+    vector< Vector3d, Eigen::aligned_allocator<Vector3d> > ptps;	// point position
+    vector< vector< Vector4d, Eigen::aligned_allocator<Vector4d> > > ptts; // point tracks - each vector is <camera_index kp_idex u v>
+
+    int ret = ParseGraphFile(filename, camps, camqs, camts, ptps, ptts);
+    if (ret < 0)
+        return -1;
+        
+    int ncams = camps.size();
+    int npts  = ptps.size();
+    int nprjs = 0;
+    for (int i=0; i<npts; i++)
+        nprjs += (int)ptts[i].size();
+    /* cout << "Points: " << npts << "  Tracks: " << ptts.size() 
+         << "  Projections: " << nprjs << endl; */
+         
+    // cout << "Setting up nodes..." << flush;
+    for (int i=0; i<ncams; i++)
+    {
+        // camera params
+        Vector4d &camp = camps[i];
+        CamParams cpars = {camp[0],-camp[1],camp[2],camp[3],0}; // set focal length and offsets
+	                                                        // note fy is negative...
+        //
+        // NOTE: not sure how graph files parameterize rotations
+	//
+
+        Quaternion<double> frq(camqs[i]); // quaternion coeffs
+        if (frq.w() < 0.0)	// w negative, change to positive
+        {
+            frq.x() = -frq.x();
+            frq.y() = -frq.y();
+            frq.z() = -frq.z();
+            frq.w() = -frq.w();
+        }
+        
+        frq.normalize();
+
+        // translation
+        Vector3d &camt = camts[i];
+        Vector4d frt;
+        frt.start<3>() = camt;
+        frt[3] = 1.0;
+
+        Node nd;
+        
+        sbaout.addNode(frt, frq, cpars);
+    }
+    // cout << "done" << endl;
+
+    // set up points
+    // cout << "Setting up points..." << flush;
+    for (int i=0; i<npts; i++)
+    {
+        // point
+        Vector3d &ptp = ptps[i];
+        Point pt;
+        pt.start<3>() = ptp;
+        pt[3] = 1.0;
+        sbaout.addPoint(pt);
+    }
+    // cout << "done" << endl;
+
+
+    sbaout.useLocalAngles = true;    // use local angles
+    sbaout.nFixed = 1;
+
+    // set up projections
+    int ntot = 0;
+    // cout << "Setting up projections..." << flush;
+    for (int i=0; i<npts; i++)
+    {
+        // track
+        vector<Vector4d, Eigen::aligned_allocator<Vector4d> > &ptt = ptts[i];
+        int nprjs = ptt.size();
+        for (int j=0; j<nprjs; j++)
+        {
+            // projection
+            Vector4d &prj = ptt[j];
+            int cami = (int)prj[0];
+            Vector2d pt = prj.segment<2>(2);
+            pt[1] = -pt[1];	// NOTE: Bundler image Y is reversed
+            if (cami >= ncams)
+                cout << "*** Cam index exceeds bounds: " << cami << endl;
+            sbaout.addMonoProj(cami,i,pt); // Monocular projections
+            ntot++;
+        }
+    }
+    // cout << "done" << endl;
+    
+    return 0;
+}
+
+
+// makes a quaternion from fixed Euler RPY angles
+// see the Wikipedia article on Euler anlges
+static void make_qrot(double rr, double rp, double ry, Vector4d &v)
+{
+  double sr = sin(rr/2.0);
+  double cr = cos(rr/2.0);
+  double sp = sin(rp/2.0);
+  double cp = cos(rp/2.0);
+  double sy = sin(ry/2.0);
+  double cy = cos(ry/2.0);
+  v[0] = sr*cp*cy - cr*sp*sy;   // qx
+  v[1] = cr*sp*cy + sr*cp*sy;   // qy
+  v[2] = cr*cp*sy - sr*sp*cy;   // qz
+  v[3] = cr*cp*cy + sr*sp*sy;   // qw
+}
+
+int  sba::ParseGraphFile(const char *fin,	// input file
+  vector< Vector4d, Eigen::aligned_allocator<Vector4d> > &camp, // cam params <fx fy cx cy>
+  vector< Vector4d, Eigen::aligned_allocator<Vector4d> > &camq, // cam rotation quaternion
+  vector< Vector3d, Eigen::aligned_allocator<Vector3d> > &camt, // cam translation
+  vector< Vector3d, Eigen::aligned_allocator<Vector3d> > &ptp, // point position
+  vector< vector< Vector4d, Eigen::aligned_allocator<Vector4d> > > &ptts // point tracks - each vector is <camera_index point_index u v>; point index is redundant
+		)
+{
+  // input stream
+  ifstream ifs(fin);
+  if (ifs == NULL)
+    {
+      cout << "Can't open file " << fin << endl;
+      return -1;
+    }
+  ifs.precision(10);
+
+  // map of node and point indices
+  map<int,int> nodemap;
+  map<int,int> pointmap;
+
+  // loop over lines
+  string line;
+  int nline = 0;
+  int nid = 0;			// current node id
+  int pid = 0;			// current point id
+  while (getline(ifs,line))
+    {
+      nline++;
+      stringstream ss(line);    // make a string stream
+      string type;
+      ss >> type;
+      size_t pos = type.find("#");
+      if (pos != string::npos)
+        continue;               // comment line
+
+      if (type == "VERTEX_SE3")    // have a camera node
+        {
+          int n;
+          double tx,ty,tz,rr,rp,ry;
+          if (!(ss >> n >> tx >> ty >> tz >> rr >> rp >> ry))
+            {
+              cout << "[ReadSPA] Bad VERTEX_SE3 at line " << nline << endl;
+              return -1;
+            }
+	  nodemap.insert(pair<int,int>(n,nid));
+	  nid++;
+          camt.push_back(Vector3d(tx,ty,tz));
+          Vector4d v;
+          make_qrot(rr,rp,ry,v);
+          camq.push_back(v);
+
+	  // fake params, filled in by projections
+	  camp.push_back(Vector4d(0,0,0,0));
+        }
+
+      else if (type == "VERTEX_XYZ")    // have a point
+        {
+          int n;
+          double tx,ty,tz;
+          if (!(ss >> n >> tx >> ty >> tz))
+            {
+              cout << "[ReadSPA] Bad VERTEX_XYZ at line " << nline << endl;
+              return -1;
+            }
+	  pointmap.insert(pair<int,int>(n,pid));
+	  pid++;
+          ptp.push_back(Vector3d(tx,ty,tz));
+        }
+
+      else if (type == "EDGE_PROJECT_XYZ") // have an edge
+        {
+          int n1,n2;
+          double u,v,fx,fy,cx,cy;
+	  double cv0, cv1, cv2;	// covars of point projection, not used
+
+          // indices and measurement
+          if (!(ss >> n1 >> n2 >> u >> v >> fx >> fy >> cx >> cy >> cv0 >> cv1 >> cv2))
+            {
+              cout << "[ReadSPA] Bad EDGE_PROJECT_XYZ at line " << nline << endl;
+              return -1;
+            }
+
+	  // get true indices
+	  map<int,int>::iterator it;
+	  it = pointmap.find(n1);
+	  if (it == pointmap.end())
+            {
+              cout << "[ReadSPA] Missing point index " << n1 << " at line " << nline << endl;
+              return -1;
+            }
+	  int pi = it->second;
+	  if (pi >= (int)ptp.size())
+            {
+              cout << "[ReadSPA] Point index " << pi << " too large at line " << nline << endl;
+              return -1;
+            }
+
+
+	  it = nodemap.find(n2);
+	  if (it == nodemap.end())
+            {
+              cout << "[ReadSPA] Missing camera index " << n2 << " at line " << nline << endl;
+              return -1;
+            }
+	  int ci = it->second;
+	  if (ci >= (int)camp.size())
+            {
+              cout << "[ReadSPA] Camera index " << ci << " too large at line " << nline << endl;
+              return -1;
+            }
+
+	  
+	  // get point track
+	  if (ptts.size() < (size_t)pi+1)
+	    ptts.resize(pi+1);
+	  vector< Vector4d, Eigen::aligned_allocator<Vector4d> > &trk = ptts[pi];
+	  trk.push_back(Vector4d(ci,pi,u,v));
+
+	  // set up cam params
+	  camp[ci] = Vector4d(fx,fy,cx,cy);
+
+	}
+
+      else
+        {
+          cout << "[ReadSPA] Undefined type <" << type <<"> at line " << nline << endl;
+          return -1;
+        }
+    }
+
+    // print some stats
+    double nprjs = 0;
+    int ncams = camp.size();
+    int npts = ptp.size();
+    for (int i=0; i<npts; i++)
+      nprjs += ptts[i].size();
+    cout << "Number of cameras: " << ncams << endl;
+    cout << "Number of points: " << npts << endl;
+    cout << "Number of projections: " << (int)nprjs << endl;
+    cout << "Average projections per camera: " << nprjs/(double)ncams << endl;
+    cout << "Average track length: " << nprjs/(double)npts << endl;
+    return 0;
+}
+
+
+/**
+ * \brief Writes out the current SBA system as an ascii graph file
+ * suitable to be read in by the Freiburg HChol system.
+ */
+
+int sba::writeGraphFile(const char *filename, SysSBA& sba)
+{
+    ofstream outfile(filename, ios_base::trunc);
+    if (outfile == NULL)
+    {
+        cout << "Can't open file " << filename << endl;
+        return -1;
+    }
+    
+    outfile.precision(5);
+    //    outfile.setf(ios_base::scientific);
+    outfile.setf(ios_base::fixed);
+    
+    unsigned int i = 0;
+    
+    // header, but we skip for now
+    //    outfile << "# Bundle file v0.3" << endl;
+    
+    // Info about each camera
+    //   VERTEX_CAM n x y z qx qy qz qw fx fy cx cy baseline
+    //   <baseline> is 0 for monocular data
+    //   <n> is the camera index, starting at 0
+    int ncams = sba.nodes.size();
+    for (i = 0; i < (unsigned int)ncams; i++)
+    {
+      outfile << "VERTEX_CAM" << " ";
+      outfile << i << " ";      // node number
+      Vector3d trans = sba.nodes[i].trans.start<3>(); // position
+      outfile << trans(0) << ' ' << trans(1) << ' ' << trans(2) << ' ';
+      Vector4d rot = sba.nodes[i].qrot.coeffs(); // rotation
+      outfile << rot(0) << ' ' << rot(1) << ' ' << rot(2) << ' ' << rot(3) << ' ';
+      // cam params
+      outfile << sba.nodes[i].Kcam(0,0) << ' ' << sba.nodes[i].Kcam(1,1) << ' ' << 
+        sba.nodes[i].Kcam(0,2) << ' ' << sba.nodes[i].Kcam(1,2) << ' ' << sba.nodes[i].baseline << endl;
+    }
+    
+    // Info about each point
+    //  point indices are sba indices plus ncams (so they're unique in the file)
+    //    VERTEX_POINT n x y z
+    //  after each point comes the projections
+    //    EDGE_PROJECT_P2C pt_ind cam_ind u v
+    for (i = 0; i < sba.tracks.size(); i++)
+    {
+      outfile << "VERTEX_POINT" << ' ' << ncams+i << ' '; // index
+      // World <x y z>
+      outfile << sba.tracks[i].point(0) << ' ' << sba.tracks[i].point(1) 
+              << ' ' << sba.tracks[i].point(2) << endl;
+        
+      ProjMap &prjs = sba.tracks[i].projections;
+        
+      // Output all projections
+      //   Mono projections have 0 for the disparity
+      for(ProjMap::iterator itr = prjs.begin(); itr != prjs.end(); itr++)
+        {
+          Proj &prj = itr->second;
+	  if (prj.stereo)
+	    outfile << "EDGE_PROJECT_P2SC "; // stereo edge
+	  else
+	    outfile << "EDGE_PROJECT_P2MC "; // mono edge
+          outfile << ncams+i << ' ' << prj.ndi << ' ' << prj.kp(0) << ' ' 
+		  << prj.kp(1) << ' ' << prj.kp(2) << endl;
+        }
+    }
+
+    return 0;
+} 

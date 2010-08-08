@@ -76,7 +76,7 @@ namespace sba
 
       /// \brief How much information to print to console.
       int verbose;
-      long long t0, t1, t2, t3; // save timing
+      long long t0, t1, t2, t3, t4; // save timing
 
       /// \brief Default constructor.
         SysSBA() { nFixed = 1; useLocalAngles = true; Node::initDr(); 

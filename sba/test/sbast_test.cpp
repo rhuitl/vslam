@@ -36,6 +36,7 @@
 
 // Bring in my package's API, which is what I'm testing
 #include "sba/sba.h"
+#include "sba/sba_file_io.h"
 
 // Bring in gtest
 #include <gtest/gtest.h>
@@ -49,7 +50,7 @@ using namespace frame_common;
 using namespace std;
 
 #define LOCAL_ANGLES
-
+#define WRITE_GRAPH
 
 //
 // tolerance for floating-point tests
@@ -167,6 +168,7 @@ TEST(SBAtest, SimpleSystem)
       ProjMap &prjs = sys.tracks[i].projections;	// new point track
       Proj prj;
       prj.isValid = true;
+      prj.stereo = true;
       Vector2d ipt;
       Vector3d ipt3,pc;
 
@@ -201,6 +203,11 @@ TEST(SBAtest, SimpleSystem)
       ind++;
     }
 
+
+#ifdef WRITE_GRAPH
+  writeGraphFile("sba.graph",sys);
+#endif
+
   double qnoise = 10*M_PI/180;	// in radians
   double tnoise = 0.05;		// in meters
 
@@ -230,6 +237,10 @@ TEST(SBAtest, SimpleSystem)
   nd3.setDr(false);             // set rotational derivatives
 #endif
   sys.nodes[2] = nd3;		// reset node
+
+#ifdef WRITE_GRAPH
+  writeGraphFile("sba-with-err.graph",sys);
+#endif
 
 #if 0
   // set up system, no lambda for here

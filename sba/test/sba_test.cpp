@@ -223,6 +223,10 @@ TEST(SBAtest, SimpleSystem)
 #endif
   sys.nodes[2] = nd3;		// reset node
 
+#if 1
+  writeGraphFile("sba.graph", sys);
+#endif
+
 #if 0
   // set up system, no lambda for here
   sys.setupSys(0.0);

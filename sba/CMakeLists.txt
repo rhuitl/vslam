@@ -79,6 +79,11 @@ target_link_libraries(test/cholmod_timing sba)
 rosbuild_add_executable(test/run_sba_bundler_file test/run_sba_bundler_file.cpp)
 target_link_libraries(test/run_sba_bundler_file sba)
 
+# SBA on graph-type files
+rosbuild_add_executable(test/run_sba_graph_file test/run_sba_graph_file.cpp)
+target_link_libraries(test/run_sba_graph_file sba)
+
+
 # SPA2D on Freiburg constraint files
 rosbuild_add_executable(test/run_spa2d test/run_spa2d.cpp test/read_spa.cpp)
 target_link_libraries(test/run_spa2d sba)

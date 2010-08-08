@@ -53,10 +53,36 @@ namespace sba
 		  std::vector< std::vector< Eigen::Vector4d, Eigen::aligned_allocator<Eigen::Vector4d> > > &ptt // point tracks - each vector is <camera_index u v>
     );
 
+  /** \brief Reads bundle adjustment data from a graph-type file to an instance of SysSBA.
+   *
+   * \param filename The name of the bundler-formatted file to read from.
+   * \param sbaout An instance of SBA that the file will be written to.
+   * Note: where is the documentation for this format?
+   */
+  int readGraphFile(const char *filename, sba::SysSBA& sbaout);
+
+  /** \brief A low-level parser for graph files. */
+  int 
+  ParseGraphFile(const char *fin,	// input file
+		  std::vector< Eigen::Vector4d, Eigen::aligned_allocator<Eigen::Vector4d> > &camps, // cam params <fx fy cx cy>
+		  std::vector< Eigen::Vector4d, Eigen::aligned_allocator<Eigen::Vector4d> > &camqs, // cam rotation matrix
+		  std::vector< Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d> > &camts, // cam translation
+		  std::vector< Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d> > &ptps, // point position
+		  std::vector< std::vector< Eigen::Vector4d, Eigen::aligned_allocator<Eigen::Vector4d> > > &ptts // point tracks - each vector is <camera_index u v>
+    );
+
+
   /// write out system in SBA form
   void writeLourakisFile(const char *fname, SysSBA& sba);
   void writeA(const char *fname, SysSBA& sba); // save precision matrix
   void writeSparseA(const char *fname, SysSBA& sba); // save precision matrix in CSPARSE format
+
+  /**
+   * \brief Writes out the current SBA system as an ascii graph file
+   * suitable to be read in by the Freiburg HChol system.
+   */
+  int writeGraphFile(const char *filename, SysSBA& sba);
+
 
 }; // namespace SBA
 

@@ -1,4 +1,4 @@
-/*********************************************************************
+ /*********************************************************************
  * Software License Agreement (BSD License)
  *
  *  Copyright (c) 2009, Willow Garage, Inc.
@@ -1032,14 +1032,14 @@ void SysSBA::setupSys(double sLambda)
     // set matrix sizes and clear (step 3)
     int nFree = nodes.size() - nFixed;
 
-    //    long long t0, t1, t2, t3;
-    //    t0 = utime();
+    long long t0, t1, t2, t3;
+    t0 = utime();
     if (iter == 0)
       csp.setupBlockStructure(nFree); // initialize CSparse structures
     else
       csp.setupBlockStructure(0); // zero out CSparse structures
-
-    //    t1 = utime();
+    t1 = utime();
+    
 
     VectorXi dcnt(nFree);
     dcnt.setZero(nFree);
@@ -1135,14 +1135,14 @@ void SysSBA::setupSys(double sLambda)
 
     //    cout << "[SetupSparseSys] Skipped conns: " << nskip << endl;
 
-    //    t2 = utime();
+    t2 = utime();
 
     // set up sparse matrix structure from blocks
     csp.setupCSstructure(lam,iter==0); 
 
-    //    t3 = utime();
-    //    printf("\n[SetupSparseSys] Block: %0.1f   Cons: %0.1f  CS: %0.1f\n",
-    //           (t1-t0)*.001, (t2-t1)*.001, (t3-t2)*.001);
+    t3 = utime();
+    printf("\n[SetupSparseSys] Block: %0.1f   Cons: %0.1f  CS: %0.1f\n",
+           (t1-t0)*.001, (t2-t1)*.001, (t3-t2)*.001);
 
     int ndc = 0;
     for (int i=0; i<nFree; i++)
@@ -1212,6 +1212,7 @@ void SysSBA::setupSys(double sLambda)
     int iter = 0;               // iterations
     sqMinDelta = 1e-8 * 1e-8;
     double cost = calcCost();
+
     if (verbose > 0)
       {
 	      cout << iter << " Initial squared cost: " << cost << " which is " 
@@ -1358,6 +1359,8 @@ void SysSBA::setupSys(double sLambda)
             tracks[pi].point.start(3) += tp;
           }
 
+        t3 = utime();
+
         // new cost
         double newcost = calcCost();
 
@@ -1382,12 +1385,12 @@ void SysSBA::setupSys(double sLambda)
             lambda *= laminc;   // increase lambda
             laminc *= 2.0;      // increase the increment
             // reset points
-            for(int i=0; i < tracks.size(); i++)
+            for(int i=0; i < (int)tracks.size(); i++)
             {
               tracks[i].point = oldpoints[i];
             }
             // reset cams
-            for(int i=0; i < nodes.size(); i++)
+            for(int i=0; i < (int)nodes.size(); i++)
               {
                 Node &nd = nodes[i];
                 if (nd.isFixed) continue; // not to be updated
@@ -1403,12 +1406,14 @@ void SysSBA::setupSys(double sLambda)
                   // NOTE: shouldn't need to redo all calcs in setupSys
           }
 
-        t3 = utime();
+        t4 = utime();
         if (iter == 0 && verbose > 0)
-          printf("\n[SBA] Setup: %0.2f ms  Solve: %0.2f ms  Update: %0.2f ms\n\n",
+          printf("\n[SBA] Cost: %0.2f ms  Setup: %0.2f ms  Solve: %0.2f ms  Update: %0.2f ms  Total: %0.2f ms\n\n",
+                 0.001*(double)(t4-t3),
                  0.001*(double)(t1-t0),
                  0.001*(double)(t2-t1),
-                 0.001*(double)(t3-t2));
+                 0.001*(double)(t3-t2),
+                 0.001*(double)(t4-t0));
 
       }
 
