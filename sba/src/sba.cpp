@@ -952,7 +952,7 @@ void SysSBA::setupSys(double sLambda)
                                              // NOTE: assumes fixed cams are at beginning
             prj.setJacobians(nodes[prj.ndi],tracks[pi].point); // calculate derivatives
             Hpp += prj.Hpp; // add in JpT*Jp
-            bp  -= prj.Bp; // subtrace JcT*f from bp; compute transpose twice???
+            bp  -= prj.Bp; // subtract JcT*f from bp; compute transpose twice???
 
             if (!nodes[prj.ndi].isFixed)  // if not a fixed camera, do more
               {
@@ -1317,9 +1317,7 @@ void SysSBA::setupSys(double sLambda)
                 //                if (sn > 0.01)  // usually indicates something has gone wrong
                 //                  qr.vec() = qr.vec() / (sqrt(sn) * 10.0);
                 qr.w() = sqrt(1.0 - qr.vec().squaredNorm());
-                Quaternion<double> qrn;
-                qrn = nd.qrot;
-                qr = qrn*qr;    // post-multiply, because we pre-multiply the transpose for Jacobian
+                qr = nd.qrot*qr; // post-multiply, because we pre-multiply the transpose for Jacobian
                 qr.normalize();
                 nd.qrot = qr;
               }

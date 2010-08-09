@@ -209,7 +209,7 @@ TEST(SBAtest, SimpleSystem)
 #endif
 
   double qnoise = 10*M_PI/180;	// in radians
-  double tnoise = 0.05;		// in meters
+  double tnoise = 0.1;		// in meters
 
   // add random noise to node positions
   nd2.qrot.coeffs().start<3>() += qnoise*Vector3d::Random();
