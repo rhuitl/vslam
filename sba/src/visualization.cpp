@@ -46,8 +46,8 @@ void drawGraph(const SysSBA &sba, const ros::Publisher &camera_pub,
   for (int i=0, ii=0; i < num_points; i += decimation, ii++)
     {
       const Vector4d &pt = sba.tracks[i].point;
-      point_marker.points[ii].x = pt(0);
-      point_marker.points[ii].y = pt(2);
+      point_marker.points[ii].x = pt(2);
+      point_marker.points[ii].y = -pt(0);
       point_marker.points[ii].z = -pt(1);
     }
 
@@ -61,28 +61,28 @@ void drawGraph(const SysSBA &sba, const ros::Publisher &camera_pub,
       Matrix<double,3,4> tr;
       transformF2W(tr,nd.trans,nd.qrot);
 
-      camera_marker.points[ii].x = nd.trans.x();
-      camera_marker.points[ii].y = nd.trans.z();
+      camera_marker.points[ii].x = nd.trans.z();
+      camera_marker.points[ii].y = -nd.trans.x();
       camera_marker.points[ii++].z = -nd.trans.y();
       opt = tr*Vector4d(0,0,0.3,1);
-      camera_marker.points[ii].x = opt.x();
-      camera_marker.points[ii].y = opt.z();
+      camera_marker.points[ii].x = opt.z();
+      camera_marker.points[ii].y = -opt.x();
       camera_marker.points[ii++].z = -opt.y();
 
-      camera_marker.points[ii].x = nd.trans.x();
-      camera_marker.points[ii].y = nd.trans.z();
+      camera_marker.points[ii].x = nd.trans.z();
+      camera_marker.points[ii].y = -nd.trans.x();
       camera_marker.points[ii++].z = -nd.trans.y();
       opt = tr*Vector4d(0.2,0,0,1);
-      camera_marker.points[ii].x = opt.x();
-      camera_marker.points[ii].y = opt.z();
+      camera_marker.points[ii].x = opt.z();
+      camera_marker.points[ii].y = -opt.x();
       camera_marker.points[ii++].z = -opt.y();
 
-      camera_marker.points[ii].x = nd.trans.x();
-      camera_marker.points[ii].y = nd.trans.z();
+      camera_marker.points[ii].x = nd.trans.z();
+      camera_marker.points[ii].y = -nd.trans.x();
       camera_marker.points[ii++].z = -nd.trans.y();
       opt = tr*Vector4d(0,0.1,0,1);
-      camera_marker.points[ii].x = opt.x();
-      camera_marker.points[ii].y = opt.z();
+      camera_marker.points[ii].x = opt.z();
+      camera_marker.points[ii].y = -opt.x();
       camera_marker.points[ii++].z = -opt.y();
     }
 
