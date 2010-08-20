@@ -69,6 +69,7 @@ int main(int argc, char **argv)
 
   SysSBA sys;
   readGraphFile(fin, sys);
+  writeGraphFile("sba-out.graph", sys);
 
   sys.useLocalAngles = true;    // use local angles
   sys.nFixed = 1;

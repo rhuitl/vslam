@@ -123,6 +123,10 @@ void setupSBA(SysSBA &sys)
     // Create nodes and add them to the system.
     unsigned int nnodes = 2; // Number of nodes.
     double path_length = 2; // Length of the path the nodes traverse.
+
+    // Set the random seed.
+    unsigned short seed = (unsigned short)time(NULL);
+    seed48(&seed);
     
     unsigned int i = 0, j = 0;
     
@@ -131,18 +135,35 @@ void setupSBA(SysSBA &sys)
       // Translate in the x direction over the node path.
       Vector4d trans(i/(nnodes-1.0)*path_length, 0, 0, 1);
             
+#if 1
+      if (i >= 0)
+	{
+	  // perturb a little
+	  double tnoise = 0.5;	// meters
+	  trans.x() += tnoise*(drand48()-0.5);
+	  trans.y() += tnoise*(drand48()-0.5);
+	  trans.z() += tnoise*(drand48()-0.5);
+	}
+#endif
+
       // Don't rotate.
       Quaterniond rot(1, 0, 0, 0);
+#if 1
+      if (i > 0)
+	{
+	  // perturb a little
+	  double qnoise = 0.1;	// meters
+	  rot.x() += qnoise*(drand48()-0.5);
+	  rot.y() += qnoise*(drand48()-0.5);
+	  rot.z() += qnoise*(drand48()-0.5);
+	}
+#endif
       rot.normalize();
       
       // Add a new node to the system.
       sys.addNode(trans, rot, cam_params, false);
     }
         
-    // Set the random seed.
-    unsigned short seed = (unsigned short)time(NULL);
-    seed48(&seed);
-    
     double pointnoise = 1.0;
     
     // Add points into the system, and add noise.

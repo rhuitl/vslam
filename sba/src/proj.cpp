@@ -285,12 +285,9 @@ namespace sba
     }
     
     if (useCovar)
-    {
       err = covarmat*err;
-      return err.squaredNorm();
-    }
-    else
-      return err.squaredNorm();
+
+    return err.squaredNorm();
   }
   
   // Constructors for track.
