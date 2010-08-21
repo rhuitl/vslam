@@ -1,0 +1,29 @@
+<package>
+  <description>
+    VSLAM applications (visual odometry, visual SLAM, stereo and monocular)
+  </description>
+  <author>Kurt Konolige, Patrick Mihelich, Helen Oleynikova</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+
+  <depend package="roscpp"/>
+  <depend package="std_msgs"/>
+  <depend package="opencv2"/>
+  <depend package="sba"/>
+  <depend package="posest"/>
+  <depend package="vocabulary_tree"/>
+  <depend package="image_transport"/>
+  <depend package="message_filters"/>
+  <depend package="image_geometry"/>
+  <depend package="cv_bridge"/>
+  <depend package="dynamic_reconfigure"/>
+  <depend package="tf"/>
+  <depend package="pcl_ros"/>
+  <depend package="nav_msgs"/>
+
+  <export>
+    <cpp cflags="-I${prefix}/include -I${prefix}/msg/cpp" lflags="-L${prefix}/lib -Wl,-rpath,${prefix}/lib" />
+    <rosdoc config="rosdoc.yaml" />
+  </export>
+
+</package>
