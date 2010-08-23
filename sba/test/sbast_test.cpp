@@ -292,7 +292,7 @@ TEST(SBAtest, SimpleSystem)
   for (int i=0; i<3; i++)
     EXPECT_EQ_ABS(frt3a(i),frt3(i),0.01);
 
-#if 0
+#if 1
   // writing out matrices, 3-node system
   // global system
   sys.useLocalAngles = false;
@@ -301,7 +301,7 @@ TEST(SBAtest, SimpleSystem)
   nd3.setDr(false);
   sys.setupSys(0.0);
   sys.A.block<6,6>(6,0) = sys.A.block<6,6>(0,6).transpose();
-  sys.writeA("A3g.txt");
+  writeA("A3g.txt",sys);
 
   // local system
   sys.useLocalAngles = true;
@@ -310,9 +310,10 @@ TEST(SBAtest, SimpleSystem)
   nd3.setDr(true);
   sys.setupSys(0.0);
   sys.A.block<6,6>(6,0) = sys.A.block<6,6>(0,6).transpose();
-  sys.writeA("A3l.txt");
- 
+  writeA("A3l.txt",sys);
+#endif 
 
+#if 0
   // set up 2-node system
   sys.nodes.clear();
   sys.tracks.clear();

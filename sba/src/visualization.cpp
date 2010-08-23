@@ -3,7 +3,7 @@
 namespace sba {
 
 void drawGraph(const SysSBA &sba, const ros::Publisher &camera_pub,
-               const ros::Publisher &point_pub, int decimation)
+               const ros::Publisher &point_pub, int decimation, int bicolor)
 {
   int num_points = sba.tracks.size();
   if (num_points == 0) return;
@@ -42,10 +42,17 @@ void drawGraph(const SysSBA &sba, const ros::Publisher &camera_pub,
   point_marker.type = visualization_msgs::Marker::POINTS;
 
   // draw points, decimated
-  point_marker.points.resize(num_points/decimation + 1);
+  point_marker.points.resize((int)(num_points/(double)decimation + 0.5));
+  point_marker.colors.resize((int)(num_points/(double)decimation + 0.5));
   for (int i=0, ii=0; i < num_points; i += decimation, ii++)
     {
       const Vector4d &pt = sba.tracks[i].point;
+      point_marker.colors[ii].r = 1.0f;
+      if (bicolor > 0 && i >= bicolor)
+	point_marker.colors[ii].g = 1.0f;
+      else
+	point_marker.colors[ii].g = 0.0f;
+      point_marker.colors[ii].b = 0.0f;
       point_marker.points[ii].x = pt(2);
       point_marker.points[ii].y = -pt(0);
       point_marker.points[ii].z = -pt(1);

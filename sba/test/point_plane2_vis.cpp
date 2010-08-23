@@ -87,40 +87,15 @@ void setupSBA(SysSBA &sys)
     // Create a plane containing a wall of points.
     Plane middleplane;
     middleplane.resize(3, 2, 10, 5);
+    middleplane.rotate(-PI/4.0, 0, 1, 0);
     middleplane.translate(0.0, 0.0, 5.0);
     
-    Plane leftplane;
-    leftplane.resize(1, 2, 6, 12);
-    //    leftplane.rotate(-PI/4.0, 0, 1, 0);
-    leftplane.translate(0, 0, 5.0);
-    
-    Plane rightplane;
-    rightplane.resize(1, 2, 6, 12);
-    //    rightplane.rotate(PI/4.0, 0, 1, 0);
-    rightplane.translate(2, 0, 5.0);
-    
-    Plane topplane;
-    topplane.resize(1, 1.5, 6, 12);
-    //    topplane.rotate(PI/4.0, 1, 0, 0);
-    topplane.translate(2, 0, 5.0);
-
     // Vector containing the true point positions.
-    rightplane.normal = rightplane.normal; 
-  
     vector<Point, Eigen::aligned_allocator<Point> > points;
     vector<Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d> > normals;
     
     points.insert(points.end(), middleplane.points.begin(), middleplane.points.end());
     normals.insert(normals.end(), middleplane.points.size(), middleplane.normal);
-    
-    points.insert(points.end(), leftplane.points.begin(), leftplane.points.end());
-    normals.insert(normals.end(), leftplane.points.size(), leftplane.normal);
-    
-    points.insert(points.end(), rightplane.points.begin(), rightplane.points.end());
-    normals.insert(normals.end(), rightplane.points.size(), rightplane.normal);
-    
-    points.insert(points.end(), topplane.points.begin(), topplane.points.end());
-    normals.insert(normals.end(), topplane.points.size(), topplane.normal);
     
     // Create nodes and add them to the system.
     unsigned int nnodes = 2; // Number of nodes.
@@ -130,7 +105,10 @@ void setupSBA(SysSBA &sys)
     unsigned short seed = (unsigned short)time(NULL);
     seed48(&seed);
     
-    unsigned int i = 0, j = 0;
+    unsigned int i = 0;
+    
+    Vector3d inormal0(0, 0, 1);
+    Vector3d inormal1(0, 0, 1);
     
     for (i = 0; i < nnodes; i++)
     { 
@@ -164,6 +142,12 @@ void setupSBA(SysSBA &sys)
       
       // Add a new node to the system.
       sys.addNode(trans, rot, cam_params, false);
+      
+      // set normal
+      if (i == 0)
+	inormal0 = rot.toRotationMatrix().transpose() * inormal0;
+      else
+	inormal1 = rot.toRotationMatrix().transpose() * inormal1;
     }
         
     double pointnoise = 1.0;
@@ -179,8 +163,19 @@ void setupSBA(SysSBA &sys)
       sys.addPoint(temppoint);
     }
     
-    Vector2d proj2d;
-    Vector3d proj, pc, baseline;
+    // Each point gets added twice
+    for (i = 0; i < points.size(); i++)
+    {
+      // Add up to .5 points of noise.
+      Vector4d temppoint = points[i];
+      temppoint.x() += pointnoise*(drand48() - 0.5);
+      temppoint.y() += pointnoise*(drand48() - 0.5);
+      temppoint.z() += pointnoise*(drand48() - 0.5);
+      sys.addPoint(temppoint);
+    }
+
+    Vector2d proj2d, proj2dp;
+    Vector3d proj, projp, pc, pcp, baseline, baselinep;
     
     Vector3d imagenormal(0, 0, 1);
     
@@ -192,49 +187,61 @@ void setupSBA(SysSBA &sys)
     Matrix3d rotmat;
     
     unsigned int midindex = middleplane.points.size();
-    unsigned int leftindex = midindex + leftplane.points.size();
-    unsigned int rightindex = leftindex + rightplane.points.size();
     printf("Normal for Middle Plane: [%f %f %f], index %d -> %d\n", middleplane.normal.x(), middleplane.normal.y(), middleplane.normal.z(), 0, midindex-1);
-    printf("Normal for Left Plane:   [%f %f %f], index %d -> %d\n", leftplane.normal.x(), leftplane.normal.y(), leftplane.normal.z(), midindex, leftindex-1);
-    printf("Normal for Right Plane:  [%f %f %f], index %d -> %d\n", rightplane.normal.x(), rightplane.normal.y(), rightplane.normal.z(), leftindex, rightindex-1);
     
+    int nn = points.size();
+
     // Project points into nodes.
     for (i = 0; i < points.size(); i++)
     {
-      for (j = 0; j < sys.nodes.size(); j++)
-      {
-        // Project the point into the node's image coordinate system.
-        sys.nodes[j].setProjection();
-        sys.nodes[j].project2im(proj2d, points[i]);
+      int k=i;
+      // Project the point into the node's image coordinate system.
+      sys.nodes[0].setProjection();
+      sys.nodes[0].project2im(proj2d, points[k]);
+      sys.nodes[1].setProjection();
+      sys.nodes[1].project2im(proj2dp, points[k]);
         
+      // Camera coords for right camera
+      baseline << sys.nodes[0].baseline, 0, 0;
+      pc = sys.nodes[0].Kcam * (sys.nodes[0].w2n*points[k] - baseline); 
+      proj.start<2>() = proj2d;
+      proj(2) = pc(0)/pc(2);
         
-        // Camera coords for right camera
-        baseline << sys.nodes[j].baseline, 0, 0;
-        pc = sys.nodes[j].Kcam * (sys.nodes[j].w2n*points[i] - baseline); 
-        proj.start<2>() = proj2d;
-        proj(2) = pc(0)/pc(2);
-        
-        // If valid (within the range of the image size), add the stereo 
-        // projection to SBA.
-        if (proj.x() > 0 && proj.x() < maxx && proj.y() > 0 && proj.y() < maxy)
+      baseline << sys.nodes[1].baseline, 0, 0;
+      pcp = sys.nodes[1].Kcam * (sys.nodes[1].w2n*points[k] - baseline); 
+      projp.start<2>() = proj2dp;
+      projp(2) = pcp(0)/pcp(2);
+
+
+
+      // If valid (within the range of the image size), add the stereo 
+      // projection to SBA.
+      if (proj.x() > 0 && proj.x() < maxx && proj.y() > 0 && proj.y() < maxy)
         {
-          sys.addStereoProj(j, i, proj);
+          sys.addStereoProj(0, k, proj);
+          sys.addStereoProj(1, k, projp);
+          sys.addStereoProj(0, k+nn, proj);
+          sys.addStereoProj(1, k+nn, projp);
           
           // Create the covariance matrix: 
           // image plane normal = [0 0 1]
           // wall normal = [0 0 -1]
           // covar = (R)T*[0 0 0;0 0 0;0 0 1]*R
           
-          rotation.setFromTwoVectors(imagenormal, normals[i]);
+          rotation.setFromTwoVectors(inormal0, normals[k]);
           rotmat = rotation.toRotationMatrix();
           covar = rotmat.transpose()*covar0*rotmat;
-          
-          if (!(i % sys.nodes.size() == j))
-            sys.setProjCovariance(j, i, covar);
+	  sys.setProjCovariance(0, k+nn, covar);
+
+          rotation.setFromTwoVectors(inormal1, normals[k]);
+          rotmat = rotation.toRotationMatrix();
+          covar = rotmat.transpose()*covar0*rotmat;
+	  sys.setProjCovariance(1, k, covar);
         }
-      }
+      else
+	cout << "ERROR! point not in view of nodes" << endl;
     }
-    
+
     // Add noise to node position.
     
     double transscale = 2.0;
@@ -297,7 +304,7 @@ void processSBA(ros::NodeHandle node)
         
     // Perform SBA with 10 iterations, an initial lambda step-size of 1e-3, 
     // and using CSPARSE.
-    sys.doSBA(20, 1e-4, SBA_SPARSE_CHOLESKY);
+    sys.doSBA(1, 1e-4, SBA_SPARSE_CHOLESKY);
     
     int npts = sys.tracks.size();
 
@@ -312,10 +319,18 @@ void processSBA(ros::NodeHandle node)
         (int)sys.nodes.size(), (int)sys.tracks.size());
         
     // Publish markers
-    drawGraph(sys, cam_marker_pub, point_marker_pub);
+    drawGraph(sys, cam_marker_pub, point_marker_pub, 1, sys.tracks.size()/2);
     ros::spinOnce();
     //ROS_INFO("Sleeping for 2 seconds to publish post-SBA markers.");
     ros::Duration(0.2).sleep();
+
+    for (int j=0; j<50; j++)
+      {
+	sys.doSBA(1, 0, SBA_SPARSE_CHOLESKY);
+	drawGraph(sys, cam_marker_pub, point_marker_pub, 1, sys.tracks.size()/2);
+	ros::spinOnce();
+	ros::Duration(0.2).sleep();
+      }
 }
 
 int main(int argc, char **argv)

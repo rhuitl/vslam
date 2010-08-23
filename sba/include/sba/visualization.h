@@ -9,7 +9,7 @@ namespace sba {
 
 // draw the graph on rviz
 void drawGraph(const SysSBA &sba, const ros::Publisher &camera_pub,
-               const ros::Publisher &point_pub, int decimation = 1);
+               const ros::Publisher &point_pub, int decimation = 1, int bicolor = 0);
 
 } // namespace sba
 
