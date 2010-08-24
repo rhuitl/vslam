@@ -157,6 +157,13 @@ void setupSBA(SysSBA &sba)
     for (int i = 0; i < plane0.points.size(); i++)
     {
       sba.addPointPlaneMatch(0, i, plane0.normal, 1, i+offset, plane1.normal);
+
+      Matrix3d covar;
+      covar << 0.1, 0, 0,
+                0, 0.1, 0, 
+          	0, 0, 0.1;
+      sba.setProjCovariance(0, i+offset, covar);
+      sba.setProjCovariance(1, i, covar);
     }
     
     /* // Add point-plane matches
@@ -254,10 +261,10 @@ int addPointAndProjection(SysSBA& sba, vector<Point, Eigen::aligned_allocator<Po
     // Project points into nodes.
     for (int i = 0; i < points.size(); i++)
     {
-      double pointnoise = 0.0;
+      double pointnoise = 0.5;
   
       // Add points into the system, and add noise.
-      // Add up to .5 points of noise.
+      // Add up to .5 pixels of noise.
       Vector4d temppoint = points[i];
       temppoint.x() += pointnoise*(drand48() - 0.5);
       temppoint.y() += pointnoise*(drand48() - 0.5);

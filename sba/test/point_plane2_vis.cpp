@@ -218,28 +218,25 @@ void setupSBA(SysSBA &sys)
       // projection to SBA.
       if (proj.x() > 0 && proj.x() < maxx && proj.y() > 0 && proj.y() < maxy)
         {
+	  // add point cloud shape-holding projections to each node
           sys.addStereoProj(0, k, proj);
-          sys.addStereoProj(1, k, projp);
-          sys.addStereoProj(0, k+nn, proj);
           sys.addStereoProj(1, k+nn, projp);
-          
-          // Create the covariance matrix: 
-          // image plane normal = [0 0 1]
-          // wall normal = [0 0 -1]
-          // covar = (R)T*[0 0 0;0 0 0;0 0 1]*R
-          
-          rotation.setFromTwoVectors(inormal0, normals[k]);
-          rotmat = rotation.toRotationMatrix();
-          covar = rotmat.transpose()*covar0*rotmat;
-	  sys.setProjCovariance(0, k+nn, covar);
 
-          rotation.setFromTwoVectors(inormal1, normals[k]);
-          rotmat = rotation.toRotationMatrix();
-          covar = rotmat.transpose()*covar0*rotmat;
+	  // add point-plane matches
+	  sys.addPointPlaneMatch(0, k, middleplane.normal, 1, k+nn, middleplane.normal);
+	  Matrix3d covar;
+          covar << 0.1, 0, 0,
+	           0, 0.1, 0, 
+          	   0, 0, 0.1;
+	  sys.setProjCovariance(0, k+nn, covar);
 	  sys.setProjCovariance(1, k, covar);
+
         }
       else
-	cout << "ERROR! point not in view of nodes" << endl;
+	{
+	  cout << "ERROR! point not in view of nodes" << endl;
+	  return;
+	}
     }
 
     // Add noise to node position.
