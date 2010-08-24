@@ -115,7 +115,7 @@ void setupSBA(SysSBA &sys)
       // Translate in the x direction over the node path.
       Vector4d trans(i/(nnodes-1.0)*path_length, 0, 0, 1);
             
-#if 0
+#if 1
       if (i >= 0)
 	{
 	  // perturb a little
@@ -128,7 +128,7 @@ void setupSBA(SysSBA &sys)
 
       // Don't rotate.
       Quaterniond rot(1, 0, 0, 0);
-#if 0
+#if 1
       if (i >= 0)
 	{
 	  // perturb a little
@@ -145,9 +145,9 @@ void setupSBA(SysSBA &sys)
       
       // set normal
       if (i == 0)
-	      inormal0 = rot.toRotationMatrix().transpose() * inormal0;
+	inormal0 = rot.toRotationMatrix().transpose() * inormal0;
       else
-	      inormal1 = rot.toRotationMatrix().transpose() * inormal1;
+	inormal1 = rot.toRotationMatrix().transpose() * inormal1;
     }
         
     double pointnoise = 1.0;
@@ -225,7 +225,7 @@ void setupSBA(SysSBA &sys)
 	  // add point-plane matches
 	  sys.addPointPlaneMatch(0, k, inormal0, 1, k+nn, inormal1);
 	  Matrix3d covar;
-	  double cv = 0.05;
+	  double cv = 0.1;
           covar << cv, 0, 0,
 	           0, cv, 0, 
           	   0, 0, cv;

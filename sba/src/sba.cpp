@@ -171,6 +171,7 @@ namespace sba
     Point pt0 = tracks[pi0].point;
     Point pt1 = tracks[pi1].point;
     
+#if 0
     // Forward: point 0 into camera 1.
     Vector3d proj_forward;
     proj_forward = tracks[pi1].projections[ci1].kp;
@@ -183,7 +184,9 @@ namespace sba
     forward_proj.plane_local_normal = normal1;
     forward_proj.plane_point_index = pi0;
     forward_proj.plane_node_index = ci0;
+#endif
     
+#if 1
     // Backward: point 1 into camera 0. 
     Vector3d proj_backward;
     //nodes[ci0].projectStereo(pt1, proj_backward);
@@ -196,6 +199,7 @@ namespace sba
     backward_proj.plane_local_normal = normal0;
     backward_proj.plane_point_index = pi1;
     backward_proj.plane_node_index = ci1;
+#endif
   }
 
   // Update the normals for point-plane matches.
