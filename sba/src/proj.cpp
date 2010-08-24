@@ -262,7 +262,7 @@ namespace sba
     if (pointPlane)
     {
       // Project point onto plane.
-      Eigen::Vector3d w = plane_point-pt.start<3>();
+      Eigen::Vector3d w = pt.start<3>()-plane_point;
       //printf("w: %f %f %f\n", w.x(), w.y(), w.z());
       Eigen::Vector3d projpt = pt.start<3>()+(w.dot(plane_normal))*plane_normal;
       //Eigen::Vector3d projpt = plane_point+(w.dot(plane_normal))*plane_normal;
