@@ -252,8 +252,8 @@ namespace frame_common
         input_tree.setInputCloud(boost::make_shared<const PointCloud<PointXYZRGBNormal> >(input));
         output_tree.setInputCloud(boost::make_shared<const PointCloud<PointXYZRGBNormal> >(output));
         
-        pcl::io::savePCDFileASCII("plane_frame0.pcd", input);
-        pcl::io::savePCDFileASCII("plane_frame1.pcd", output);
+        // pcl::io::savePCDFileASCII("plane_frame0.pcd", input);
+        // pcl::io::savePCDFileASCII("plane_frame1.pcd", output);
         
         // Iterate over the output tree looking for all the input points and finding
         // nearest neighbors.

@@ -518,8 +518,8 @@ namespace vslam
         // Add point-to-plane projections
         
         // First, figure out normals in world coordinate frame:
-        Vector3d normal0 = f2w_frame0*f0.pl_normals[i0];
-        Vector3d normal1 = f2w_frame1*f1.pl_normals[i1];
+        Vector3d normal0 = f0.pl_normals[i0].start<3>();
+        Vector3d normal1 = f1.pl_normals[i1].start<3>();
         
         // Then add the forward and backward projections.
         sba.addPointPlaneMatch(ndi0, f0.pl_ipts[i0], normal0, ndi1, f1.pl_ipts[i1], normal1);

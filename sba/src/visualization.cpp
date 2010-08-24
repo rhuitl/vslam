@@ -94,28 +94,28 @@ void drawGraph(const SysSBA &sba, const ros::Publisher &camera_pub,
     }
 
   // draw point-plane projections
-  int num_tracks = sba.tracks.size();
+  /* int num_tracks = sba.tracks.size();
   int ii = camera_marker.points.size();
   for (int i=0; i < num_tracks; i++)
     {
       const ProjMap &prjs = sba.tracks[i].projections;
       for (ProjMap::const_iterator itr = prjs.begin(); itr != prjs.end(); itr++)
-	{
-	  const Proj &prj = (*itr).second;
-	  if (prj.pointPlane)	// have a ptp projection
 	    {
-	      camera_marker.points.resize(ii+2);
-	      Point pt0 = sba.tracks[i].point;
-	      const Vector3d &pt1 = prj.plane_point;
-	      camera_marker.points[ii].x = pt0.z();
-	      camera_marker.points[ii].y = -pt0.x();
-	      camera_marker.points[ii++].z = -pt0.y();
-	      camera_marker.points[ii].x = pt1.z();
-	      camera_marker.points[ii].y = -pt1.x();
-	      camera_marker.points[ii++].z = -pt1.y();
-	    }
-	}
-    }
+	      const Proj &prj = (*itr).second;
+	      if (prj.pointPlane)	// have a ptp projection
+	        {
+	          camera_marker.points.resize(ii+2);
+	          Point pt0 = sba.tracks[i].point;
+	          const Vector3d &pt1 = prj.plane_point;
+	          camera_marker.points[ii].x = pt0.z();
+	          camera_marker.points[ii].y = -pt0.x();
+	          camera_marker.points[ii++].z = -pt0.y();
+	          camera_marker.points[ii].x = pt1.z();
+	          camera_marker.points[ii].y = -pt1.x();
+	          camera_marker.points[ii++].z = -pt1.y();
+	        }
+	    } 
+    } */
 
   camera_pub.publish(camera_marker);
   point_pub.publish(point_marker);
