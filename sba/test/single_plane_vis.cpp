@@ -86,7 +86,7 @@ void setupSBA(SysSBA &sba)
     plane0.resize(3, 2, 10, 5);
     
     plane1 = plane0;
-    plane1.translate(0.03, 0.05, 0.0);
+    plane1.translate(0.1, 0.05, 0.0);
     
     plane1.rotate(PI/4.0, 1, 0, 0);
     plane1.translate(0.0, 0.0, 7.0);
