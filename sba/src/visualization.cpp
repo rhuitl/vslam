@@ -94,7 +94,7 @@ void drawGraph(const SysSBA &sba, const ros::Publisher &camera_pub,
     }
 
   // draw point-plane projections
-  /* int num_tracks = sba.tracks.size();
+  int num_tracks = sba.tracks.size();
   int ii = camera_marker.points.size();
   for (int i=0; i < num_tracks; i++)
     {
@@ -115,7 +115,7 @@ void drawGraph(const SysSBA &sba, const ros::Publisher &camera_pub,
 	          camera_marker.points[ii++].z = -pt1.y();
 	        }
 	    } 
-    } */
+    }
 
   camera_pub.publish(camera_marker);
   point_pub.publish(point_marker);
