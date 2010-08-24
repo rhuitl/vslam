@@ -302,7 +302,7 @@ void processSBA(ros::NodeHandle node)
         
     // Perform SBA with 10 iterations, an initial lambda step-size of 1e-3, 
     // and using CSPARSE.
-    sys.doSBA(1, 1e-4, SBA_SPARSE_CHOLESKY);
+    sys.doSBA(1, 1e-3, SBA_SPARSE_CHOLESKY);
     
     int npts = sys.tracks.size();
 
@@ -311,7 +311,7 @@ void processSBA(ros::NodeHandle node)
     ROS_INFO("Bad projs (> 5 pix): %d, Cost without: %f", 
         (int)sys.countBad(5.0), sqrt(sys.calcCost(5.0)/npts));
     ROS_INFO("Bad projs (> 2 pix): %d, Cost without: %f", 
-        (int)sys.countBad(2.0), sqrt(sys.calcCost(2.0)/npts));
+        (int)sys.countBad(0.5), sqrt(sys.calcCost(2.0)/npts));
     
     ROS_INFO("Cameras (nodes): %d, Points: %d",
         (int)sys.nodes.size(), (int)sys.tracks.size());
@@ -320,16 +320,16 @@ void processSBA(ros::NodeHandle node)
     drawGraph(sys, cam_marker_pub, point_marker_pub, 1, sys.tracks.size()/2);
     ros::spinOnce();
     //ROS_INFO("Sleeping for 2 seconds to publish post-SBA markers.");
-    ros::Duration(0.2).sleep();
+    ros::Duration(0.5).sleep();
 
-    for (int j=0; j<50; j++)
+    for (int j=0; j<10; j++)
       {
         if (!ros::ok())
 	        break;
 	      sys.doSBA(1, 0, SBA_SPARSE_CHOLESKY);
 	      drawGraph(sys, cam_marker_pub, point_marker_pub, 1, sys.tracks.size()/2);
 	      ros::spinOnce();
-	      ros::Duration(0.2).sleep();
+	      ros::Duration(0.5).sleep();
       }
 }
 

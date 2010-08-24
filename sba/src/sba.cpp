@@ -171,7 +171,8 @@ namespace sba
     Point pt0 = tracks[pi0].point;
     Point pt1 = tracks[pi1].point;
     
-#if 0
+    // works best with single constraint
+#if 1
     // Forward: point 0 into camera 1.
     Vector3d proj_forward;
     proj_forward = tracks[pi1].projections[ci1].kp;
@@ -186,7 +187,7 @@ namespace sba
     forward_proj.plane_node_index = ci0;
 #endif
     
-#if 1
+#if 0
     // Backward: point 1 into camera 0. 
     Vector3d proj_backward;
     //nodes[ci0].projectStereo(pt1, proj_backward);
