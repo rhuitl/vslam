@@ -173,7 +173,8 @@ namespace sba
     
     // Forward: point 0 into camera 1.
     Vector3d proj_forward;
-    nodes[ci1].projectStereo(pt0, proj_forward);
+    proj_forward = tracks[pi1].projections[ci1].kp;
+    //nodes[ci1].projectStereo(pt0, proj_forward);
     addStereoProj(ci1, pi0, proj_forward);
     
     Proj &forward_proj = tracks[pi0].projections[ci1];
@@ -185,7 +186,8 @@ namespace sba
     
     // Backward: point 1 into camera 0. 
     Vector3d proj_backward;
-    nodes[ci0].projectStereo(pt1, proj_backward);
+    //nodes[ci0].projectStereo(pt1, proj_backward);
+    proj_backward = tracks[pi0].projections[ci0].kp;
     addStereoProj(ci0, pi1, proj_backward);
     
     Proj &backward_proj = tracks[pi1].projections[ci0];
@@ -211,7 +213,7 @@ namespace sba
             prj.plane_point = tracks[prj.plane_point_index].point.start<3>();
             
             // Rotation between nodes into the projection's image plane
-            Quaterniond qrot = nodes[prj.plane_node_index].qrot;
+            Quaterniond qrot = nodes[prj.ndi].qrot;
             // Vector4d trans;
             
             // transformN2N(trans, qrot, nodes[prj.plane_node_index], nodes[itr->first]);
@@ -220,7 +222,7 @@ namespace sba
             //printf("Global normal: %f %f %f\n", prj.plane_normal.x(), prj.plane_normal.y(), prj.plane_normal.z()); 
             
             // Update projections
-            nodes[itr->first].projectStereo(tracks[prj.plane_point_index].point, prj.kp);
+            //nodes[prj.ndi].projectStereo(tracks[prj.plane_point_index].point, prj.kp);
           }
       }
   }
