@@ -176,8 +176,6 @@ public:
       tf_broadcast_.sendTransform(tf::StampedTransform(tf_transform_, stamp, image_frame, "visual_odom"));
       tf_broadcast_.sendTransform(tf::StampedTransform(simple_transform, stamp, "visual_odom", "pgraph"));
       
-      
-      
       // Publish odometry data on topic.
       if (odom_pub_.getNumSubscribers() > 0)
       {

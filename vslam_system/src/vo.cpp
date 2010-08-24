@@ -102,7 +102,7 @@ namespace vslam
           //if (dist < maxdist && inl > mininls)
           // Even if it's closer than the max distance, let it in if there's a 
           // small number of inliers because we're losing inliers.
-          if ((dist < mindist && angledist < minang) && inl > mininls) // check for angle as well
+          if (((dist < mindist && angledist < minang) && (inl > mininls))) // check for angle as well
           {
             // not a keyframe
             return false;
@@ -268,11 +268,13 @@ namespace vslam
       }
     else
       {
-        /// TODO this assumes the most recent VO operation was a keyframe
         /// should use relative pose between last two VO frames
-        fq = Quaterniond(pose_estimator_->rot);
-        trans.start(3) = pose_estimator_->trans;
-        trans(3) = 1.0;
+        
+        transformN2N(trans, fq, *(sba.nodes.end()-2), *(sba.nodes.end()-1));
+        
+        //fq = Quaterniond(pose_estimator_->rot);
+        //trans.start(3) = pose_estimator_->trans;
+        //trans(3) = 1.0;
       }
 
     Matrix<double,3,4> f2w, f2w_frame0, f2w_frame1;
@@ -299,7 +301,7 @@ namespace vslam
 
     int ndi = esba.nodes.size()-1;   // index of this new node
 
-    Node &nd1 = sba.nodes.back();
+    Node &nd1 = esba.nodes.back();
     transformF2W(f2w_frame1,nd1.trans,nd1.qrot); 
     
     if (init) 
@@ -491,43 +493,15 @@ namespace vslam
             
             sba.addStereoProj(ndi1, pti, f1.pl_kpts[i1]);
           }
-            
+        
         // Add point-to-plane projections
-          
-        // Assume the image plane's normal is in the +k^ direction.
-        // (This is in image coordinates, so i^ is in positive x of the image, 
-        // j^ is positive y of the image, and k^ is into the plane of the image.
-        Vector3d imagenormal(0, 0, 1);
         
-        Matrix3d covar0;
-        covar0 << sqrt(imagenormal(0)), 0, 0,
-                  0, sqrt(imagenormal(1)), 0, 
-                  0, 0, sqrt(imagenormal(2));
-        Matrix3d covar;
+        // First, figure out normals in world coordinate frame:
+        Vector3d normal0 = f2w_frame0*f0.pl_normals[i0];
+        Vector3d normal1 = f2w_frame1*f1.pl_normals[i1];
         
-        Quaterniond rotation;
-        Matrix3d rotmat;
-        
-        // Add point-to-plane projections (for pointcloud data)
-        // Forward: point in f0, point-to-plane in f1.
-        rotation.setFromTwoVectors(imagenormal, f1.pl_normals[i1].start<3>());
-        rotation.normalize();
-        rotmat = rotation.toRotationMatrix();
-        covar = rotmat.transpose()*covar0*rotmat;
-        
-        if (isnan(rotmat(0)))
-        { covar = covar0; }
-            
-        sba.addStereoProj(ndi1, f0.pl_ipts[i0], f1.pl_kpts[i1]);
-        sba.setProjCovariance(ndi1, f0.pl_ipts[i0], covar);
-
-        /* // Backward: point in f1, point-to-plane in f0 (does this happen?)
-        rotation.setFromTwoVectors(imagenormal, f1.pl_normals[i0].start<3>());
-        rotmat = rotation.toRotationMatrix();
-        covar = rotmat.transpose()*covar0*rotmat;
-        
-        sba.addStereoProj(ndi0, f1.pl_ipts[i1], f0.pl_kpts[i0]);
-        sba.setProjCovariance(ndi0, f1.pl_ipts[i1], covar); */
+        // Then add the forward and backward projections.
+        sba.addPointPlaneMatch(ndi0, f0.pl_ipts[i0], normal0, ndi1, f1.pl_ipts[i1], normal1);
       }
   }
   
