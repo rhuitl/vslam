@@ -169,7 +169,7 @@ namespace vslam
     printf("[Pointcloud Matches] %d matches.\n", (int)pointcloud_matches_.size());
 
     // add connections to previous frame
-    addProjections(f0, f1, frames, sba, pose_estimator_->inliers, f2w_frame0, ndi-1, ndi, &ipts);
+    //addProjections(f0, f1, frames, sba, pose_estimator_->inliers, f2w_frame0, ndi-1, ndi, &ipts);
     addPointCloudProjections(f0, f1, sba, pointcloud_matches_, f2w_frame0, f2w_frame1, ndi-1, ndi, &ipts);
 
     // do SBA, setting up fixed frames
@@ -313,7 +313,7 @@ namespace vslam
     printf("[Transfer latest frame]\n");
     
     FrameExtended &f0 = *(eframes.end()-2);
-    addProjections(f0, f1, eframes, esba, pose_estimator_->inliers, f2w_frame0, ndi-1, ndi, NULL);
+    //addProjections(f0, f1, eframes, esba, pose_estimator_->inliers, f2w_frame0, ndi-1, ndi, NULL);
     addPointCloudProjections(f0, f1, esba, pointcloud_matches_, f2w_frame0, f2w_frame1, ndi-1, ndi, NULL);
   }
 
@@ -495,75 +495,13 @@ namespace vslam
           }
             
         // Add point-to-plane projections
-          
-        // Assume the image plane's normal is in the +k^ direction.
-        // (This is in image coordinates, so i^ is in positive x of the image, 
-        // j^ is positive y of the image, and k^ is into the plane of the image.
-        Vector3d imagenormal(0, 0, 1);
         
-        Matrix3d covar0;
-        covar0 << sqrt(imagenormal(0)), 0, 0,
-                  0, sqrt(imagenormal(1)), 0, 
-                  0, 0, sqrt(imagenormal(2));
-        Matrix3d covar;
+        // First, figure out normals in world coordinate frame:
+        Vector3d normal0 = f2w_frame0*f0.pl_normals[i0];
+        Vector3d normal1 = f2w_frame1*f1.pl_normals[i1];
         
-        Quaterniond rotation;
-        Matrix3d rotmat;
+        sba.addPointPlaneMatch(ndi0, f0.pl_ipts[i0], normal0, ndi1, f1.pl_ipts[i1], normal1);
         
-        // Add point-to-plane projections (for pointcloud data)
-        // Forward: point in f0, point-to-plane in f1.
-        rotation.setFromTwoVectors(imagenormal, f1.pl_normals[i1].start<3>());
-        rotation.normalize();
-        rotmat = rotation.toRotationMatrix();
-        covar = rotmat.transpose()*covar0*rotmat;
-        
-        if (isnan(rotmat(0)))
-        { covar = covar0; }
-        
-        /* printf("[Covar] [%f %f %f; %f %f %f; %f %f %f]\n", covar(0), covar(1), covar(2), 
-            covar(3), covar(4), covar(5), covar(6), covar(7), covar(8));  */
-          
-        sba.addStereoProj(ndi1, f0.pl_ipts[i0], f1.pl_kpts[i1]);
-        sba.setProjCovariance(ndi1, f0.pl_ipts[i0], covar);
-        
-        // DEBUGGING
-        
-        // let's double-check the projections...
-        Vector3d proj, baseline;
-        Vector4d pt;
-        Vector2d proj2d;
-        pt.start<3>() = f2w_frame0*f0.pl_pts[i0]; // transform to RW coords
-        pt(3) = 1.0;
-      
-        sba.nodes[ndi1].project2im(proj2d, pt);
-        
-        // Camera coords for right camera
-        baseline << sba.nodes[ndi1].baseline, 0, 0;
-        Vector3d pc = sba.nodes[ndi1].Kcam * (sba.nodes[ndi1].w2n*pt - baseline); 
-        proj.start<2>() = proj2d;
-        proj(2) = pc(0)/pc(2);
-        
-        /*printf("[Projection] %f %f %f : %f %f %f\n",
-          f1.pl_kpts[i1].x(), f1.pl_kpts[i1].y(), f1.pl_kpts[i1].z(),
-          proj.x(), proj.y(), proj.z()); */
-        
-        Vector3d projerr = f1.pl_kpts[i1] - proj;
-        projerr = covar*projerr;
-        /*printf("[ProjErr] %f %f %f : %f %f %f\n",
-              f1.pl_kpts[i1].x(), f1.pl_kpts[i1].y(), f1.pl_kpts[i1].z(),
-              projerr.x(), projerr.y(), projerr.z());*/
-              
-
-        /* // Backward: point in f1, point-to-plane in f0
-        rotation.setFromTwoVectors(imagenormal, f0.pl_normals[i0].start<3>());
-        rotmat = rotation.toRotationMatrix();
-        covar = rotmat.transpose()*covar0*rotmat;
-        
-        if (isnan(rotmat(0)))
-        { covar = covar0; }
-        
-        sba.addStereoProj(ndi0, f1.pl_ipts[i1], f0.pl_kpts[i0]);
-        sba.setProjCovariance(ndi0, f1.pl_ipts[i1], covar); */
       }
   }
 

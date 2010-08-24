@@ -207,6 +207,18 @@ namespace sba
       /// (err)T*covar*(err).
       void setProjCovariance(int ci, int pi, Eigen::Matrix3d &covar);
       
+      /// \brief Adds a pair of point-plane projection matches. 
+      /// Assumes the points have already been added to the system with 
+      /// point-to-point projections; this just takes care of the forward and 
+      /// backward point-to-plane projections.
+      /// \param ci0 Camera index of the first point in the match.
+      /// \param pi0 Point index of the first point in the match.
+      /// \param normal0 3D normal for the first point in the world coordinate frame.
+      /// \param ci1 Camera index of the second point in the match.
+      /// \param pi1 Point index of the second point in the match.
+      /// \param normal1 3D normal for the second point in the world coordinate frame.
+      void addPointPlaneMatch(int ci0, int pi0, Eigen::Vector3d normal0, int ci1, int pi1, Eigen::Vector3d normal1);
+      
       /// linear system matrix and vector
       Eigen::MatrixXd A;
       Eigen::VectorXd B;

@@ -162,7 +162,7 @@ void publishPointclouds(SysSBA& sba, ros::Publisher& pub)
     for(size_t i=0; i < sba.tracks.size(); i++)
     {
       ProjMap &prjs = sba.tracks[i].projections;
-      if (prjs.size() < 2) continue;
+      //if (prjs.size() < 2) continue;
       
       bool pointplane = false;
       int lastframe = 0;
@@ -171,7 +171,7 @@ void publishPointclouds(SysSBA& sba, ros::Publisher& pub)
       {
         Proj &prj = itr->second;
         if (!prj.isValid) continue;
-        if (prj.useCovar)
+        if (prj.pointPlane)
           pointplane = true;
         lastframe = max(itr->first, lastframe);
       }

@@ -255,7 +255,6 @@ void SBAPointPlaneTest::SetUp()
       sys.nodes[i].setProjection();
       sys.nodes[i].setDr(true);
     }
-        
 }
 
 TEST_F(SBAPointPlaneTest, WriteRead)

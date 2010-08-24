@@ -110,6 +110,15 @@ namespace sba
       /// Covariance matrix for cost calculation.
       Eigen::Matrix<double,3,3> covarmat;
       
+      /// Whether this is a point-plane match (true) or a point-point match (false).
+      bool pointPlane;
+      
+      /// Normal for point-plane projections
+      Eigen::Vector3d plane_normal;
+      
+      /// Point for point-plane projections
+      Eigen::Vector3d plane_point;
+
       /// \brief Set the covariance matrix to use for cost calculation.
       /// Without the covariance matrix, cost is calculated by:
       /// cost = ||err||

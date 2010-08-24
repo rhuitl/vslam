@@ -82,12 +82,20 @@ void setupSBA(SysSBA &sba)
     cam_params.tx = -30; // Baseline (no baseline since this is monocular)
 
     // Create a plane containing a wall of points.
-    Plane plane0;
+    Plane plane0, plane1;
     plane0.resize(3, 2, 10, 5);
+    
+    plane1 = plane0;
+    plane1.translate(0.03, 0.05, 0.0);
+    
+    plane1.rotate(PI/4.0, 1, 0, 0);
+    plane1.translate(0.0, 0.0, 7.0);
+    
+    
     plane0.rotate(PI/4.0, 1, 0, 0);
     plane0.translate(0.0, 0.0, 7.0);
     
-    Plane plane1 = plane0;
+    plane1.translate(0.1, 0.0, 0.1);
     
     // Create nodes and add them to the system.
     unsigned int nnodes = 2; // Number of nodes.
@@ -146,7 +154,12 @@ void setupSBA(SysSBA &sba)
     
     int offset = plane0.points.size();
     
-    // Add point-plane matches
+    for (int i = 0; i < plane0.points.size(); i++)
+    {
+      sba.addPointPlaneMatch(0, i, plane0.normal, 1, i+offset, plane1.normal);
+    }
+    
+    /* // Add point-plane matches
     for (int i = 0; i < sba.tracks.size(); i++)
     {
       Vector3d proj;
@@ -179,6 +192,8 @@ void setupSBA(SysSBA &sba)
         pt = plane1.points[i];
       }
       
+      
+      
       // Forward      
       calculateProj(sba, pt, ndi, proj);
       
@@ -197,7 +212,7 @@ void setupSBA(SysSBA &sba)
       
       sba.addStereoProj(ndi, pointindex, proj);
       sba.setProjCovariance(ndi, pointindex, covar);
-    }
+    } */
     
     // Add noise to node position.
     
@@ -239,7 +254,7 @@ int addPointAndProjection(SysSBA& sba, vector<Point, Eigen::aligned_allocator<Po
     // Project points into nodes.
     for (int i = 0; i < points.size(); i++)
     {
-      double pointnoise = 1.0;
+      double pointnoise = 0.0;
   
       // Add points into the system, and add noise.
       // Add up to .5 points of noise.
@@ -309,7 +324,7 @@ void processSBA(ros::NodeHandle node)
         
     // Perform SBA with 10 iterations, an initial lambda step-size of 1e-3, 
     // and using CSPARSE.
-    sba.doSBA(20, 1e-4, SBA_SPARSE_CHOLESKY);
+    /* sba.doSBA(20, 1e-4, SBA_SPARSE_CHOLESKY);
     
     int npts = sba.tracks.size();
 
@@ -327,7 +342,40 @@ void processSBA(ros::NodeHandle node)
     drawGraph(sba, cam_marker_pub, point_marker_pub);
     ros::spinOnce();
     //ROS_INFO("Sleeping for 2 seconds to publish post-SBA markers.");
-    ros::Duration(0.2).sleep();
+    ros::Duration(0.2).sleep(); */
+    
+    // Perform SBA with 1 iteration, an initial lambda step-size of 1e-3, 
+    // and using CSPARSE.
+    /* sba.doSBA(1, 1e-4, SBA_SPARSE_CHOLESKY);
+    
+    int npts = sba.tracks.size();
+
+    ROS_INFO("Bad projs (> 10 pix): %d, Cost without: %f", 
+        (int)sba.countBad(10.0), sqrt(sba.calcCost(10.0)/npts));
+    ROS_INFO("Bad projs (> 5 pix): %d, Cost without: %f", 
+        (int)sba.countBad(5.0), sqrt(sba.calcCost(5.0)/npts));
+    ROS_INFO("Bad projs (> 2 pix): %d, Cost without: %f", 
+        (int)sba.countBad(2.0), sqrt(sba.calcCost(2.0)/npts));
+    
+    ROS_INFO("Cameras (nodes): %d, Points: %d",
+        (int)sba.nodes.size(), (int)sba.tracks.size()); */
+        
+    // Publish markers
+    drawGraph(sba, cam_marker_pub, point_marker_pub, 1, sba.tracks.size()/2);
+    ros::spinOnce();
+    ros::Duration(0.5).sleep();
+
+    for (int j=0; j<20; j++)
+      {
+        if (!ros::ok())
+	        break;
+	      sba.doSBA(1, 0, SBA_SPARSE_CHOLESKY);
+	      drawGraph(sba, cam_marker_pub, point_marker_pub, 1, sba.tracks.size()/2);
+	      ros::spinOnce();
+	      ros::Duration(0.2).sleep();
+      }
+    
+    
 }
 
 int main(int argc, char **argv)

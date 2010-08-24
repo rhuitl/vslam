@@ -154,7 +154,7 @@ namespace frame_common
             diff(0), diff(1), diff(2)); */
           
           
-          if ((norm0 - norm1).norm() < 0.1)
+          if ((norm0 - norm1).norm() < 0.5)
             matches.push_back(pe::Match(other_indices[i], this_indices[i], dist));
         }
         

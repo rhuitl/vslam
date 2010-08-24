@@ -87,22 +87,22 @@ void setupSBA(SysSBA &sys)
     // Create a plane containing a wall of points.
     Plane middleplane;
     middleplane.resize(3, 2, 10, 5);
-    middleplane.translate(0.0, 0.0, 5.0);
+    middleplane.translate(0.0, 0.0, 7.0);
     
     Plane leftplane;
     leftplane.resize(1, 2, 6, 12);
     //    leftplane.rotate(-PI/4.0, 0, 1, 0);
-    leftplane.translate(0, 0, 5.0);
+    leftplane.translate(0, 0, 7.0);
     
     Plane rightplane;
     rightplane.resize(1, 2, 6, 12);
     //    rightplane.rotate(PI/4.0, 0, 1, 0);
-    rightplane.translate(2, 0, 5.0);
+    rightplane.translate(2, 0, 7.0);
     
     Plane topplane;
     topplane.resize(1, 1.5, 6, 12);
     //    topplane.rotate(PI/4.0, 1, 0, 0);
-    topplane.translate(2, 0, 5.0);
+    topplane.translate(2, 0, 7.0);
 
     // Vector containing the true point positions.
     rightplane.normal = rightplane.normal; 

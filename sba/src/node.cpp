@@ -129,8 +129,30 @@ namespace sba
           exit(1); 
         }
       //      std::cout << "[NormRot] qrot end   = " << qrot.transpose() << std::endl;
-   }
-
+  }
+   
+  void Node::projectMono(const Point& point, Eigen::Vector3d& proj)
+  {
+    Vector2d proj2d;
+    project2im(proj2d, point);
+    
+    proj.start<2>() = proj2d;
+  }
+  
+  void Node::projectStereo(const Point& point, Eigen::Vector3d& proj)
+  {
+    Vector2d proj2d;
+    Vector3d pc, baseline_vect;
+    project2im(proj2d, point);
+    
+    // Camera coords for right camera
+    baseline_vect << baseline, 0, 0;
+    pc = Kcam * (w2n*point - baseline_vect); 
+    proj.start<2>() = proj2d;
+    proj(2) = pc(0)/pc(2);
+  }
+  
+  
   // transforms
   void transformW2F(Eigen::Matrix<double,3,4> &m, 
                     const Eigen::Matrix<double,4,1> &trans, 

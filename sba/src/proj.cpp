@@ -3,13 +3,16 @@
 namespace sba
 {
   Proj::Proj(int ci, Eigen::Vector3d &q, bool stereo)
-      : ndi(ci), kp(q), stereo(stereo), isValid(true), useCovar(false) {}
+      : ndi(ci), kp(q), stereo(stereo), 
+        isValid(true), useCovar(false), pointPlane(false) {}
       
   Proj::Proj(int ci, Eigen::Vector2d &q) 
-      : ndi(ci), kp(q(0), q(1), 0), stereo(false), isValid(true), useCovar(false) {}
+      : ndi(ci), kp(q(0), q(1), 0), 
+        stereo(false), isValid(true), useCovar(false), pointPlane(false) {}
   
   Proj::Proj() 
-      : ndi(0), kp(0, 0, 0), isValid(false) {}
+      : ndi(0), kp(0, 0, 0), 
+        stereo(false), isValid(false), useCovar(false), pointPlane(false) {}
 
   void Proj::setJacobians(const Node &nd, const Point &pt)
   {
@@ -242,9 +245,6 @@ namespace sba
     Hpp = jacp.transpose() * jacp;
     Hcc = jacc.transpose() * jacc;
     Hpc = jacp.transpose() * jacc;
-    //if (useCovar)
-    //  JcTE = jacc.transpose() * covarmat * err;
-    //else
     JcTE = jacc.transpose() * err;
     Bp = jacp.transpose() * err;
     
@@ -257,7 +257,17 @@ namespace sba
     Eigen::Vector3d p1 = nd.w2i * pt; 
     Eigen::Vector3d p2 = nd.w2n * pt; 
     Eigen::Vector3d pb(nd.baseline,0,0);
-
+    
+    // TODO: Clean this up a bit.
+    if (pointPlane)
+    {
+      // Project point onto plane.
+      Eigen::Vector3d w = pt.start<3>()-plane_point;
+      Eigen::Vector3d projpt = pt.start<3>()+(w.dot(plane_normal))*plane_normal;
+      p1 = nd.w2i*Eigen::Vector4d(projpt.x(), projpt.y(), projpt.z(), 1.0);
+      p2 = nd.w2n*Eigen::Vector4d(projpt.x(), projpt.y(), projpt.z(), 1.0);
+    }
+    
     double invp1 = 1.0/p1(2);
     
     err.start<2>() = p1.start<2>()*invp1;
@@ -286,7 +296,7 @@ namespace sba
     
     if (useCovar)
       err = covarmat*err;
-
+     
     return err.squaredNorm();
   }
   

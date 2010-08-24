@@ -92,6 +92,7 @@ namespace sba
     nd.setKcam(cp); // set up node2image projection
     nd.setTransform(); // set up world2node transform
     nd.setDr(true); // set rotational derivatives
+    nd.setProjection();
     // Should this be local or global?
     nd.normRot();//Local();
     nodes.push_back(nd);
@@ -163,6 +164,33 @@ namespace sba
     // TODO Check if the projection exists instead.
     tracks[pi].projections[ci].setCovariance(covar);
   }
+  
+  // Add a point-plane match, forward and backward.
+  void SysSBA::addPointPlaneMatch(int ci0, int pi0, Eigen::Vector3d normal0, int ci1, int pi1, Eigen::Vector3d normal1)
+  {
+    Point pt0 = tracks[pi0].point;
+    Point pt1 = tracks[pi1].point;
+    
+    // Forward: point 0 into camera 1.
+    Vector3d proj_forward;
+    nodes[ci1].projectStereo(pt0, proj_forward);
+    addStereoProj(ci1, pi0, proj_forward);
+    
+    Proj &forward_proj = tracks[pi0].projections[ci1];
+    forward_proj.pointPlane = true;
+    forward_proj.plane_point = pt1.start<3>();
+    forward_proj.plane_normal = normal1;
+    
+    // Backward: point 1 into camera 0. 
+    Vector3d proj_backward;
+    nodes[ci0].projectStereo(pt1, proj_backward);
+    addStereoProj(ci0, pi1, proj_backward);
+    
+    Proj &backward_proj = tracks[pi1].projections[ci0];
+    backward_proj.pointPlane = true;
+    backward_proj.plane_point = pt0.start<3>();
+    backward_proj.plane_normal = normal0;
+  }
 
   // error measure, squared
   // assumes node projection matrices have already been calculated
@@ -181,11 +209,8 @@ namespace sba
             cost += err;
           }
       }
-
     return cost;
-    
   }
-
 
   // error measure, squared
   // assumes node projection matrices have already been calculated
