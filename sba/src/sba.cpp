@@ -182,7 +182,7 @@ namespace sba
     forward_proj.pointPlane = true;
     forward_proj.plane_point = pt1.start<3>();
     forward_proj.plane_local_normal = normal1;
-    forward_proj.plane_point_index = pi0;
+    forward_proj.plane_point_index = pi1;
     forward_proj.plane_node_index = ci0;
 #endif
     
@@ -197,7 +197,7 @@ namespace sba
     backward_proj.pointPlane = true;
     backward_proj.plane_point = pt0.start<3>();
     backward_proj.plane_local_normal = normal0;
-    backward_proj.plane_point_index = pi1;
+    backward_proj.plane_point_index = pi0;
     backward_proj.plane_node_index = ci1;
 #endif
   }
