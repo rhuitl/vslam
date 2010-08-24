@@ -122,10 +122,6 @@ rosbuild_add_executable(test/point_plane2_vis test/point_plane2_vis.cpp)
 target_link_libraries(test/point_plane2_vis sba_ros)
 
 # Point to Plane matching
-rosbuild_add_executable(test/point_plane3_vis test/point_plane3_vis.cpp)
-target_link_libraries(test/point_plane3_vis sba_ros)
-
-# Point to Plane matching
 rosbuild_add_executable(test/single_plane_vis test/single_plane_vis.cpp)
 target_link_libraries(test/single_plane_vis sba_ros)
 
