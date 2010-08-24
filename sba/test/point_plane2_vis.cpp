@@ -87,7 +87,7 @@ void setupSBA(SysSBA &sys)
     // Create a plane containing a wall of points.
     Plane middleplane;
     middleplane.resize(3, 2, 10, 5);
-    middleplane.rotate(-PI/4.0, 0, 1, 0);
+    middleplane.rotate(-PI/4.0, PI/6.0, 1, 0);
     middleplane.translate(0.0, 0.0, 5.0);
     
     // Vector containing the true point positions.
@@ -107,8 +107,8 @@ void setupSBA(SysSBA &sys)
     
     unsigned int i = 0;
     
-    Vector3d inormal0(0, 0, 1);
-    Vector3d inormal1(0, 0, 1);
+    Vector3d inormal0 = middleplane.normal;
+    Vector3d inormal1 = middleplane.normal;
     
     for (i = 0; i < nnodes; i++)
     { 
@@ -223,11 +223,12 @@ void setupSBA(SysSBA &sys)
           sys.addStereoProj(1, k+nn, projp);
 
 	  // add point-plane matches
-	  sys.addPointPlaneMatch(0, k, middleplane.normal, 1, k+nn, middleplane.normal);
+	  sys.addPointPlaneMatch(0, k, inormal0, 1, k+nn, inormal1);
 	  Matrix3d covar;
-          covar << 0.1, 0, 0,
-	           0, 0.1, 0, 
-          	   0, 0, 0.1;
+	  double cv = 0.05;
+          covar << cv, 0, 0,
+	           0, cv, 0, 
+          	   0, 0, cv;
 	  sys.setProjCovariance(0, k+nn, covar);
 	  sys.setProjCovariance(1, k, covar);
 
