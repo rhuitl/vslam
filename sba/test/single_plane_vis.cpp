@@ -168,8 +168,8 @@ void setupSBA(SysSBA &sba)
       covar << 0.1, 0, 0,
                 0, 0.1, 0, 
           	0, 0, 0.1;
-      //sba.setProjCovariance(0, i+offset, covar);
-      //sba.setProjCovariance(1, i, covar);
+      sba.setProjCovariance(0, i+offset, covar);
+      sba.setProjCovariance(1, i, covar);
     }
     
     // Add noise to node position.

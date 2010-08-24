@@ -212,7 +212,7 @@ namespace sba
         for(ProjMap::iterator itr = prjs.begin(); itr != prjs.end(); itr++)
           {
             Proj &prj = itr->second;      
-            if (!prj.pointPlane) continue;
+            if (!prj.pointPlane || !prj.isValid) continue;
             
             prj.plane_point = tracks[prj.plane_point_index].point.start<3>();
             

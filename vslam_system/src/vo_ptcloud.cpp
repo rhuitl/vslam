@@ -169,7 +169,7 @@ namespace vslam
     printf("[Pointcloud Matches] %d matches.\n", (int)pointcloud_matches_.size());
 
     // add connections to previous frame
-    //addProjections(f0, f1, frames, sba, pose_estimator_->inliers, f2w_frame0, ndi-1, ndi, &ipts);
+    addProjections(f0, f1, frames, sba, pose_estimator_->inliers, f2w_frame0, ndi-1, ndi, &ipts);
     addPointCloudProjections(f0, f1, sba, pointcloud_matches_, f2w_frame0, f2w_frame1, ndi-1, ndi, &ipts);
 
     // do SBA, setting up fixed frames
@@ -231,12 +231,32 @@ namespace vslam
     frames.erase(frames.begin()); // erase oldest frame
     for (int i=0; i<(int)frames.size(); i++)
       {
-        FrameExtended &f = frames[i];
+        Frame &f = frames[i];
         for (int j=0; j<(int)f.ipts.size(); j++)
           if (f.ipts[j] >= 0)
             f.ipts[j] = pidx[f.ipts[j]];
+        for (int j=0; j<(int)f.pl_ipts.size(); j++)
+          if (f.pl_ipts[j] >= 0)
+            f.pl_ipts[j] = pidx[f.pl_ipts[j]];
       }
-
+      
+    // Redo point indeces of point-plane projections
+    for(size_t i=0; i<sba.tracks.size(); i++)
+      {
+        ProjMap &prjs = sba.tracks[i].projections;
+        if (prjs.size() == 0) continue;
+        for(ProjMap::iterator itr = prjs.begin(); itr != prjs.end(); itr++)
+          {
+            Proj &prj = itr->second;
+            if (prj.pointPlane)
+            {
+              prj.plane_point_index = pidx[prj.plane_point_index];
+              prj.plane_node_index -= 1;
+              if (prj.plane_node_index < 0 || prj.plane_point_index < 0)
+                prj.isValid = false;
+            }
+          }
+      }
   }
 
   
@@ -313,7 +333,7 @@ namespace vslam
     printf("[Transfer latest frame]\n");
     
     FrameExtended &f0 = *(eframes.end()-2);
-    //addProjections(f0, f1, eframes, esba, pose_estimator_->inliers, f2w_frame0, ndi-1, ndi, NULL);
+    addProjections(f0, f1, eframes, esba, pose_estimator_->inliers, f2w_frame0, ndi-1, ndi, NULL);
     addPointCloudProjections(f0, f1, esba, pointcloud_matches_, f2w_frame0, f2w_frame1, ndi-1, ndi, NULL);
   }
 
@@ -497,8 +517,8 @@ namespace vslam
         // Add point-to-plane projections
         
         // First, figure out normals in world coordinate frame:
-        Vector3d normal0 = f2w_frame0*f0.pl_normals[i0];
-        Vector3d normal1 = f2w_frame1*f1.pl_normals[i1];
+        Vector3d normal0 = /* f2w_frame0* */ f0.pl_normals[i0].start<3>();
+        Vector3d normal1 = /* f2w_frame1* */ f1.pl_normals[i1].start<3>();
         
         // Then add the forward and backward projections.
         sba.addPointPlaneMatch(ndi0, f0.pl_ipts[i0], normal0, ndi1, f1.pl_ipts[i1], normal1);

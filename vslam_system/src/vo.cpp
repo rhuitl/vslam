@@ -234,8 +234,29 @@ namespace vslam
         for (int j=0; j<(int)f.ipts.size(); j++)
           if (f.ipts[j] >= 0)
             f.ipts[j] = pidx[f.ipts[j]];
+        for (int j=0; j<(int)f.pl_ipts.size(); j++)
+          if (f.pl_ipts[j] >= 0)
+            f.pl_ipts[j] = pidx[f.pl_ipts[j]];
+            
       }
-
+      
+    // Redo point indeces of point-plane projections
+    for(size_t i=0; i<sba.tracks.size(); i++)
+      {
+        ProjMap &prjs = sba.tracks[i].projections;
+        if (prjs.size() == 0) continue;
+        for(ProjMap::iterator itr = prjs.begin(); itr != prjs.end(); itr++)
+          {
+            Proj &prj = itr->second;
+            if (prj.pointPlane)
+            {
+              prj.plane_point_index = pidx[prj.plane_point_index];
+              prj.plane_node_index -= 1;
+              if (prj.plane_node_index < 0 || prj.plane_point_index < 0)
+                prj.isValid = false;
+            }
+          }
+      }
   }
 
   
