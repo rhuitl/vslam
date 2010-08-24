@@ -95,7 +95,7 @@ void setupSBA(SysSBA &sba)
     plane0.rotate(PI/4.0, 1, 0, 0);
     plane0.translate(0.0, 0.0, 7.0);
     
-    plane1.translate(0.1, 0.0, 0.1);
+    plane1.translate(0.05, 0.0, 0.05);
     
     // Create nodes and add them to the system.
     unsigned int nnodes = 2; // Number of nodes.

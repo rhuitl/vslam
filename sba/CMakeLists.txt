@@ -125,10 +125,6 @@ target_link_libraries(test/point_plane2_vis sba_ros)
 rosbuild_add_executable(test/single_plane_vis test/single_plane_vis.cpp)
 target_link_libraries(test/single_plane_vis sba_ros)
 
-# temporary test
-rosbuild_add_executable(test/plane_proj_test test/plane_proj_test.cpp)
-target_link_libraries(test/plane_proj_test sba)
-
 ######################################################################
 # visualization
 #

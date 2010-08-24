@@ -263,7 +263,9 @@ namespace sba
     {
       // Project point onto plane.
       Eigen::Vector3d w = pt.start<3>()-plane_point;
+      //Eigen::Vector3d projpt = pt.start<3>()+(w.dot(plane_normal))*plane_normal;
       Eigen::Vector3d projpt = pt.start<3>()+(w.dot(plane_normal))*plane_normal;
+      //printf("[Proj] Distance to plane: %f\n", w.dot(plane_normal));
       p1 = nd.w2i*Eigen::Vector4d(projpt.x(), projpt.y(), projpt.z(), 1.0);
       p2 = nd.w2n*Eigen::Vector4d(projpt.x(), projpt.y(), projpt.z(), 1.0);
     }
