@@ -213,11 +213,14 @@ namespace sba
       /// backward point-to-plane projections.
       /// \param ci0 Camera index of the first point in the match.
       /// \param pi0 Point index of the first point in the match.
-      /// \param normal0 3D normal for the first point in the world coordinate frame.
+      /// \param normal0 3D normal for the first point in camera0's coordinate frame.
       /// \param ci1 Camera index of the second point in the match.
       /// \param pi1 Point index of the second point in the match.
-      /// \param normal1 3D normal for the second point in the world coordinate frame.
+      /// \param normal1 3D normal for the second point in camera1's coordinate frame.
       void addPointPlaneMatch(int ci0, int pi0, Eigen::Vector3d normal0, int ci1, int pi1, Eigen::Vector3d normal1);
+      
+      /// \brief Update normals in point-plane matches, if any.
+      void updateNormals();
       
       /// linear system matrix and vector
       Eigen::MatrixXd A;
@@ -225,7 +228,7 @@ namespace sba
 
       /// sparse connectivity matrix
       /// for each node, holds vector of connecting nodes
-      /// <true> for don't use connection
+      /// "true" for don't use connection
       std::vector<std::vector<bool> > connMat;
 
       /// Sets up the connectivity matrix by clearing connections with 

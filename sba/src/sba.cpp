@@ -179,7 +179,9 @@ namespace sba
     Proj &forward_proj = tracks[pi0].projections[ci1];
     forward_proj.pointPlane = true;
     forward_proj.plane_point = pt1.start<3>();
-    forward_proj.plane_normal = normal1;
+    forward_proj.plane_local_normal = normal1;
+    forward_proj.plane_point_index = pi0;
+    forward_proj.plane_node_index = ci0;
     
     // Backward: point 1 into camera 0. 
     Vector3d proj_backward;
@@ -189,7 +191,38 @@ namespace sba
     Proj &backward_proj = tracks[pi1].projections[ci0];
     backward_proj.pointPlane = true;
     backward_proj.plane_point = pt0.start<3>();
-    backward_proj.plane_normal = normal0;
+    backward_proj.plane_local_normal = normal0;
+    backward_proj.plane_point_index = pi1;
+    backward_proj.plane_node_index = ci1;
+  }
+
+  // Update the normals for point-plane matches.
+  void SysSBA::updateNormals()
+  {
+    for(size_t i=0; i<tracks.size(); i++)
+      {
+        ProjMap &prjs = tracks[i].projections;
+        if (prjs.size() == 0) continue;
+        for(ProjMap::iterator itr = prjs.begin(); itr != prjs.end(); itr++)
+          {
+            Proj &prj = itr->second;      
+            if (!prj.pointPlane) continue;
+            
+            prj.plane_point = tracks[prj.plane_point_index].point.start<3>();
+            
+            // Rotation between nodes into the projection's image plane
+            Quaterniond qrot = nodes[prj.plane_node_index].qrot;
+            // Vector4d trans;
+            
+            // transformN2N(trans, qrot, nodes[prj.plane_node_index], nodes[itr->first]);
+            
+            prj.plane_normal = qrot.toRotationMatrix() * prj.plane_local_normal;
+            //printf("Global normal: %f %f %f\n", prj.plane_normal.x(), prj.plane_normal.y(), prj.plane_normal.z()); 
+            
+            // Update projections
+            nodes[itr->first].projectStereo(tracks[prj.plane_point_index].point, prj.kp);
+          }
+      }
   }
 
   // error measure, squared
@@ -1252,6 +1285,9 @@ void SysSBA::setupSys(double sLambda)
         // NOTE: shouldn't need to redo all calcs in setupSys if we 
         //   got here from a bad update
 
+        // If we have point-plane matches, should update normals here.
+        updateNormals();        
+        
         t0 = utime();
         if (useCSparse)
           setupSparseSys(lambda,iter,useCSparse == SBA_GRADIENT); // sparse version

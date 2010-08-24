@@ -115,7 +115,7 @@ void setupSBA(SysSBA &sys)
       // Translate in the x direction over the node path.
       Vector4d trans(i/(nnodes-1.0)*path_length, 0, 0, 1);
             
-#if 1
+#if 0
       if (i >= 0)
 	{
 	  // perturb a little
@@ -128,7 +128,7 @@ void setupSBA(SysSBA &sys)
 
       // Don't rotate.
       Quaterniond rot(1, 0, 0, 0);
-#if 1
+#if 0
       if (i >= 0)
 	{
 	  // perturb a little
@@ -145,9 +145,9 @@ void setupSBA(SysSBA &sys)
       
       // set normal
       if (i == 0)
-	inormal0 = rot.toRotationMatrix().transpose() * inormal0;
+	      inormal0 = rot.toRotationMatrix().transpose() * inormal0;
       else
-	inormal1 = rot.toRotationMatrix().transpose() * inormal1;
+	      inormal1 = rot.toRotationMatrix().transpose() * inormal1;
     }
         
     double pointnoise = 1.0;
@@ -324,10 +324,12 @@ void processSBA(ros::NodeHandle node)
 
     for (int j=0; j<50; j++)
       {
-	sys.doSBA(1, 0, SBA_SPARSE_CHOLESKY);
-	drawGraph(sys, cam_marker_pub, point_marker_pub, 1, sys.tracks.size()/2);
-	ros::spinOnce();
-	ros::Duration(0.2).sleep();
+        if (!ros::ok())
+	        break;
+	      sys.doSBA(1, 0, SBA_SPARSE_CHOLESKY);
+	      drawGraph(sys, cam_marker_pub, point_marker_pub, 1, sys.tracks.size()/2);
+	      ros::spinOnce();
+	      ros::Duration(0.2).sleep();
       }
 }
 

@@ -17,9 +17,9 @@ namespace sba
   /// projections in tracks.
   typedef std::map<const int, Proj, std::less<int>, Eigen::aligned_allocator<Proj> > ProjMap;
 
-  /// \brief PROJ holds a projection measurement of a point onto a
-  /// frame.  They are a repository for the link between the frame and
-  /// the point, with auxillary info such as jacobians.
+  /// \brief Proj holds a projection measurement of a point onto a
+  /// frame. They are a repository for the link between the frame and
+  /// the point, with auxillary info such as Jacobians.
   class Proj
   {
     public:
@@ -37,13 +37,13 @@ namespace sba
       /// kp = <0 0 0> and ndi = <0>. Also sets the projection to be invalid.
       Proj();
       
-      /// Node index, the camera node for this projection
+      /// Node index, the camera node for this projection.
       int ndi;
       
       /// Keypoint, u,v,d vector
       Eigen::Vector3d kp;
       
-      /// projection error
+      /// Reprojection error.
       Eigen::Vector3d err;
       
       /// Whether the projection is Stereo (True) or Monocular (False).
@@ -118,6 +118,15 @@ namespace sba
       
       /// Point for point-plane projections
       Eigen::Vector3d plane_point;
+      
+      /// Point-plane match point index in SBA.
+      int plane_point_index;
+      
+      /// Point-plane node index in SBA.
+      int plane_node_index;
+      
+      /// Original normal in #plane_node_index coordinate's frame.
+      Eigen::Vector3d plane_local_normal;
 
       /// \brief Set the covariance matrix to use for cost calculation.
       /// Without the covariance matrix, cost is calculated by:

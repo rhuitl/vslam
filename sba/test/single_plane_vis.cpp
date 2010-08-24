@@ -86,7 +86,7 @@ void setupSBA(SysSBA &sba)
     plane0.resize(3, 2, 10, 5);
     
     plane1 = plane0;
-    plane1.translate(0.03, 0.05, 0.0);
+    //plane1.translate(0.03, 0.05, 0.0);
     
     plane1.rotate(PI/4.0, 1, 0, 0);
     plane1.translate(0.0, 0.0, 7.0);
@@ -95,7 +95,7 @@ void setupSBA(SysSBA &sba)
     plane0.rotate(PI/4.0, 1, 0, 0);
     plane0.translate(0.0, 0.0, 7.0);
     
-    plane1.translate(0.05, 0.0, 0.05);
+    //plane1.translate(0.05, 0.0, 0.05);
     
     // Create nodes and add them to the system.
     unsigned int nnodes = 2; // Number of nodes.
@@ -154,9 +154,15 @@ void setupSBA(SysSBA &sba)
     
     int offset = plane0.points.size();
     
+    Vector3d normal0 = sba.nodes[0].qrot.toRotationMatrix().transpose()*plane0.normal; 
+    Vector3d normal1 = sba.nodes[1].qrot.toRotationMatrix().transpose()*plane1.normal; 
+    
+    printf("Normal: %f %f %f -> %f %f %f\n", plane0.normal.x(), plane0.normal.y(), plane0.normal.z(), normal0.x(), normal0.y(), normal0.z());
+    printf("Normal: %f %f %f -> %f %f %f\n", plane1.normal.x(), plane1.normal.y(), plane1.normal.z(), normal1.x(), normal1.y(), normal1.z());
+    
     for (int i = 0; i < plane0.points.size(); i++)
     {
-      sba.addPointPlaneMatch(0, i, plane0.normal, 1, i+offset, plane1.normal);
+      sba.addPointPlaneMatch(0, i, normal0, 1, i+offset, normal1);
 
       Matrix3d covar;
       covar << 0.1, 0, 0,
@@ -166,65 +172,10 @@ void setupSBA(SysSBA &sba)
       sba.setProjCovariance(1, i, covar);
     }
     
-    /* // Add point-plane matches
-    for (int i = 0; i < sba.tracks.size(); i++)
-    {
-      Vector3d proj;
-      Vector3d imagenormal(0, 0, 1);
-      
-      Matrix3d covar0;
-      covar0 << sqrt(imagenormal(0)), 0, 0,
-                0, sqrt(imagenormal(1)), 0, 
-                0, 0, sqrt(imagenormal(2));
-      Matrix3d covar;
-      
-      Quaterniond rotation;
-      Matrix3d rotmat;
-      int ndi, pointindex;
-      Vector3d normal;
-      Point pt;
-      
-      if (i >= offset)
-      {
-        ndi = 1;
-        pointindex = i - offset;
-        normal = plane1.normal;
-        pt = plane0.points[i-offset];
-      }
-      else
-      {
-        ndi = 0;
-        pointindex = i + offset;
-        normal = plane0.normal;
-        pt = plane1.points[i];
-      }
-      
-      
-      
-      // Forward      
-      calculateProj(sba, pt, ndi, proj);
-      
-      printf("Proj: node: %d proj point: %d (%f %f %f) original pt: %d (%f %f %f)\n", 
-        ndi, i, sba.tracks[i].point.x(), sba.tracks[i].point.y(), sba.tracks[i].point.z(), 
-        pointindex, sba.tracks[pointindex].point.x(), sba.tracks[pointindex].point.y(), sba.tracks[pointindex].point.z());
-      
-      
-      rotation.setFromTwoVectors(imagenormal, normal);
-      rotation.normalize();
-      rotmat = rotation.toRotationMatrix();
-      covar = rotmat.transpose()*covar0*rotmat;
-        
-      if (isnan(rotmat(0)))
-      { covar = covar0; }
-      
-      sba.addStereoProj(ndi, pointindex, proj);
-      sba.setProjCovariance(ndi, pointindex, covar);
-    } */
-    
     // Add noise to node position.
     
-    double transscale = 2.0;
-    double rotscale = 0.2;
+    double transscale = 1.0;
+    double rotscale = 0.1;
     
     // Don't actually add noise to the first node, since it's fixed.
     for (int i = 1; i < sba.nodes.size(); i++)
@@ -261,7 +212,7 @@ int addPointAndProjection(SysSBA& sba, vector<Point, Eigen::aligned_allocator<Po
     // Project points into nodes.
     for (int i = 0; i < points.size(); i++)
     {
-      double pointnoise = 0.5;
+      double pointnoise = 0.1;
   
       // Add points into the system, and add noise.
       // Add up to .5 pixels of noise.
