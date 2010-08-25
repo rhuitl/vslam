@@ -43,6 +43,7 @@ static const double MIN_KEYFRAME_ANGLE    = 0.1;          // radians
 static const int    MIN_KEYFRAME_INLIERS  = 0;           // depends on number of points, no?
 
 using namespace sba;
+using namespace pcl;
 
 namespace vslam {
 
@@ -74,12 +75,57 @@ bool VslamSystem::addFrame(const frame_common::CamParams& camera_parameters,
   next_frame.frameId = sba_.nodes.size(); // index
   next_frame.img = cv::Mat();   // remove the images
   next_frame.imgRight = cv::Mat();
-
+  
   // Add frame to visual odometer
   bool is_keyframe = vo_.addFrame(next_frame);
 
   // grow full SBA
-  if (is_keyframe) {
+  if (is_keyframe)
+  {
+    addKeyframe(next_frame); 
+  }
+
+  if (frames_.size() > 1 && vo_.pose_estimator_->inliers.size() < 40)
+    std::cout << std::endl << "******** Bad image match: " << std::endl << std::endl;
+
+  return is_keyframe;
+}
+
+bool VslamSystem::addFrame(const frame_common::CamParams& camera_parameters,
+                           const cv::Mat& left, const cv::Mat& right,
+                           const pcl::PointCloud<PointXYZRGB>& ptcloud, int nfrac)
+{
+  // Set up next frame and compute descriptors
+  frame_common::Frame next_frame;
+  next_frame.setCamParams(camera_parameters); // this sets the projection and reprojection matrices
+  frame_processor_.setStereoFrame(next_frame, left, right, nfrac);
+  next_frame.frameId = sba_.nodes.size(); // index
+  next_frame.img = cv::Mat();   // remove the images
+  next_frame.imgRight = cv::Mat();
+  
+  if (pointcloud_processor_)
+  {
+    pointcloud_processor_->setPointcloud(next_frame, ptcloud);
+    printf("[Pointcloud] set a pointcloud! %d\n", next_frame.pointcloud.points.size());
+  }
+  
+  // Add frame to visual odometer
+  bool is_keyframe = vo_.addFrame(next_frame);
+
+  // grow full SBA
+  if (is_keyframe)
+  {
+    addKeyframe(next_frame); 
+  }
+
+  if (frames_.size() > 1 && vo_.pose_estimator_->inliers.size() < 40)
+    std::cout << std::endl << "******** Bad image match: " << std::endl << std::endl;
+
+  return is_keyframe;
+}
+
+void VslamSystem::addKeyframe(frame_common::Frame& next_frame)
+{
     frames_.push_back(next_frame);
     vo_.transferLatestFrame(frames_, sba_);
 
@@ -91,14 +137,16 @@ bool VslamSystem::addFrame(const frame_common::CamParams& camera_parameters,
     std::vector<const frame_common::Frame*> place_matches;
     const size_t N = 5;
     place_recognizer_.findAndInsert(transferred_frame, transferred_frame.frameId, frames_, N, place_matches);
-        printf("PLACEREC: Found %d matches\n", (int)place_matches.size());
+    printf("PLACEREC: Found %d matches\n", (int)place_matches.size());
 
-    for (int i = 0; i < (int)place_matches.size(); ++i) {
+    for (int i = 0; i < (int)place_matches.size(); ++i) 
+    {
       frame_common::Frame& matched_frame = const_cast<frame_common::Frame&>(*place_matches[i]);
       
       // Skip if it's one of the previous SKIP keyframes
       const int SKIP = 20;
-      if (matched_frame.frameId >= (int)frames_.size() - SKIP - 1) {
+      if (matched_frame.frameId >= (int)frames_.size() - SKIP - 1) 
+      {
         //        printf("\tMatch %d: skipping, frame index %d\n", i, (int)matched_frame.frameId);
         continue;
       }
@@ -107,59 +155,35 @@ bool VslamSystem::addFrame(const frame_common::CamParams& camera_parameters,
       int inliers = pose_estimator_.estimate(matched_frame, transferred_frame);
       //      printf("\tMatch %d: %d inliers, frame index %d\n", i, inliers, matched_frame.frameId);
       if (inliers > prInliers) 
-	  {
-	    numPRs++;
-	    /// @todo Want debug behavior?
-  #if 0
-	    // DEBUG: Do SBA, draw graph, pause
-	    sba.doSBA(3,1.0e-4,1);
-	    drawgraph(sba,spa,cam_pub,pt_pub,1,cst_pub,link_pub);
-	    printf("About to add link, press a key to continue...\n");
-	    cv::waitKey();
-  #endif
+	    {
+	      numPRs++;
 
-	    // More code copied from vo.cpp
-	    Matrix<double,3,4> frame_to_world;
-	    Node &matched_node = sba_.nodes[matched_frame.frameId];
-	    Quaterniond fq0; /// @todo What does 'fq0' mean?
-	    fq0 = matched_node.qrot;
-	    transformF2W(frame_to_world, matched_node.trans, fq0);
-          
-	    addProjections(matched_frame, transferred_frame, frames_, sba_, pose_estimator_.inliers,
-			   frame_to_world, matched_frame.frameId, transferred_frame.frameId);
-	    printf("\t[PlaceRec] Adding PR link between frames %d and %d\n", transferred_frame.frameId, 
-		   matched_frame.frameId);
-	    double cst = sba_.calcRMSCost();
-	    cout << endl << "*** RMS Cost: " << cst << endl << endl;
-	    //        sba_.printStats();
-	    if (cst > 4.0)
-	      {
-	        // fix all but last NNN frames
-	        int n = sba_.nodes.size();
-	        if (n < 100) n = 50;
-	        else n = n - 50;
-	        sba_.nFixed = n;
-	        sba_.doSBA(3,1.0e-4,1);
-	        sba_.nFixed = 1;
-	      }
-
-#if 0
-	  // DEBUG: Again do SBA, draw graph, pause
-	  sba_.doSBA(3,1.0e-4,1);
-	  //        sleep(100);
-	  //        drawgraph(sba,spa,cam_pub,pt_pub,1,cst_pub,link_pub);
-	  printf("Link added, press a key to continue...\n");
-	  //        cv::waitKey();
-#endif
+	      // More code copied from vo.cpp
+	      Matrix<double,3,4> frame_to_world;
+	      Node &matched_node = sba_.nodes[matched_frame.frameId];
+	      Quaterniond fq0; /// @todo What does 'fq0' mean?
+	      fq0 = matched_node.qrot;
+	      transformF2W(frame_to_world, matched_node.trans, fq0);
+            
+	      addProjections(matched_frame, transferred_frame, frames_, sba_, pose_estimator_.inliers,
+			     frame_to_world, matched_frame.frameId, transferred_frame.frameId);
+	      printf("\t[PlaceRec] Adding PR link between frames %d and %d\n", transferred_frame.frameId, 
+		     matched_frame.frameId);
+	      double cst = sba_.calcRMSCost();
+	      cout << endl << "*** RMS Cost: " << cst << endl << endl;
+	      //        sba_.printStats();
+	      if (cst > 4.0)
+	        {
+	          // fix all but last NNN frames
+	          int n = sba_.nodes.size();
+	          if (n < 100) n = 50;
+	          else n = n - 50;
+	          sba_.nFixed = n;
+	          sba_.doSBA(3,1.0e-4,1);
+	          sba_.nFixed = 1;
+	        }
 	    }
     }
-    
-  }
-
-  if (frames_.size() > 1 && vo_.pose_estimator_->inliers.size() < 40)
-    std::cout << std::endl << "******** Bad image match: " << std::endl << std::endl;
-
-  return is_keyframe;
 }
 
 void VslamSystem::refine()

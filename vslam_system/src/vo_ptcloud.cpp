@@ -170,7 +170,7 @@ namespace vslam
 
     // add connections to previous frame
     addProjections(f0, f1, frames, sba, pose_estimator_->inliers, f2w_frame0, ndi-1, ndi, &ipts);
-    addPointCloudProjections(f0, f1, sba, pointcloud_matches_, f2w_frame0, f2w_frame1, ndi-1, ndi, &ipts);
+    //addPointCloudProjections(f0, f1, sba, pointcloud_matches_, f2w_frame0, f2w_frame1, ndi-1, ndi, &ipts);
 
     // do SBA, setting up fixed frames
     int nfree = wsize-wfixed;
@@ -336,7 +336,7 @@ namespace vslam
     
     FrameExtended &f0 = *(eframes.end()-2);
     addProjections(f0, f1, eframes, esba, pose_estimator_->inliers, f2w_frame0, ndi-1, ndi, NULL);
-    addPointCloudProjections(f0, f1, esba, pointcloud_matches_, f2w_frame0, f2w_frame1, ndi-1, ndi, NULL);
+    //addPointCloudProjections(f0, f1, esba, pointcloud_matches_, f2w_frame0, f2w_frame1, ndi-1, ndi, NULL);
   }
 
 

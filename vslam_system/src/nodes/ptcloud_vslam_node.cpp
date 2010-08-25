@@ -9,7 +9,7 @@
 #include <cv_bridge/CvBridge.h>
 #include <image_geometry/stereo_camera_model.h>
 
-#include <vslam_system/vslam_ptcloud.h>
+#include <vslam_system/vslam.h>
 #include <sba/visualization.h>
 #include <vslam_system/any_detector.h>
 #include <vslam_system/StereoVslamNodeConfig.h>
@@ -66,6 +66,7 @@ public:
     // Use calonder descriptor
     typedef cv::CalonderDescriptorExtractor<float> Calonder;
     vslam_system_.frame_processor_.setFrameDescriptor(new Calonder(calonder_trees_file));
+
     
     // Advertise outputs
     cam_marker_pub_ = nh_.advertise<visualization_msgs::Marker>("/vslam/cameras", 1);
@@ -86,6 +87,14 @@ public:
     ReconfigureServer::CallbackType f = boost::bind(&StereoVslamNode::configCb, this, _1, _2);
     reconfigure_server_.setCallback(f);
 
+    vslam_system_.setPointcloudProc(boost::shared_ptr<frame_common::PointcloudProc>(new frame_common::PointcloudProc()));
+    // Force vo keyframing parameters (fix this)
+    vslam_system_.vo_.mindist = 0; ///< Minimum linear distance between keyframes (meters).
+    vslam_system_.vo_.minang = 0;  ///< Minimum angular distance between keyframes (radians).
+    vslam_system_.vo_.mininls = 0; ///< Minimum number of inliers.
+    vslam_system_.vo_.pose_estimator_->wx = 400;
+    vslam_system_.vo_.pose_estimator_->wy = 200;
+    
   }
 
   void configCb(vslam_system::StereoVslamNodeConfig& config, uint32_t level)
@@ -125,7 +134,7 @@ public:
     cam_params.cy = cam_model_.left().cy();
     cam_params.tx = cam_model_.baseline();
     
-    pcl::PointCloud<PointXYZRGB> ptcloud;
+    pcl::PointCloud<pcl::PointXYZRGB> ptcloud;
     pcl::fromROSMsg(*ptcloud_msg, ptcloud);
 
     if (vslam_system_.addFrame(cam_params, left, right, ptcloud)) {
@@ -133,7 +142,7 @@ public:
       int size = vslam_system_.sba_.nodes.size();
       sba::drawGraph(vslam_system_.sba_, cam_marker_pub_, point_marker_pub_);
 
-      if (vo_tracks_pub_.getNumSubscribers() > 0) {
+      /* if (vo_tracks_pub_.getNumSubscribers() > 0) {
         frame_common::drawVOtracks(left, vslam_system_.vo_.frames, vo_display_);
         IplImage ipl = vo_display_;
         sensor_msgs::ImagePtr msg = sensor_msgs::CvBridge::cvToImgMsg(&ipl);
@@ -142,7 +151,7 @@ public:
       }
       
       if (pointcloud_pub_.getNumSubscribers() > 0)
-        publishPointclouds(vslam_system_.sba_, pointcloud_pub_);
+        publishPointclouds(vslam_system_.sba_, pointcloud_pub_); */
 
       const int LARGE_SBA_INTERVAL = 1;
       if (size > 1 && size % LARGE_SBA_INTERVAL == 0) {

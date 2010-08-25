@@ -37,6 +37,7 @@
 
 using namespace Eigen;
 using namespace std;
+using namespace pcl;
 
 // elapsed time in milliseconds
 #include <sys/time.h>
@@ -215,6 +216,190 @@ namespace frame_common
       }
     delete st;
   }
+  
+    void PointcloudProc::setPointcloud(Frame &frame, const pcl::PointCloud<pcl::PointXYZRGB>& input_cloud)
+    {
+      reduceCloud(input_cloud, frame.pointcloud);
+      
+      // For now, let's keep a 1-1 mapping between pl_pts, keypts, etc., etc.
+      // Basically replicating all the info in the pointcloud but whatever.
+      // TODO: Do something more intelligent than this.
+      frame.pl_pts.clear();
+      frame.pl_kpts.clear();
+      frame.pl_normals.clear();
+      frame.pl_ipts.clear();
+      
+      unsigned int ptcloudsize = frame.pointcloud.points.size();
+      frame.pl_pts.resize(ptcloudsize);
+      frame.pl_kpts.resize(ptcloudsize);
+      frame.pl_normals.resize(ptcloudsize);
+      frame.pl_ipts.resize(ptcloudsize);
+      
+      for (unsigned int i=0; i < frame.pointcloud.points.size(); i++)
+      {
+        PointXYZRGBNormal &pt = frame.pointcloud.points[i];
+        
+        frame.pl_pts[i] = Eigen::Vector4d(pt.x, pt.y, pt.z, 1.0);
+        frame.pl_normals[i] = Eigen::Vector4d(pt.normal[0], pt.normal[1], pt.normal[2], 1.0);
+        frame.pl_kpts[i] = projectPoint(frame.pl_pts[i], frame.cam);
+        frame.pl_ipts[i] = -1;
+      }
+    }
+    
+    void PointcloudProc::match(const Frame& frame0, const Frame& frame1, 
+          const Eigen::Vector3d& trans, const Eigen::Quaterniond& rot, 
+          std::vector<pe::Match>& matches)
+    {
+      PointCloud<PointXYZRGBNormal> transformed_cloud;
+      
+      // First, transform the current frame. (Is this inverse?) (Or just transform the other cloud?)
+      //transformPointCloudWithNormals<PointXYZRGBNormal>(frame1.cloud, transformed_cloud, -trans.cast<float>(), rot.cast<float>().conjugate());
+      transformPointCloudWithNormals<PointXYZRGBNormal>(frame0.pointcloud, transformed_cloud, -trans.cast<float>(), rot.cast<float>().conjugate());
+      
+      pcl::io::savePCDFileASCII ("cloud0.pcd", transformed_cloud);
+      pcl::io::savePCDFileASCII ("cloud1.pcd", frame1.pointcloud);
+      
+      // Optional/TODO: Perform ICP to further refine estimate.
+      /*PointCloud<PointXYZRGBNormal> cloud_reg;
+
+      IterativeClosestPointNonLinear<PointXYZRGBNormal, PointXYZRGBNormal> reg;
+      reg.setInputCloud (boost::make_shared<const PointCloud<PointXYZRGBNormal> > (transformed_cloud));
+      reg.setInputTarget (boost::make_shared<const PointCloud<PointXYZRGBNormal> > (cloud));
+      reg.setMaximumIterations(50);
+      reg.setTransformationEpsilon (1e-8);
+
+      reg.align(cloud_reg); */
+            
+      // Find matches between pointclouds in frames. (TODO: also compare normals)
+      std::vector<int> f0_indices, f1_indices;
+      getMatchingIndices(transformed_cloud, frame1.pointcloud, f0_indices, f1_indices);
+      
+      // Fill in keypoints and projections of relevant features.
+      // Currently just done when setting the pointcloud.
+      
+      // Convert matches into the correct format.
+      matches.clear();
+      // Starting at i=1 as a hack to not let through (0,0,0) matches (why is this in the ptcloud?))
+      for (unsigned int i=1; i < f0_indices.size(); i++)
+      {           
+        const PointXYZRGBNormal &pt0 = transformed_cloud.points[f0_indices[i]];
+        const PointXYZRGBNormal &pt1 = frame1.pointcloud.points[f1_indices[i]];
+        
+        // Figure out distance and angle between normals
+        Quaterniond normalquat;
+        Vector3d norm0(pt0.normal[0], pt0.normal[1], pt0.normal[2]), norm1(pt1.normal[0], pt1.normal[1], pt1.normal[2]);
+        normalquat.setFromTwoVectors(norm0, norm1);
+        //double angledist = normalquat.angularDistance(normalquat.Identity());
+        double dist = (Vector3d(pt0.x, pt0.y, pt0.z)-Vector3d(pt1.x, pt1.y, pt1.z)).norm();
+        
+        /* Vector4d p0_pt = Vector4d(pt0.x, pt0.y, pt0.z, 1.0);
+        Vector3d expected_proj = projectPoint(p0_pt, frame0.cam);
+        
+        Vector3d diff = expected_proj - frame1.pl_kpts[f1_indices[i]].start<3>();
+        diff(2) = diff(2) - diff(0);
+        
+        printf("[Proj difference] %f %f %f\n", diff(0), diff(1), diff(2)); */
+        
+        if ((norm0 - norm1).norm() < 0.5)
+          matches.push_back(pe::Match(f0_indices[i], f1_indices[i], dist));
+      }
+      
+      printf("[FrameExtended] Found %d matches, then converted %d matches.\n", (int)f0_indices.size(), (int)matches.size());
+    }
+    
+    void PointcloudProc::getMatchingIndices(const PointCloud<PointXYZRGBNormal>& input, 
+              const PointCloud<PointXYZRGBNormal>& output, 
+              std::vector<int>& input_indices, std::vector<int>& output_indices)
+    {
+      // TODO: Don't calculate the KDTree each time.
+      KdTreeANN<PointXYZRGBNormal> input_tree, output_tree;
+        
+      input_tree.setInputCloud(boost::make_shared<const PointCloud<PointXYZRGBNormal> >(input));
+      output_tree.setInputCloud(boost::make_shared<const PointCloud<PointXYZRGBNormal> >(output));
+      
+      // Iterate over the output tree looking for all the input points and finding
+      // nearest neighbors.
+      for (unsigned int i = 0; i < input.points.size(); i++)
+      {
+        PointXYZRGBNormal input_pt = input.points[i];
+        std::vector<int> input_indexvect(1), output_indexvect(1); // Create a vector of size 1.
+        std::vector<float> input_distvect(1), output_distvect(1);
+        
+        // Find the nearest neighbor of the input point in the output tree.
+        output_tree.nearestKSearch(input_pt, 1, input_indexvect, input_distvect);
+        
+        PointXYZRGBNormal output_pt = output.points[input_indexvect[0]];
+        
+        // Find the nearest neighbor of the output point in the input tree.
+        input_tree.nearestKSearch(output_pt, 1, output_indexvect, output_distvect);
+        
+        // If they match, add them to the match vectors.
+        if (output_indexvect[0] == (int)i)
+        {
+          input_indices.push_back(i);
+          output_indices.push_back(input_indexvect[0]);
+        }
+      }
+    }
+    
+    // Subsample cloud for faster matching and processing, while filling in normals.
+    void PointcloudProc::reduceCloud(const PointCloud<PointXYZRGB>& input, PointCloud<PointXYZRGBNormal>& output)
+    {
+      PointCloud<PointXYZRGB> cloud_nan_filtered, cloud_box_filtered, cloud_voxel_reduced;
+      PointCloud<Normal> normals;
+      PointCloud<PointXYZRGBNormal> cloud_normals;
+      
+      std::vector<int> indices;
+      
+      // Filter out nans.
+      removeNaNFromPointCloud(input, cloud_nan_filtered, indices);
+      indices.clear();
+      
+      // Filter out everything outside a [200x200x200] box.
+      Eigen::Vector4f min_pt(-100, -100, -100, -100);
+      Eigen::Vector4f max_pt(100, 100, 100, 100);
+      getPointsInBox(cloud_nan_filtered, min_pt, max_pt, indices);
+      
+      ExtractIndices<PointXYZRGB> boxfilter;
+      boxfilter.setInputCloud(boost::make_shared<const PointCloud<PointXYZRGB> >(cloud_nan_filtered));
+      boxfilter.setIndices (boost::make_shared<vector<int> > (indices));
+      boxfilter.filter(cloud_box_filtered);
+      
+      // Reduce pointcloud
+      VoxelGrid<PointXYZRGB> voxelfilter;
+      voxelfilter.setInputCloud (boost::make_shared<const PointCloud<PointXYZRGB> > (cloud_box_filtered));
+      voxelfilter.setLeafSize (0.05, 0.05, 0.05);
+      voxelfilter.filter (cloud_voxel_reduced);
+      
+      // Compute normals
+      NormalEstimation<PointXYZRGB, Normal> normalest;
+      normalest.setViewPoint(0, 0, 0);
+      normalest.setSearchMethod (boost::make_shared<KdTreeANN<PointXYZRGB> > ());
+      //normalest.setKSearch (10);
+      normalest.setRadiusSearch (0.25);
+      normalest.setInputCloud(boost::make_shared<const PointCloud<PointXYZRGB> >(cloud_voxel_reduced));
+      normalest.compute(normals);
+      
+      pcl::concatenateFields (cloud_voxel_reduced, normals, cloud_normals);
+
+      // Filter based on curvature
+      PassThrough<PointXYZRGBNormal> normalfilter;
+      normalfilter.setFilterFieldName("curvature");
+      normalfilter.setFilterLimits(0.0, 0.1);
+      normalfilter.setInputCloud(boost::make_shared<const PointCloud<PointXYZRGBNormal> >(cloud_normals));
+      normalfilter.filter(output);
+    }
+    
+    Eigen::Vector3d PointcloudProc::projectPoint(Eigen::Vector4d& point, CamParams cam)
+    {
+      Eigen::Vector3d keypoint;
+      
+      keypoint(0) = (cam.fx*point.x()) / point.z() + cam.cx;
+      keypoint(1) = (cam.fy*point.y()) / point.z() + cam.cy;
+      keypoint(2) = (cam.fx*(point.x()-cam.tx)/point.z() + cam.cx);
+      
+      return keypoint;
+    }
 
 } // end namespace frame_common
 

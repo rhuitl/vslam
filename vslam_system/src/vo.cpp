@@ -105,6 +105,7 @@ namespace vslam
           if (((dist < mindist && angledist < minang) && (inl > mininls))) // check for angle as well
           {
             // not a keyframe
+            cout << "Not a keyframe! " << (mindist) << " " << (minang) << " " <<(mininls) << endl;
             return false;
           }
         }
@@ -169,8 +170,14 @@ namespace vslam
 
     // add connections to previous frame
     addProjections(f0, f1, frames, sba, pose_estimator_->inliers, f2w_frame0, ndi-1, ndi, &ipts);
-    addPointCloudProjections(f0, f1, sba, pointcloud_matches_, f2w_frame0, f2w_frame1, ndi-1, ndi, &ipts);
-
+    
+    // Do pointcloud matching and add the projections to the system.
+    if (pointcloud_proc_)
+    {
+      pointcloud_proc_->match(f0, f1, pose_estimator_->trans, Quaterniond(pose_estimator_->rot), pointcloud_matches_);
+      addPointCloudProjections(f0, f1, sba, pointcloud_matches_, f2w_frame0, f2w_frame1, ndi-1, ndi, &ipts);
+    }
+    
     // do SBA, setting up fixed frames
     int nfree = wsize-wfixed;
     if (nframes <= nfree)
@@ -492,7 +499,7 @@ namespace vslam
             f0.pl_ipts[i0] = pti;
 
             Vector4d pt;
-            pt.start(3) = f2w_frame0*f0.pl_pts[i0]; // transform to RW coords
+            pt.start<3>() = f2w_frame0*f0.pl_pts[i0]; // transform to RW coords
             pt(3) = 1.0;
             sba.addPoint(pt);
             if (ipts)
@@ -506,7 +513,7 @@ namespace vslam
             f1.pl_ipts[i1] = pti;
             
             Vector4d pt;
-            pt.start(3) = f2w_frame1*f1.pl_pts[i1]; // transform to RW coords
+            pt.start<3>() = f2w_frame1*f1.pl_pts[i1]; // transform to RW coords
             pt(3) = 1.0;
             sba.addPoint(pt);
             if (ipts)

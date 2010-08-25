@@ -52,6 +52,24 @@
 #include <frame_common/stereo.h>
 #include <frame_common/camparams.h>
 
+// PCL headers
+#include <pcl/point_types.h>
+#include <pcl/point_cloud.h>
+#include <pcl/features/normal_3d.h>
+#include <pcl/kdtree/organized_data.h>
+#include <pcl/filters/passthrough.h>
+#include <pcl/filters/voxel_grid.h>
+#include <pcl/filters/filter.h>
+#include <pcl/filters/extract_indices.h>
+#include <pcl/common/transform.h>
+#include <pcl/registration/transforms.h>
+
+#include <pcl/io/pcd_io.h>
+
+
+// Forward declaration.
+namespace pe { struct Match; };
+
 namespace frame_common
 {
 
@@ -92,8 +110,9 @@ namespace frame_common
     std::vector<double> disps;  ///< disparities
     std::vector<int> ipts;      ///< index into SBA system points; -1 if not present
 
-    /// 3d points, linked to keypoints and SBA points
     // these are for point-to-plane matches
+    /// Pointcloud storage.
+    pcl::PointCloud<pcl::PointXYZRGBNormal> pointcloud;
     
     /// Keypoints for pointcloud points as u, v, u+d.
     std::vector<Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d> > pl_kpts;
@@ -102,7 +121,7 @@ namespace frame_common
     /// Normals for point-plane matches.
     std::vector<Eigen::Vector4d, Eigen::aligned_allocator<Eigen::Vector4d> > pl_normals;
     std::vector<int> pl_ipts;  ///< Index into SBA system points; -1 if not present.
-    
+     
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW // needed for 16B alignment
   };
 
@@ -148,6 +167,36 @@ namespace frame_common
     /// \param nfrac Fractional disparity. If above 0, then imgr is a disparity
     ///              image instead.
     void setStereoFrame(Frame &frame, const cv::Mat &img, const cv::Mat &imgr, int nfrac = 0);
+  };
+  
+  class PointcloudProc
+  {
+    public:
+      // TODO: Have an initializer with some parameters here.
+      
+      /// \brief Add a pointcloud to the frame, doing all the necessary 
+      /// pre-processing (downsampling, computing normals, and filering based on curvature).
+      void setPointcloud(Frame &frame, const pcl::PointCloud<pcl::PointXYZRGB>& input_cloud);
+      
+      /// \brief Match points with previous frame, given an initial pose estimate.
+      void match(const Frame& frame0, const Frame& frame1, 
+                  const Eigen::Vector3d& trans, const Eigen::Quaterniond& rot, 
+                  std::vector<pe::Match>& matches);
+      
+    private:
+      /// \brief Subsample cloud for faster matching and processing, while
+      /// filling in normals.
+      void reduceCloud(const pcl::PointCloud<pcl::PointXYZRGB>& input, 
+                        pcl::PointCloud<pcl::PointXYZRGBNormal>& output);
+
+      /// \brief Project a 3D point into the image frame.
+      Eigen::Vector3d projectPoint(Eigen::Vector4d& point, CamParams cam);
+      
+      /// \brief Find matches between two pointclouds using nearest neighbor
+      /// KDtree search.
+      void getMatchingIndices(const pcl::PointCloud<pcl::PointXYZRGBNormal>& input, 
+          const pcl::PointCloud<pcl::PointXYZRGBNormal>& output, 
+          std::vector<int>& input_indices, std::vector<int>& output_indices);
   };
 
   /// \brief Draw tracks from visual odometry on image over all given frames.

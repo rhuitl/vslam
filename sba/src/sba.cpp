@@ -1467,6 +1467,8 @@ void SysSBA::setupSys(double sLambda)
                 nd.setProjection();
                 nd.setDr(useLocalAngles);
               }
+              
+            updateNormals();
             cost = calcCost();  // need to reset errors
 	          if (verbose > 0)
 	            cout << iter << " Downdated cost: " << cost << endl;

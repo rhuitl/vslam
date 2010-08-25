@@ -114,6 +114,9 @@ namespace vslam
     /// Pointer to pose estimator object.
     boost::shared_ptr<pe::PoseEstimator> pose_estimator_;
     
+    /// Pointer to pointcloud processor.
+    boost::shared_ptr<frame_common::PointcloudProc> pointcloud_proc_;
+    
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW // needed for 16B alignment
   
   private:

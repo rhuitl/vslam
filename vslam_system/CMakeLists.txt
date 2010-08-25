@@ -74,7 +74,7 @@ target_link_libraries(mono_vslam_node vo)
 
 # stereo & ptcloud VSLAM as a ROS node
 rosbuild_add_executable(ptcloud_vslam_node src/nodes/ptcloud_vslam_node.cpp)
-target_link_libraries(ptcloud_vslam_node vo_ptcloud)
+target_link_libraries(ptcloud_vslam_node vo)
 
 # stereo VO as a ROS node
 rosbuild_add_executable(vo_node src/nodes/vo_node.cpp)

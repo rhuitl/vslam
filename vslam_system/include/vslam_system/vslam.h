@@ -21,6 +21,9 @@ class VslamSystem
     vslam::voSt vo_;   ///< Visual odometry processor.
     vslam::PlaceRecognizer place_recognizer_; ///< Place recognizer
     pe::PoseEstimator3d pose_estimator_;      ///< For place recognition matches
+    
+    /// Pointer to pointcloud processor.
+    boost::shared_ptr<frame_common::PointcloudProc> pointcloud_processor_;
 
   public:
     /// \brief Constructor for VslamSystem.
@@ -36,6 +39,19 @@ class VslamSystem
     ///              disparity image.
     bool addFrame(const frame_common::CamParams& camera_parameters,
                   const cv::Mat& left, const cv::Mat& right, int nfrac = 0);
+    
+    /// \brief Add a frame to the system.
+    /// \param camera_parameters Camera parameters for the cameras.
+    /// \param left Left image.
+    /// \param right Right image.
+    /// \param ptcloud Pointcloud to add to the frame.
+    /// \param nfrac Fractional disparity. If above 0, then right is an int16_t 
+    ///              disparity image.
+    bool addFrame(const frame_common::CamParams& camera_parameters,
+             const cv::Mat& left, const cv::Mat& right, 
+             const pcl::PointCloud<pcl::PointXYZRGB>& ptcloud, int nfrac = 0);
+             
+    void addKeyframe(frame_common::Frame& next_frame);
 
     /// \brief Perform a refinement on the large-scale SBA system.
     void refine();
@@ -53,6 +69,13 @@ class VslamSystem
     void setPRPolish(bool n) { pose_estimator_.polish = n; }; ///< Set whether to polish the place recognition pose estimate using SBA.
     void setVORansacIt(int n) { vo_.pose_estimator_->numRansac = n; }; ///< Set the number of RANSAC iterations for visual odometry pose estimate.
     void setVOPolish(bool n) { vo_.pose_estimator_->polish = n; }; ///< Set whether to polish pose estimate for visual odometry using SBA.
+    
+    /// \brief Set the pointcloud processor.
+    void setPointcloudProc(boost::shared_ptr<frame_common::PointcloudProc> proc)
+    {
+      pointcloud_processor_ = proc;
+      vo_.pointcloud_proc_ = proc;
+    }
 };
 
 } // namespace vslam

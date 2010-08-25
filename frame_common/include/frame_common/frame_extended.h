@@ -99,10 +99,6 @@ namespace frame_common
         
         Matrix3d rotmat = rot.toRotationMatrix();
         
-        /* printf("Translation: [%f %f %f] Rotation: [%f %f %f; %f %f %f; %f %f %f]\n", 
-            trans(0), trans(1), trans(2), rotmat(0), rotmat(1), rotmat(2), rotmat(3), rotmat(4), 
-            rotmat(5), rotmat(6), rotmat(7), rotmat(8)); */
-        
         // Optional/TODO: Perform ICP to further refine estimate.
         /*PointCloud<PointXYZRGBNormal> cloud_reg;
 
@@ -136,23 +132,11 @@ namespace frame_common
           double angledist = normalquat.angularDistance(normalquat.Identity());
           double dist = (Vector3d(pt0.x, pt0.y, pt0.z)-Vector3d(pt1.x, pt1.y, pt1.z)).norm();
           
-          //printf("[Normal]: %f %f %f [Match Normal]: %f %f %f\n", pt0.normal[0], pt0.normal[1], pt0.normal[2], pt1.normal[0], pt1.normal[1], pt1.normal[2]);
-          
-          //printf("Angular distance: %f, Distance: %f\n", angledist, dist);
-          
-          // Projection of point 0 in node 1: proj(p0, n1)
-          // Projection of point 1 in node 1: keypoint_p1
           Vector4d p0_pt = Vector4d(pt0.x, pt0.y, pt0.z, 1.0);
           Vector3d expected_proj = projectPoint(p0_pt);
           
           Vector3d diff = expected_proj - pl_kpts[this_indices[i]].start<3>();
           diff(2) = diff(2) - diff(0);
-          
-          /* printf("[Expected projection]: %f %f %f [Actual projection]: %f %f %f [Difference] %f %f %f\n",
-            expected_proj.x(), expected_proj.y(), expected_proj.z()-expected_proj.x(),
-            pl_kpts[this_indices[i]].x(), pl_kpts[this_indices[i]].y(), pl_kpts[this_indices[i]].z()-pl_kpts[this_indices[i]].x(),
-            diff(0), diff(1), diff(2)); */
-          
           
           if ((norm0 - norm1).norm() < 0.5)
             matches.push_back(pe::Match(other_indices[i], this_indices[i], dist));
@@ -165,7 +149,6 @@ namespace frame_common
       pre-processing (downsampling, computing normals, and filering based on curvature). */
       void setPointcloud(const pcl::PointCloud<pcl::PointXYZRGB>& input_cloud)
       {
-        //pcl::io::savePCDFileASCII("input_cloud.pcd", input_cloud);
         reduceCloud(input_cloud, cloud);
         
         // For now, let's keep a 1-1 mapping between pl_pts, keypts, etc., etc.
@@ -185,8 +168,6 @@ namespace frame_common
         for (unsigned int i=0; i < cloud.points.size(); i++)
         {
           PointXYZRGBNormal &pt = cloud.points[i];
-          //Eigen::Vector4f normal;
-          //pcl::flipNormalTowardsViewpoint<PointXYZRGBNormal>(pt, 0, 0, 0, normal);
           
           pl_pts[i] = Eigen::Vector4d(pt.x, pt.y, pt.z, 1.0);
           pl_normals[i] = Eigen::Vector4d(pt.normal[0], pt.normal[1], pt.normal[2], 1.0);
@@ -251,9 +232,6 @@ namespace frame_common
           
         input_tree.setInputCloud(boost::make_shared<const PointCloud<PointXYZRGBNormal> >(input));
         output_tree.setInputCloud(boost::make_shared<const PointCloud<PointXYZRGBNormal> >(output));
-        
-        // pcl::io::savePCDFileASCII("plane_frame0.pcd", input);
-        // pcl::io::savePCDFileASCII("plane_frame1.pcd", output);
         
         // Iterate over the output tree looking for all the input points and finding
         // nearest neighbors.
