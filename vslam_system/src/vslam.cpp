@@ -63,6 +63,7 @@ VslamSystem::VslamSystem(const std::string& vocab_tree_file, const std::string& 
   
   prInliers = 200;
   numPRs = 0;
+  nSkip = 20;
 }
 
 bool VslamSystem::addFrame(const frame_common::CamParams& camera_parameters,
@@ -106,7 +107,7 @@ bool VslamSystem::addFrame(const frame_common::CamParams& camera_parameters,
   if (pointcloud_processor_)
   {
     pointcloud_processor_->setPointcloud(next_frame, ptcloud);
-    printf("[Pointcloud] set a pointcloud! %d\n", next_frame.pointcloud.points.size());
+    printf("[Pointcloud] set a pointcloud! %d\n", (int)next_frame.pointcloud.points.size());
   }
   
   // Add frame to visual odometer
@@ -143,9 +144,8 @@ void VslamSystem::addKeyframe(frame_common::Frame& next_frame)
     {
       frame_common::Frame& matched_frame = const_cast<frame_common::Frame&>(*place_matches[i]);
       
-      // Skip if it's one of the previous SKIP keyframes
-      const int SKIP = 20;
-      if (matched_frame.frameId >= (int)frames_.size() - SKIP - 1) 
+      // Skip if it's one of the previous nskip keyframes
+      if (matched_frame.frameId >= (int)frames_.size() - nSkip - 1) 
       {
         //        printf("\tMatch %d: skipping, frame index %d\n", i, (int)matched_frame.frameId);
         continue;

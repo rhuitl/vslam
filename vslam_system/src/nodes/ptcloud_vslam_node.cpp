@@ -94,6 +94,7 @@ public:
     vslam_system_.vo_.mininls = 0; ///< Minimum number of inliers.
     vslam_system_.vo_.pose_estimator_->wx = 400;
     vslam_system_.vo_.pose_estimator_->wy = 200;
+    vslam_system_.nSkip = 0; 
     
   }
 
@@ -142,7 +143,7 @@ public:
       int size = vslam_system_.sba_.nodes.size();
       sba::drawGraph(vslam_system_.sba_, cam_marker_pub_, point_marker_pub_);
 
-      /* if (vo_tracks_pub_.getNumSubscribers() > 0) {
+      if (vo_tracks_pub_.getNumSubscribers() > 0) {
         frame_common::drawVOtracks(left, vslam_system_.vo_.frames, vo_display_);
         IplImage ipl = vo_display_;
         sensor_msgs::ImagePtr msg = sensor_msgs::CvBridge::cvToImgMsg(&ipl);
@@ -151,7 +152,7 @@ public:
       }
       
       if (pointcloud_pub_.getNumSubscribers() > 0)
-        publishPointclouds(vslam_system_.sba_, pointcloud_pub_); */
+        publishPointclouds(vslam_system_.sba_, pointcloud_pub_);
 
       const int LARGE_SBA_INTERVAL = 1;
       if (size > 1 && size % LARGE_SBA_INTERVAL == 0) {

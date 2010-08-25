@@ -168,7 +168,7 @@ namespace sba
       /// system.
       /// \param ci camera/node index (same as in nodes structure).
       /// \param pi point index (same as in tracks structure).
-      /// \param q  the keypoint of the projection in image coordinates.
+      /// \param q  the keypoint of the projection in image coordinates as u,v,u-d.
       /// \param stereo whether the point is stereo or not (true is stereo, 
       /// false is monocular).
       /// \return whether the projection was added (true) or not (false).
@@ -181,7 +181,7 @@ namespace sba
       /// system.
       /// \param ci camera/node index (same as in nodes structure).
       /// \param pi point index (same as in tracks structure).
-      /// \param q  the keypoint of the projection in image coordinates.
+      /// \param q  the keypoint of the projection in image coordinates as u,v,u-d.
       /// \return whether the projection was added (true) or not (false).
       /// Should only fail if the projection is a duplicate of an existing one
       /// with a different keypoint (i.e., same point projected to 2 locations
@@ -192,7 +192,7 @@ namespace sba
       /// system.
       /// \param ci camera/node index (same as in nodes structure).
       /// \param pi point index (same as in tracks structure).
-      /// \param q  the keypoint of the projection in image coordinates.
+      /// \param q  the keypoint of the projection in image coordinates as u,v,u-d.
       /// \return whether the projection was added (true) or not (false).
       /// Should only fail if the projection is a duplicate of an existing one
       /// with a different keypoint (i.e., same point projected to 2 locations

@@ -58,6 +58,7 @@ class VslamSystem
 
     int prInliers;  ///< Number of inliers needed for PR match.
     int numPRs;			///< Number of place recognitions that succeeded.
+    int nSkip;      ///< Number of the most recent frames to skip for PR checking.
 
     // parameters settings
     void setPlaceInliers(int n) { prInliers = n; }; ///< Place recognition inliers.

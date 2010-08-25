@@ -40,7 +40,7 @@ namespace sba
       /// Node index, the camera node for this projection.
       int ndi;
       
-      /// Keypoint, u,v,d vector
+      /// Keypoint, u,v,u-d vector
       Eigen::Vector3d kp;
       
       /// Reprojection error.
