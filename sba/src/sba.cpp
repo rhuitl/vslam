@@ -1428,6 +1428,7 @@ void SysSBA::setupSys(double sLambda)
         t3 = utime();
 
         // new cost
+        updateNormals();
         double newcost = calcCost();
 
         // average reprojection error (for Lourakis test)
@@ -1522,7 +1523,6 @@ void SysSBA::setupSys(double sLambda)
 
             ProjMap &tr0 = tracks[tris[i]].projections;
             ProjMap &tr1 = tracks[i].projections;
-
 
             for(ProjMap::iterator itr1 = tr1.begin(); itr1 != tr1.end(); itr1++)
               {

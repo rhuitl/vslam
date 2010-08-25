@@ -291,9 +291,11 @@ namespace vslam
       {
         /// TODO this assumes the most recent VO operation was a keyframe
         /// should use relative pose between last two VO frames
-        fq = Quaterniond(pose_estimator_->rot);
-        trans.start(3) = pose_estimator_->trans;
-        trans(3) = 1.0;
+        //fq = Quaterniond(pose_estimator_->rot);
+        //trans.start(3) = pose_estimator_->trans;
+        //trans(3) = 1.0;
+        
+        transformN2N(trans, fq, *(sba.nodes.end()-2), *(sba.nodes.end()-1));
       }
 
     Matrix<double,3,4> f2w, f2w_frame0, f2w_frame1;
