@@ -256,8 +256,8 @@ namespace frame_common
       //transformPointCloudWithNormals<PointXYZRGBNormal>(frame1.cloud, transformed_cloud, -trans.cast<float>(), rot.cast<float>().conjugate());
       transformPointCloudWithNormals<PointXYZRGBNormal>(frame0.pointcloud, transformed_cloud, -trans.cast<float>(), rot.cast<float>().conjugate());
       
-      pcl::io::savePCDFileASCII ("cloud0.pcd", transformed_cloud);
-      pcl::io::savePCDFileASCII ("cloud1.pcd", frame1.pointcloud);
+      //pcl::io::savePCDFileASCII ("cloud0.pcd", transformed_cloud);
+      //pcl::io::savePCDFileASCII ("cloud1.pcd", frame1.pointcloud);
       
       // Optional/TODO: Perform ICP to further refine estimate.
       /*PointCloud<PointXYZRGBNormal> cloud_reg;

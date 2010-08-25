@@ -114,7 +114,7 @@ namespace frame_common
     /// Pointcloud storage.
     pcl::PointCloud<pcl::PointXYZRGBNormal> pointcloud;
     
-    /// Keypoints for pointcloud points as u, v, u+d.
+    /// Keypoints for pointcloud points as u, v, u-d.
     std::vector<Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d> > pl_kpts;
     /// Points for point-plane matches.
     std::vector<Eigen::Vector4d, Eigen::aligned_allocator<Eigen::Vector4d> > pl_pts;

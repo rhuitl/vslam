@@ -530,6 +530,9 @@ namespace vslam
         
         // Then add the forward and backward projections.
         sba.addPointPlaneMatch(ndi0, f0.pl_ipts[i0], normal0, ndi1, f1.pl_ipts[i1], normal1);
+        /* printf("[Projections]: %f %f %f : %f %f %f\n", 
+                f0.pl_kpts[i0].x(), f0.pl_kpts[i0].y(), f0.pl_kpts[i0].z(), 
+                f1.pl_kpts[i1].x(), f1.pl_kpts[i1].y(), f1.pl_kpts[i1].z()); */
       }
   }
   
