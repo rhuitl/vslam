@@ -264,11 +264,11 @@ namespace frame_common
 
       IterativeClosestPointNonLinear<PointXYZRGBNormal, PointXYZRGBNormal> reg;
       reg.setInputCloud (boost::make_shared<const PointCloud<PointXYZRGBNormal> > (transformed_cloud));
-      reg.setInputTarget (boost::make_shared<const PointCloud<PointXYZRGBNormal> > (cloud));
+      reg.setInputTarget (boost::make_shared<const PointCloud<PointXYZRGBNormal> > (frame1.pointcloud));
       reg.setMaximumIterations(50);
       reg.setTransformationEpsilon (1e-8);
 
-      reg.align(cloud_reg); */
+      reg.align(cloud_reg);*/
             
       // Find matches between pointclouds in frames. (TODO: also compare normals)
       std::vector<int> f0_indices, f1_indices;
@@ -300,7 +300,7 @@ namespace frame_common
         
         printf("[Proj difference] %f %f %f\n", diff(0), diff(1), diff(2)); */
         
-        if ((norm0 - norm1).norm() < 0.5)
+        if ((norm0 - norm1).norm() < 0.5 && dist < 0.2)
           matches.push_back(pe::Match(f0_indices[i], f1_indices[i], dist));
       }
       

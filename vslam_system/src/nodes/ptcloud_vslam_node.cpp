@@ -17,8 +17,14 @@
 #include <pcl_ros/publisher.h>
 
 using namespace sba;
+using namespace pcl;
+using namespace Eigen;
 
 void publishPointclouds(SysSBA& sba, ros::Publisher& pub);
+void publishRegisteredPointclouds(sba::SysSBA& sba, 
+    std::vector<frame_common::Frame, Eigen::aligned_allocator<frame_common::Frame> >& frames, 
+    ros::Publisher& pub);
+void colorizePointcloud(pcl::PointCloud<pcl::PointXYZRGB>& cloud, cv::Mat& image);
 
 class StereoVslamNode
 {
@@ -44,6 +50,7 @@ private:
   image_transport::CameraPublisher vo_tracks_pub_;
   cv::Mat vo_display_;
   ros::Publisher pointcloud_pub_;
+  ros::Publisher registered_cloud_pub_ ;
 
 
   // Processing state
@@ -73,7 +80,8 @@ public:
     point_marker_pub_ = nh_.advertise<visualization_msgs::Marker>("/vslam/points", 1);
     vo_tracks_pub_ = it_.advertiseCamera("/vslam/vo_tracks/image", 1);
     pointcloud_pub_ = nh_.advertise<sensor_msgs::PointCloud2>("/vslam/pointcloud", 1);
-
+    registered_cloud_pub_ = nh_.advertise<sensor_msgs::PointCloud2>("/vslam/registered_pointcloud", 1);
+  
     // Synchronize inputs
     l_image_sub_.subscribe(it_, "/narrow_stereo/left/image_rect", 5);
     l_info_sub_ .subscribe(nh_, "/narrow_stereo/left/camera_info", 5);
@@ -137,6 +145,8 @@ public:
     
     pcl::PointCloud<pcl::PointXYZRGB> ptcloud;
     pcl::fromROSMsg(*ptcloud_msg, ptcloud);
+    
+    colorizePointcloud(ptcloud, left);
 
     if (vslam_system_.addFrame(cam_params, left, right, ptcloud)) {
       /// @todo Not rely on broken encapsulation of VslamSystem here
@@ -153,6 +163,9 @@ public:
       
       if (pointcloud_pub_.getNumSubscribers() > 0)
         publishPointclouds(vslam_system_.sba_, pointcloud_pub_);
+        
+      if (registered_cloud_pub_.getNumSubscribers() > 0)
+        publishRegisteredPointclouds(vslam_system_.sba_, vslam_system_.frames_, registered_cloud_pub_);
 
       const int LARGE_SBA_INTERVAL = 1;
       if (size > 1 && size % LARGE_SBA_INTERVAL == 0) {
@@ -163,6 +176,56 @@ public:
   }
   
 };
+
+// TODO: inputs and outputs, but don't care for now.
+void colorizePointcloud(pcl::PointCloud<pcl::PointXYZRGB>& cloud, cv::Mat& img)
+{
+    // Assign colors from the rectified image
+  int i = 0;
+  for (size_t u = 0; u < cloud.height; ++u)   // rows
+  {
+    for (size_t v = 0; v < cloud.width; ++v, ++i)  // cols
+    {
+      // If the point is invalid
+      if (isnan (cloud.points[i].x) || isnan (cloud.points[i].y) || isnan (cloud.points[i].z))
+        continue;
+      // Get the color information
+      uint8_t g = img.at<uint8_t>(u, v);
+      int32_t rgb = (g << 16) | (g << 8) | g;
+      cloud.points[i].rgb = *(float*)(&rgb);
+    }
+  }
+}
+
+void publishRegisteredPointclouds(sba::SysSBA& sba, 
+    std::vector<frame_common::Frame, Eigen::aligned_allocator<frame_common::Frame> >& frames, 
+    ros::Publisher& pub)
+{
+  pcl::PointCloud<pcl::PointXYZRGB> cloud;
+  pcl::PointCloud<pcl::PointXYZRGB> registered_cloud;
+
+  for(size_t i=0; i < frames.size(); i++)
+  {
+    if (sba.nodes.size() < i)
+      break;
+    if (frames[i].dense_pointcloud.points.size() <= 0)
+      continue;
+    Eigen::Quaterniond rot = sba.nodes[i].qrot;
+    Eigen::Vector3d trans = sba.nodes[i].trans.start<3>();
+    
+    transformPointCloud<PointXYZRGB>(frames[i].dense_pointcloud, cloud, Vector3f(0,0,0), rot.cast<float>());
+    transformPointCloud<PointXYZRGB>(cloud, cloud, trans.cast<float>(), Quaternionf(1, 0, 0, 0));
+    transformPointCloud<PointXYZRGB>(cloud, cloud, Vector3f(0,0,0), Quaternionf(.5, -.5, .5, -.5));
+    
+    registered_cloud.header = frames[i].dense_pointcloud.header;
+    registered_cloud += cloud;
+  }
+  
+  sensor_msgs::PointCloud2 cloud_out;
+  pcl::toROSMsg (registered_cloud, cloud_out);
+  cloud_out.header.frame_id = "/pgraph";
+  pub.publish (cloud_out);
+}
 
 void publishPointclouds(SysSBA& sba, ros::Publisher& pub)
 {

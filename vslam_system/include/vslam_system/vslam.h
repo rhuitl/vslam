@@ -29,7 +29,12 @@ class VslamSystem
     /// \brief Constructor for VslamSystem.
     /// \param vocab_tree_file Path to the vocabulary tree file.
     /// \param vocab_weights_file Path to the vocabulary tree weights file.
-    VslamSystem(const std::string& vocab_tree_file, const std::string& vocab_weights_file);
+    /// \param min_keyframe_distance Minimum distance between keyframes, in meters.
+    /// \param min_keyframe_angle Minimum angle between keyframes, in radians.
+    /// \param min_keyframe_inliers Minimum inliers in keyframes.
+    VslamSystem(const std::string& vocab_tree_file, const std::string& vocab_weights_file,
+                double min_keyframe_distance=0.2, double min_keyframe_angle=0.1, 
+                int min_keyframe_inliers=0);
 
     /// \brief Add a frame to the system.
     /// \param camera_parameters Camera parameters for the cameras.
@@ -62,6 +67,7 @@ class VslamSystem
 
     // parameters settings
     void setPlaceInliers(int n) { prInliers = n; }; ///< Place recognition inliers.
+    void setPRSkip(int n) { nSkip = n; };           ///< Set number of keyframes to skip for Place Recognition.
     void setKeyInliers(int n) { vo_.mininls = n; }; ///< Set keyframe inliers.
     void setKeyDist(double n) { vo_.mindist = n; }; ///< Set minimum keyframe distance in meters.
     void setKeyAngle(double n) { vo_.minang = n; }; ///< Set minimum keyframe angle in radians.
@@ -70,6 +76,10 @@ class VslamSystem
     void setPRPolish(bool n) { pose_estimator_.polish = n; }; ///< Set whether to polish the place recognition pose estimate using SBA.
     void setVORansacIt(int n) { vo_.pose_estimator_->numRansac = n; }; ///< Set the number of RANSAC iterations for visual odometry pose estimate.
     void setVOPolish(bool n) { vo_.pose_estimator_->polish = n; }; ///< Set whether to polish pose estimate for visual odometry using SBA.
+    void setPRWindow(int x, int y) { pose_estimator_.wx = x; pose_estimator_.wy = y; }; ///< Set the window size for place recognition matching.
+    void setVOWindow(int x, int y) { vo_.pose_estimator_->wx = x; vo_.pose_estimator_->wy = y; }; ///< Set the window size for place recognition matching.
+    
+    
     
     /// \brief Set the pointcloud processor.
     void setPointcloudProc(boost::shared_ptr<frame_common::PointcloudProc> proc)

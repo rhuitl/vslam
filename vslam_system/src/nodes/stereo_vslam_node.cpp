@@ -25,7 +25,7 @@
 static const double PI = 3.14159265;
 
 void publishRegisteredPointclouds(sba::SysSBA& sba, 
-    std::vector<frame_common::Frame, Eigen::aligned_allocator<frame_common::Frame> > frames, 
+    std::vector<frame_common::Frame, Eigen::aligned_allocator<frame_common::Frame> >& frames, 
     ros::Publisher& pub);
 
 class StereoVslamNode
@@ -224,7 +224,7 @@ public:
 };
 
 void publishRegisteredPointclouds(sba::SysSBA& sba, 
-    std::vector<frame_common::Frame, Eigen::aligned_allocator<frame_common::Frame> > frames, 
+    std::vector<frame_common::Frame, Eigen::aligned_allocator<frame_common::Frame> >& frames, 
     ros::Publisher& pub)
 {
   pcl::PointCloud<pcl::PointXYZRGB> cloud;

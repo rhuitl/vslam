@@ -63,6 +63,8 @@
 #include <pcl/filters/extract_indices.h>
 #include <pcl/common/transform.h>
 #include <pcl/registration/transforms.h>
+#include <pcl/registration/icp.h>
+#include <pcl/registration/icp_nl.h>
 
 #include <pcl/io/pcd_io.h>
 
@@ -113,6 +115,9 @@ namespace frame_common
     // these are for point-to-plane matches
     /// Pointcloud storage.
     pcl::PointCloud<pcl::PointXYZRGBNormal> pointcloud;
+    
+    /// Dense pointcloud storage, optional.
+    pcl::PointCloud<pcl::PointXYZRGB> dense_pointcloud;
     
     /// Keypoints for pointcloud points as u, v, u-d.
     std::vector<Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d> > pl_kpts;

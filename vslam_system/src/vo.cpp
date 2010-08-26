@@ -486,6 +486,12 @@ namespace vslam
                       int ndi0, int ndi1, std::vector<int>* ipts)
   {
     // add points and projections
+    int covariance = 0.1;
+	  Matrix3d covar;
+    covar <<  covariance, 0, 0,
+              0, covariance, 0, 
+  	          0, 0, covariance;
+
     for (int i=0; i<(int)inliers.size(); i++)
       {
         int i0 = inliers[i].index1;
@@ -530,9 +536,10 @@ namespace vslam
         
         // Then add the forward and backward projections.
         sba.addPointPlaneMatch(ndi0, f0.pl_ipts[i0], normal0, ndi1, f1.pl_ipts[i1], normal1);
-        /* printf("[Projections]: %f %f %f : %f %f %f\n", 
-                f0.pl_kpts[i0].x(), f0.pl_kpts[i0].y(), f0.pl_kpts[i0].z(), 
-                f1.pl_kpts[i1].x(), f1.pl_kpts[i1].y(), f1.pl_kpts[i1].z()); */
+        
+        // Add covariance for just the forward projection for now.
+	      sba.setProjCovariance(ndi1, f0.pl_ipts[i0], covar);
+	      sba.setProjCovariance(ndi0, f1.pl_ipts[i1], covar);
       }
   }
   

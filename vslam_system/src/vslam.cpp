@@ -35,22 +35,17 @@
 #include <vslam_system/vslam.h>
 #include <cstdio>
 
-// parameters
-//  min distance, angle between keyframes
-//  min inliers between keyframes
-static const double MIN_KEYFRAME_DISTANCE = 0.2;           // meters
-static const double MIN_KEYFRAME_ANGLE    = 0.1;          // radians  
-static const int    MIN_KEYFRAME_INLIERS  = 0;           // depends on number of points, no?
 
 using namespace sba;
 using namespace pcl;
 
 namespace vslam {
 
-VslamSystem::VslamSystem(const std::string& vocab_tree_file, const std::string& vocab_weights_file)
+VslamSystem::VslamSystem(const std::string& vocab_tree_file, const std::string& vocab_weights_file,
+  double min_keyframe_distance, double min_keyframe_angle, int min_keyframe_inliers)
   : frame_processor_(10), 
     vo_(boost::shared_ptr<pe::PoseEstimator>(new pe::PoseEstimator3d(1000,true,6.0,8.0,8.0)),
-        40, 10, MIN_KEYFRAME_INLIERS, MIN_KEYFRAME_DISTANCE, MIN_KEYFRAME_ANGLE), // 40 frames, 10 fixed
+        40, 10, min_keyframe_distance, min_keyframe_angle, min_keyframe_inliers), // 40 frames, 10 fixed
     place_recognizer_(vocab_tree_file, vocab_weights_file),
     pose_estimator_(5000, true, 10.0, 3.0, 3.0)
 {
@@ -116,7 +111,9 @@ bool VslamSystem::addFrame(const frame_common::CamParams& camera_parameters,
   // grow full SBA
   if (is_keyframe)
   {
-    addKeyframe(next_frame); 
+    addKeyframe(next_frame);
+    // Store the dense pointcloud.
+    frames_.back().dense_pointcloud = ptcloud;
   }
 
   if (frames_.size() > 1 && vo_.pose_estimator_->inliers.size() < 40)
