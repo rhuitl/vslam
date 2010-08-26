@@ -258,7 +258,7 @@ namespace sba
     Eigen::Vector3d p2 = nd.w2n * pt; 
     Eigen::Vector3d pb(nd.baseline,0,0);
     
-    // TODO: Clean this up a bit.
+    // TODO: Clean this up a bit. 
     if (pointPlane)
     {
       // Project point onto plane.
@@ -281,7 +281,7 @@ namespace sba
     if (p1(2) <= 0.0) 
     {
 #ifdef DEBUG
-      printf("[CalcErr] negative Z! Node %d -> %f %f %f\n",ndi,p1(0),p1(1),p1(2));
+      printf("[CalcErr] negative Z! Node %d\n",ndi);
       if (isnan(err[0]) || isnan(err[1]) ) printf("[CalcErr] NaN!\n"); 
 #endif
       err = Eigen::Vector3d(0.0,0.0,0.0);
