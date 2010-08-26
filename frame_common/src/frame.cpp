@@ -254,8 +254,10 @@ namespace frame_common
       
       // First, transform the current frame. (Is this inverse?) (Or just transform the other cloud?)
       //transformPointCloudWithNormals<PointXYZRGBNormal>(frame1.cloud, transformed_cloud, -trans.cast<float>(), rot.cast<float>().conjugate());
-      transformPointCloudWithNormals<PointXYZRGBNormal>(frame0.pointcloud, transformed_cloud, -trans.cast<float>(), rot.cast<float>().conjugate());
       
+      //transformPointCloudWithNormals<PointXYZRGBNormal>(frame0.pointcloud, transformed_cloud, -trans.cast<float>(), rot.cast<float>().conjugate());
+      transformPointCloudWithNormals<PointXYZRGBNormal>(frame0.pointcloud, transformed_cloud, Vector3f(0,0,0), rot.cast<float>().conjugate());
+      transformPointCloudWithNormals<PointXYZRGBNormal>(transformed_cloud, transformed_cloud, -trans.cast<float>(), Quaternionf(1, 0, 0, 0));
       //pcl::io::savePCDFileASCII ("cloud0.pcd", transformed_cloud);
       //pcl::io::savePCDFileASCII ("cloud1.pcd", frame1.pointcloud);
       
@@ -268,7 +270,7 @@ namespace frame_common
       reg.setMaximumIterations(50);
       reg.setTransformationEpsilon (1e-8);
 
-      reg.align(cloud_reg);*/
+      reg.align(cloud_reg); */
             
       // Find matches between pointclouds in frames. (TODO: also compare normals)
       std::vector<int> f0_indices, f1_indices;

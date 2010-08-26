@@ -15,6 +15,8 @@ rosbuild_find_ros_package(dynamic_reconfigure)
 include(${dynamic_reconfigure_PACKAGE_PATH}/cmake/cfgbuild.cmake)
 gencfg()
 
+#add_definitions(-pg)
+
 #add_definitions(-Wall -O3 -mfpmath=sse -mmmx -msse -msse2 -msse3)
 
 #####################################################################

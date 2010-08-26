@@ -338,7 +338,7 @@ namespace vslam
     /// TODO this also assume most recent VO operation was a keyframe
     /// should reconstruct inliers from most recent two frames
     Frame &f0 = *(eframes.end()-2);
-    addProjections(f0, f1, eframes, esba, pose_estimator_->inliers, f2w_frame0, ndi-1, ndi, NULL);
+      addProjections(f0, f1, eframes, esba, pose_estimator_->inliers, f2w_frame0, ndi-1, ndi, NULL);
     addPointCloudProjections(f0, f1, esba, pointcloud_matches_, f2w_frame0, f2w_frame1, ndi-1, ndi, NULL);
   }
 
@@ -486,7 +486,7 @@ namespace vslam
                       int ndi0, int ndi1, std::vector<int>* ipts)
   {
     // add points and projections
-    int covariance = 0.1;
+    double covariance = 0.1;
 	  Matrix3d covar;
     covar <<  covariance, 0, 0,
               0, covariance, 0, 
@@ -537,7 +537,7 @@ namespace vslam
         // Then add the forward and backward projections.
         sba.addPointPlaneMatch(ndi0, f0.pl_ipts[i0], normal0, ndi1, f1.pl_ipts[i1], normal1);
         
-        // Add covariance for just the forward projection for now.
+        // Add covariance for just whichever projections we have.
 	      sba.setProjCovariance(ndi1, f0.pl_ipts[i0], covar);
 	      sba.setProjCovariance(ndi0, f1.pl_ipts[i1], covar);
       }

@@ -161,8 +161,9 @@ namespace sba
   // Sets the covariance matrix of a projection.
   void SysSBA::setProjCovariance(int ci, int pi, Eigen::Matrix3d &covar)
   {
-    // TODO Check if the projection exists instead.
-    tracks[pi].projections[ci].setCovariance(covar);
+    // Check if the projection exists first.
+    if (tracks[pi].projections.find(ci) != tracks[pi].projections.end())
+      tracks[pi].projections[ci].setCovariance(covar);
   }
   
   // Add a point-plane match, forward and backward.
@@ -346,13 +347,10 @@ namespace sba
           {
             Proj &prj = itr->second;      
             if (!prj.isValid) continue;
-            prj.calcErr(nodes[prj.ndi],tracks[i].point);
+            //prj.calcErr(nodes[prj.ndi],tracks[i].point);
             if (prj.err[0] == 0.0 && prj.err[1] == 0.0 && prj.err[2] == 0.0)
               count++;
           }
-          
-          /*if (tracks[i].point.z() < 0)
-            count++;*/
       }
 
     return count;
@@ -1283,7 +1281,7 @@ void SysSBA::setupSys(double sLambda)
 	      cout << iter << " Initial squared cost: " << cost << " which is " 
 	           << sqrt(cost/nprjs) << " rms pixel error and " 
 	           << calcAvgError() << " average reproj error; " 
-	           << numBadPoints() << " bad points" << endl;
+	           << numBadPoints() << " bad projections" << endl;
       }
 
     for (; iter<niter; iter++)  // loop at most <niter> times
@@ -1437,7 +1435,7 @@ void SysSBA::setupSys(double sLambda)
 	        cout << iter << " Updated squared cost: " << newcost << " which is " 
 	             << sqrt(newcost/(double)nprjs) << " rms pixel error and " 
 	             << calcAvgError() << " average reproj error; " 
-	             << numBadPoints() << " bad points" << endl;        
+	             << numBadPoints() << " bad projections" << endl;        
 
 
         // check if we did good

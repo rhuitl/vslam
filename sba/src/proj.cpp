@@ -281,7 +281,7 @@ namespace sba
     if (p1(2) <= 0.0) 
     {
 #ifdef DEBUG
-      printf("[CalcErr] negative Z! Node %d\n",ndi);
+      printf("[CalcErr] negative Z! Node %d -> %f %f %f\n",ndi,p1(0),p1(1),p1(2));
       if (isnan(err[0]) || isnan(err[1]) ) printf("[CalcErr] NaN!\n"); 
 #endif
       err = Eigen::Vector3d(0.0,0.0,0.0);
