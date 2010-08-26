@@ -225,7 +225,7 @@ void setupSBA(SysSBA &sys)
 	  // add point-plane matches
 	  sys.addPointPlaneMatch(0, k, inormal0, 1, k+nn, inormal1);
 	  Matrix3d covar;
-	  double cv = 0.1;
+	  double cv = 0.05;
           covar << cv, 0, 0,
 	           0, cv, 0, 
           	   0, 0, cv;

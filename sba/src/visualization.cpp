@@ -96,6 +96,10 @@ void drawGraph(const SysSBA &sba, const ros::Publisher &camera_pub,
   // draw point-plane projections
   int num_tracks = sba.tracks.size();
   int ii = camera_marker.points.size();
+  camera_marker.scale.x = 0.01;
+  camera_marker.scale.y = 0.01;
+  camera_marker.scale.z = 0.01;
+
   for (int i=0; i < num_tracks; i++)
     {
       const ProjMap &prjs = sba.tracks[i].projections;
