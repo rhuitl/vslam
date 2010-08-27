@@ -5,17 +5,19 @@
   <author>Kurt Konolige, Helen Oleynikova</author>
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
+  
   <depend package="roscpp"/>
-  <depend package="rostest"/>
-  <depend package="std_msgs"/>
   <depend package="eigen"/>
   <depend package="suitesparse"/>
   <depend package="sparselib"/>
   <depend package="csparse"/>
+  
+  <depend package="std_msgs"/>
   <depend package="visualization_msgs"/>
   <depend package="geometry_msgs"/>
+  
   <export>
-    <cpp cflags="-DSBA_CHOLMOD -I${prefix}/include -I${prefix}/msg/cpp" lflags="-L${prefix}/lib -Wl,-rpath,${prefix}/lib -lsba -lsba_ros" />
+    <cpp cflags="-DSBA_CHOLMOD -I${prefix}/include -I${prefix}/msg/cpp" lflags="-L${prefix}/lib -Wl,-rpath,${prefix}/lib -lsba -lsba_vis" />
     <rosdoc config="rosdoc.yaml" />
   </export>
 </package>

@@ -6,7 +6,8 @@ void drawGraph(const SysSBA &sba, const ros::Publisher &camera_pub,
                const ros::Publisher &point_pub, int decimation, int bicolor)
 {
   int num_points = sba.tracks.size();
-  if (num_points == 0) return;
+  int num_cameras = sba.nodes.size();
+  if (num_points == 0 && num_cameras == 0) return;
   
   visualization_msgs::Marker camera_marker, point_marker;
   camera_marker.header.frame_id = "/pgraph";
@@ -59,7 +60,6 @@ void drawGraph(const SysSBA &sba, const ros::Publisher &camera_pub,
     }
 
   // draw cameras
-  int num_cameras = sba.nodes.size();
   camera_marker.points.resize(num_cameras*6);
   for (int i=0, ii=0; i < num_cameras; i++)
     {

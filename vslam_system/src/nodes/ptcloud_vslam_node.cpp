@@ -66,7 +66,7 @@ public:
 
   StereoVslamNode(const std::string& vocab_tree_file, const std::string& vocab_weights_file,
                   const std::string& calonder_trees_file)
-    : it_(nh_), sync_(5),
+    : it_(nh_), sync_(3),
       vslam_system_(vocab_tree_file, vocab_weights_file),
       detector_(new vslam_system::AnyDetector)
   {
@@ -83,11 +83,11 @@ public:
     registered_cloud_pub_ = nh_.advertise<sensor_msgs::PointCloud2>("/vslam/registered_pointcloud", 1);
   
     // Synchronize inputs
-    l_image_sub_.subscribe(it_, "/narrow_stereo/left/image_rect", 5);
-    l_info_sub_ .subscribe(nh_, "/narrow_stereo/left/camera_info", 5);
-    r_image_sub_.subscribe(it_, "/narrow_stereo/right/image_rect", 5);
-    r_info_sub_ .subscribe(nh_, "/narrow_stereo/right/camera_info", 5);
-    point_sub_.subscribe(nh_, "/narrow_stereo_textured/points2", 5);
+    l_image_sub_.subscribe(it_, "/narrow_stereo/left/image_rect", 10);
+    l_info_sub_ .subscribe(nh_, "/narrow_stereo/left/camera_info", 10);
+    r_image_sub_.subscribe(it_, "/narrow_stereo/right/image_rect", 10);
+    r_info_sub_ .subscribe(nh_, "/narrow_stereo/right/camera_info", 10);
+    point_sub_.subscribe(nh_, "/narrow_stereo_textured/points2", 10);
     sync_.connectInput(l_image_sub_, l_info_sub_, r_image_sub_, r_info_sub_, point_sub_);
     sync_.registerCallback( boost::bind(&StereoVslamNode::imageCb, this, _1, _2, _3, _4, _5) );
 
@@ -282,7 +282,7 @@ void publishPointclouds(SysSBA& sba, ros::Publisher& pub)
 
 
 int main(int argc, char** argv) {
-  ros::init(argc, argv, "stereo_vslam");
+  ros::init(argc, argv, "ptcloud_vslam");
   if (argc < 4) {
     printf("Usage: %s <vocab tree file> <vocab weights file> <calonder trees file>\n", argv[0]);
     return 1;

@@ -35,9 +35,26 @@ def add_params(gen):
     gen.add("grid_rows", int_t, 0, "Grid rows", 4, 1, 8)
     gen.add("grid_cols", int_t, 0, "Grid columns", 4, 1, 8)
 
-    gen.add("pr_ransac_iterations", int_t, 0, "Place Recognizer RANSAC Iterations", 5000, 1, 10000)
-    gen.add("pr_polish", bool_t, 0, "Place Recognizer Polish with SBA on/off", True)
+    # Visual odometry settings
+
+    gen.add("vo_ransac_iterations", int_t, 0, "Visual Odometry RANSAC iterations", 1000, 1, 10000)
+    gen.add("vo_polish", bool_t, 0, "Visual Odometry polish with SBA on/off", True)
     
-    gen.add("vo_ransac_iterations", int_t, 0, "Visual Odometry RANSAC Iterations", 1000, 1, 10000)
-    gen.add("vo_polish", bool_t, 0, "Visual Odometry Polish with SBA on/off", True)
+    gen.add("vo_window_x", int_t, 0, "Visual Odometry matching window size (x)", 92, 1, 640)
+    gen.add("vo_window_y", int_t, 0, "Visual Odometry matching window size (y)", 48, 1, 480)
+    
+    gen.add("min_keyframe_dist", double_t, 0, "Minimum keyframe distance (meters)", 0.2, 0, 50.0)
+    gen.add("min_keyframe_angle", double_t, 0, "Minimum keyframe angular distance (radians)", 0.1, 0, 3.14)
+    gen.add("min_inliers", int_t, 0, "Minimum keyframe inliers", 0, 0, 1000)
+    
+    # Place recognition settings
+    
+    gen.add("pr_ransac_iterations", int_t, 0, "Place Recognizer RANSAC iterations", 5000, 1, 10000)
+    gen.add("pr_polish", bool_t, 0, "Place Recognizer polish with SBA on/off", True)
+    
+    gen.add("pr_window_x", int_t, 0, "Place Recognizer matching window size (x)", 92, 1, 640)
+    gen.add("pr_window_y", int_t, 0, "Place Recognizer matching window size (y)", 48, 1, 480)
+    
+    gen.add("pr_skip", int_t, 0, "Number of latest frames for Place Recognizer to skip", 20, 0, 100)
+    gen.add("pr_inliers", int_t, 0, "Minimum number of inliers for Place Recognition", 200, 1, 1000)
 

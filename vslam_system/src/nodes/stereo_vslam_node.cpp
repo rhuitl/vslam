@@ -22,8 +22,6 @@
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
 
-static const double PI = 3.14159265;
-
 void publishRegisteredPointclouds(sba::SysSBA& sba, 
     std::vector<frame_common::Frame, Eigen::aligned_allocator<frame_common::Frame> >& frames, 
     ros::Publisher& pub);
@@ -195,7 +193,6 @@ public:
               ROS_WARN("%s",ex.what());
               return;
           }
-          
                                  
           base_to_visodom = tf_transform_.inverse() * base_to_image;
           

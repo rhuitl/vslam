@@ -22,8 +22,7 @@ rosbuild_add_library(sba src/sba.cpp src/spa.cpp src/spa2d.cpp src/csparse.cpp s
 target_link_libraries(sba blas lapack cholmod amd camd colamd ccolamd csparse)
 
 # SBA library with ROS & utilities, including reading from file and visualization.
-rosbuild_add_library(sba_ros src/visualization.cpp)
-target_link_libraries(sba_ros sba)
+rosbuild_add_library(sba_vis src/visualization.cpp)
 
 # various compile flags.  -O3 doesn't seem to help; -DNDEBUG seemst to hurt(???)
 rosbuild_add_compile_flags(sba -O3 -DNDEBUG -Wno-missing-field-initializers -msse3)
@@ -107,7 +106,7 @@ target_link_libraries(test/run_sba_sphere sba)
 
 # Stand-alone SBA ROS Node
 rosbuild_add_executable(bin/sba_node src/nodes/sba_node.cpp)
-target_link_libraries(bin/sba_node sba_ros)
+target_link_libraries(bin/sba_node sba sba_vis)
 
 # Test code for the SBA Node
 rosbuild_add_executable(test/sba_node_test test/sba_node_test.cpp)
@@ -115,15 +114,15 @@ target_link_libraries(test/sba_node_test sba)
 
 # Point to Plane matching
 rosbuild_add_executable(test/point_plane_vis test/point_plane_vis.cpp)
-target_link_libraries(test/point_plane_vis sba_ros)
+target_link_libraries(test/point_plane_vis sba sba_vis)
 
 # Point to Plane matching
 rosbuild_add_executable(test/point_plane2_vis test/point_plane2_vis.cpp)
-target_link_libraries(test/point_plane2_vis sba_ros)
+target_link_libraries(test/point_plane2_vis sba sba_vis)
 
 # Point to Plane matching
 rosbuild_add_executable(test/single_plane_vis test/single_plane_vis.cpp)
-target_link_libraries(test/single_plane_vis sba_ros)
+target_link_libraries(test/single_plane_vis sba sba_vis)
 
 ######################################################################
 # visualization
