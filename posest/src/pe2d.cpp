@@ -187,7 +187,7 @@ int PoseEstimator2d::estimate(const fc::Frame& frame1, const fc::Frame& frame2, 
   vector<Point2f> imagePoints;
   vector<Point3f> objectPoints;
   extractPnPData(frame1, frame2, matches, imagePoints, objectPoints);
-  if (imagePoints.size() < min_good_pts)
+  if (imagePoints.size() == 0)
   {
     // too few correspondences with valid 3d points, run structure from motion
     //std::cout << "The number of 3d points " << imagePoints.size() << ", running SFM" << std::endl;
@@ -228,11 +228,11 @@ int PoseEstimator2d::estimate(const fc::Frame& frame1, const fc::Frame& frame2, 
 
   // compute inliers for pose validation
   vector<bool> valid_pose = valid;
-  const float inlierPoseReprojError = 8.0f;
+  const float inlierPoseReprojError = 1.0f;
   filterInliers(cloud, full_image_points1, full_image_points2, R, tvec, intrinsics, inlierPoseReprojError, valid_pose);
 
   // compute inliers for 3d point cloud
-  const float inlierReprojError = 6.0f;
+  const float inlierReprojError = 1.0f;
   filterInliers(cloud, full_image_points1, full_image_points2, R, tvec, intrinsics, inlierReprojError, valid);
 
   float avgDist = 0;
@@ -308,8 +308,8 @@ int PoseEstimator2d::estimate(const fc::Frame& frame1, const fc::Frame& frame2, 
     maxz = MAX(maxz, cloud[i].z);
 
 #if 1
-    const float maxDist = 100.0f;
-    const float minDist = 1.0f;
+    const float maxDist = 70.0f;
+    const float minDist = 10.0f;
     float dist = norm(cloud[i])/norm(tvec);
     if(dist < minDist || dist > maxDist || cloud[i].z < 0)
       continue;
