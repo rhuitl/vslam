@@ -148,7 +148,8 @@ public:
     
     colorizePointcloud(ptcloud, left);
 
-    if (vslam_system_.addFrame(cam_params, left, right, ptcloud)) {
+    if (vslam_system_.addFrame(cam_params, left, right, ptcloud)) 
+    {
       /// @todo Not rely on broken encapsulation of VslamSystem here
       int size = vslam_system_.sba_.nodes.size();
       sba::drawGraph(vslam_system_.sba_, cam_marker_pub_, point_marker_pub_);
@@ -161,17 +162,18 @@ public:
         vo_tracks_pub_.publish(msg, l_cam_info);
       }
       
+      const int LARGE_SBA_INTERVAL = 2;
+      if (size > 1 && size % LARGE_SBA_INTERVAL == 0)
+      {
+        ROS_INFO("Running large SBA on %d nodes", size);
+        vslam_system_.refine(3);
+      }
+      
       if (pointcloud_pub_.getNumSubscribers() > 0)
         publishPointclouds(vslam_system_.sba_, pointcloud_pub_);
         
       if (registered_cloud_pub_.getNumSubscribers() > 0)
         publishRegisteredPointclouds(vslam_system_.sba_, vslam_system_.frames_, registered_cloud_pub_);
-
-      const int LARGE_SBA_INTERVAL = 1;
-      if (size > 1 && size % LARGE_SBA_INTERVAL == 0) {
-        ROS_INFO("Running large SBA on %d nodes", size);
-        vslam_system_.refine(20);
-      }
     }
   }
   
