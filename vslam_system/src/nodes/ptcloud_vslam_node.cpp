@@ -170,7 +170,7 @@ public:
       const int LARGE_SBA_INTERVAL = 1;
       if (size > 1 && size % LARGE_SBA_INTERVAL == 0) {
         ROS_INFO("Running large SBA on %d nodes", size);
-        vslam_system_.refine();
+        vslam_system_.refine(20);
       }
     }
   }

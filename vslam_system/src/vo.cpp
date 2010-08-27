@@ -338,7 +338,7 @@ namespace vslam
     /// TODO this also assume most recent VO operation was a keyframe
     /// should reconstruct inliers from most recent two frames
     Frame &f0 = *(eframes.end()-2);
-      addProjections(f0, f1, eframes, esba, pose_estimator_->inliers, f2w_frame0, ndi-1, ndi, NULL);
+    addProjections(f0, f1, eframes, esba, pose_estimator_->inliers, f2w_frame0, ndi-1, ndi, NULL);
     addPointCloudProjections(f0, f1, esba, pointcloud_matches_, f2w_frame0, f2w_frame1, ndi-1, ndi, NULL);
   }
 

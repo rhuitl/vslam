@@ -59,7 +59,8 @@ class VslamSystem
     void addKeyframe(frame_common::Frame& next_frame);
 
     /// \brief Perform a refinement on the large-scale SBA system.
-    void refine();
+    /// \param initial_runs How many iterations to do SBA for.
+    void refine(int initial_runs=3);
 
     int prInliers;  ///< Number of inliers needed for PR match.
     int numPRs;			///< Number of place recognitions that succeeded.

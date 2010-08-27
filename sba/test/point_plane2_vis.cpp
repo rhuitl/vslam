@@ -87,7 +87,8 @@ void setupSBA(SysSBA &sys)
     // Create a plane containing a wall of points.
     Plane middleplane;
     middleplane.resize(3, 2, 10, 5);
-    middleplane.rotate(-PI/4.0, PI/6.0, 1, 0);
+    //middleplane.rotate(PI/4.0, PI/6.0, 1, 0);
+    middleplane.rotate(PI/4.0, 1, 0, 0);
     middleplane.translate(0.0, 0.0, 5.0);
     
     // Vector containing the true point positions.
@@ -117,26 +118,26 @@ void setupSBA(SysSBA &sys)
             
 #if 1
       if (i >= 0)
-	{
-	  // perturb a little
-	  double tnoise = 0.5;	// meters
-	  trans.x() += tnoise*(drand48()-0.5);
-	  trans.y() += tnoise*(drand48()-0.5);
-	  trans.z() += tnoise*(drand48()-0.5);
-	}
+	    {
+	      // perturb a little
+	      double tnoise = 0.5;	// meters
+	      trans.x() += tnoise*(drand48()-0.5);
+	      trans.y() += tnoise*(drand48()-0.5);
+	      trans.z() += tnoise*(drand48()-0.5);
+	    }
 #endif
 
       // Don't rotate.
       Quaterniond rot(1, 0, 0, 0);
 #if 1
       if (i >= 0)
-	{
-	  // perturb a little
-	  double qnoise = 0.1;	// meters
-	  rot.x() += qnoise*(drand48()-0.5);
-	  rot.y() += qnoise*(drand48()-0.5);
-	  rot.z() += qnoise*(drand48()-0.5);
-	}
+	    {
+	      // perturb a little
+	      double qnoise = 0.1;	// meters
+	      rot.x() += qnoise*(drand48()-0.5);
+	      rot.y() += qnoise*(drand48()-0.5);
+	      rot.z() += qnoise*(drand48()-0.5);
+	    }
 #endif
       rot.normalize();
       
@@ -145,9 +146,9 @@ void setupSBA(SysSBA &sys)
       
       // set normal
       if (i == 0)
-	inormal0 = rot.toRotationMatrix().transpose() * inormal0;
+	        inormal0 = rot.toRotationMatrix().transpose() * inormal0;
       else
-	inormal1 = rot.toRotationMatrix().transpose() * inormal1;
+	        inormal1 = rot.toRotationMatrix().transpose() * inormal1;
     }
         
     double pointnoise = 1.0;
@@ -218,26 +219,26 @@ void setupSBA(SysSBA &sys)
       // projection to SBA.
       if (proj.x() > 0 && proj.x() < maxx && proj.y() > 0 && proj.y() < maxy)
         {
-	  // add point cloud shape-holding projections to each node
+	        // add point cloud shape-holding projections to each node
           sys.addStereoProj(0, k, proj);
           sys.addStereoProj(1, k+nn, projp);
 
-	  // add point-plane matches
-	  sys.addPointPlaneMatch(0, k, inormal0, 1, k+nn, inormal1);
-	  Matrix3d covar;
-	  double cv = 0.05;
-          covar << cv, 0, 0,
-	           0, cv, 0, 
-          	   0, 0, cv;
-	  sys.setProjCovariance(0, k+nn, covar);
-	  sys.setProjCovariance(1, k, covar);
+	        // add point-plane matches
+	        sys.addPointPlaneMatch(0, k, inormal0, 1, k+nn, inormal1);
+	        Matrix3d covar;
+	        double cv = 0.05;
+                covar << cv, 0, 0,
+	                 0, cv, 0, 
+                	   0, 0, cv;
+	        sys.setProjCovariance(0, k+nn, covar);
+	        sys.setProjCovariance(1, k, covar);
 
         }
       else
-	{
-	  cout << "ERROR! point not in view of nodes" << endl;
-	  return;
-	}
+	      {
+	        cout << "ERROR! point not in view of nodes" << endl;
+	        //return;
+	      }
     }
 
     // Add noise to node position.

@@ -159,65 +159,69 @@ public:
         publishRegisteredPointclouds(vslam_system_.sba_, vslam_system_.frames_, pointcloud_pub_);
       
       // Publish odometry data to tf.
-      ros::Time stamp = l_cam_info->header.stamp;
-      std::string image_frame = l_cam_info->header.frame_id;
-      Eigen::Vector4d trans = -vslam_system_.sba_.nodes.back().trans;
-      Eigen::Quaterniond rot = vslam_system_.sba_.nodes.back().qrot.conjugate();
-      
-      trans.start<3>() = rot.toRotationMatrix()*trans.start<3>(); 
-      
-      tf_transform_.setOrigin(tf::Vector3(trans(0), trans(1), trans(2)));
-      tf_transform_.setRotation(tf::Quaternion(rot.x(), rot.y(), rot.z(), rot.w()) );
-      
-      tf::Transform simple_transform;
-      simple_transform.setOrigin(tf::Vector3(0, 0, 0));
-      simple_transform.setRotation(tf::Quaternion(.5, -.5, .5, .5));
-      
-      tf_broadcast_.sendTransform(tf::StampedTransform(tf_transform_, stamp, image_frame, "visual_odom"));
-      tf_broadcast_.sendTransform(tf::StampedTransform(simple_transform, stamp, "visual_odom", "pgraph"));
-      
-      // Publish odometry data on topic.
-      if (odom_pub_.getNumSubscribers() > 0)
+      if (0) // TODO: Change this to parameter.
       {
-        tf::StampedTransform base_to_image;
-        tf::Transform base_to_visodom;
-       
-        try
-        {
-          tf_listener_.lookupTransform(image_frame, "/base_footprint",
-                               stamp, base_to_image);
-        }
-        catch (tf::TransformException ex)
-        {
-            ROS_WARN("%s",ex.what());
-            return;
-        }
-
-                               
-        base_to_visodom = tf_transform_.inverse() * base_to_image;
+        ros::Time stamp = l_cam_info->header.stamp;
+        std::string image_frame = l_cam_info->header.frame_id;
+        Eigen::Vector4d trans = -vslam_system_.sba_.nodes.back().trans;
+        Eigen::Quaterniond rot = vslam_system_.sba_.nodes.back().qrot.conjugate();
         
-        geometry_msgs::PoseStamped pose;
-        nav_msgs::Odometry odom;
-        pose.header.frame_id = "/visual_odom";
-        pose.pose.position.x = base_to_visodom.getOrigin().x();
-        pose.pose.position.y = base_to_visodom.getOrigin().y();
-        pose.pose.position.z = base_to_visodom.getOrigin().z();
-        pose.pose.orientation.x = base_to_visodom.getRotation().x();
-        pose.pose.orientation.y = base_to_visodom.getRotation().y();
-        pose.pose.orientation.z = base_to_visodom.getRotation().z();
-        pose.pose.orientation.w = base_to_visodom.getRotation().w();
+        trans.start<3>() = rot.toRotationMatrix()*trans.start<3>(); 
         
-        odom.header.stamp = stamp;
-        odom.header.frame_id = "/visual_odom";
-        odom.child_frame_id = "/base_footprint";
-        odom.pose.pose = pose.pose;
-        /* odom.pose.covariance[0] = 1;
-        odom.pose.covariance[7] = 1;
-        odom.pose.covariance[14] = 1;
-        odom.pose.covariance[21] = 1;
-        odom.pose.covariance[28] = 1;
-        odom.pose.covariance[35] = 1; */
-        odom_pub_.publish(odom);
+        tf_transform_.setOrigin(tf::Vector3(trans(0), trans(1), trans(2)));
+        tf_transform_.setRotation(tf::Quaternion(rot.x(), rot.y(), rot.z(), rot.w()) );
+        
+        tf::Transform simple_transform;
+        simple_transform.setOrigin(tf::Vector3(0, 0, 0));
+        simple_transform.setRotation(tf::Quaternion(.5, -.5, .5, .5));
+        
+        tf_broadcast_.sendTransform(tf::StampedTransform(tf_transform_, stamp, image_frame, "visual_odom"));
+        tf_broadcast_.sendTransform(tf::StampedTransform(simple_transform, stamp, "visual_odom", "pgraph"));
+      
+      
+        // Publish odometry data on topic.
+        if (odom_pub_.getNumSubscribers() > 0)
+        {
+          tf::StampedTransform base_to_image;
+          tf::Transform base_to_visodom;
+         
+          try
+          {
+            tf_listener_.lookupTransform(image_frame, "/base_footprint",
+                                 stamp, base_to_image);
+          }
+          catch (tf::TransformException ex)
+          {
+              ROS_WARN("%s",ex.what());
+              return;
+          }
+          
+                                 
+          base_to_visodom = tf_transform_.inverse() * base_to_image;
+          
+          geometry_msgs::PoseStamped pose;
+          nav_msgs::Odometry odom;
+          pose.header.frame_id = "/visual_odom";
+          pose.pose.position.x = base_to_visodom.getOrigin().x();
+          pose.pose.position.y = base_to_visodom.getOrigin().y();
+          pose.pose.position.z = base_to_visodom.getOrigin().z();
+          pose.pose.orientation.x = base_to_visodom.getRotation().x();
+          pose.pose.orientation.y = base_to_visodom.getRotation().y();
+          pose.pose.orientation.z = base_to_visodom.getRotation().z();
+          pose.pose.orientation.w = base_to_visodom.getRotation().w();
+          
+          odom.header.stamp = stamp;
+          odom.header.frame_id = "/visual_odom";
+          odom.child_frame_id = "/base_footprint";
+          odom.pose.pose = pose.pose;
+          /* odom.pose.covariance[0] = 1;
+          odom.pose.covariance[7] = 1;
+          odom.pose.covariance[14] = 1;
+          odom.pose.covariance[21] = 1;
+          odom.pose.covariance[28] = 1;
+          odom.pose.covariance[35] = 1; */
+          odom_pub_.publish(odom);
+        }
       }
     }
   }

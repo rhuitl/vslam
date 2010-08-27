@@ -201,6 +201,8 @@ namespace sba
     backward_proj.plane_point_index = pi0;
     backward_proj.plane_node_index = ci1;
 #endif
+
+    updateNormals();
   }
 
   // Update the normals for point-plane matches.
@@ -1096,6 +1098,7 @@ void SysSBA::setupSys(double sLambda)
   {
     // set matrix sizes and clear (step 3)
     int nFree = nodes.size() - nFixed;
+    if (nFree < 0) nFree = 0;
 
     long long t0, t1, t2, t3;
     t0 = utime();
@@ -1293,7 +1296,7 @@ void SysSBA::setupSys(double sLambda)
         //   got here from a bad update
 
         // If we have point-plane matches, should update normals here.
-        updateNormals();        
+        updateNormals();
         
         t0 = utime();
         if (useCSparse)

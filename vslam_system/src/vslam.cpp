@@ -183,10 +183,10 @@ void VslamSystem::addKeyframe(frame_common::Frame& next_frame)
     }
 }
 
-void VslamSystem::refine()
+void VslamSystem::refine(int initial_runs)
 {
   /// @todo Make these arguments parameters?
-  sba_.doSBA(3, 1.0e-4, 1);
+  sba_.doSBA(initial_runs, 1.0e-4, 1);
   if (sba_.calcRMSCost() > 4.0)
     sba_.doSBA(10, 1.0e-4, 1);  // do more
   if (sba_.calcRMSCost() > 4.0)

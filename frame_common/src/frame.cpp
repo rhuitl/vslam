@@ -387,7 +387,7 @@ namespace frame_common
       // Filter based on curvature
       PassThrough<PointXYZRGBNormal> normalfilter;
       normalfilter.setFilterFieldName("curvature");
-      normalfilter.setFilterLimits(0.0, 0.1);
+      normalfilter.setFilterLimits(0.0, 0.2);
       normalfilter.setInputCloud(boost::make_shared<const PointCloud<PointXYZRGBNormal> >(cloud_normals));
       normalfilter.filter(output);
     }
