@@ -66,7 +66,7 @@ public:
 
   StereoVslamNode(const std::string& vocab_tree_file, const std::string& vocab_weights_file,
                   const std::string& calonder_trees_file)
-    : it_(nh_), sync_(4),
+    : it_(nh_), sync_(5),
       vslam_system_(vocab_tree_file, vocab_weights_file),
       detector_(new vslam_system::AnyDetector)
   {
@@ -110,7 +110,9 @@ public:
   {
     dynamic_cast<vslam_system::AnyDetector*>((cv::FeatureDetector*)detector_)->update(config);
     vslam_system_.frame_processor_.detector = detector_;
-
+    
+    vslam_system_.setPRRansacIt(config.pr_ransac_iterations);
+    vslam_system_.setPRPolish(config.pr_polish);
     vslam_system_.setVORansacIt(config.vo_ransac_iterations);
     vslam_system_.setVOPolish(config.vo_polish);
   }
@@ -162,7 +164,7 @@ public:
         vo_tracks_pub_.publish(msg, l_cam_info);
       }
       
-      const int LARGE_SBA_INTERVAL = 2;
+      const int LARGE_SBA_INTERVAL = 1;
       if (size > 1 && size % LARGE_SBA_INTERVAL == 0)
       {
         ROS_INFO("Running large SBA on %d nodes", size);
