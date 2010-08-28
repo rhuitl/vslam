@@ -82,7 +82,7 @@ mMV(vector< Matrix<double,6,6>, aligned_allocator<Matrix<double,6,6> > > &diag,
 void
 mD(vector< Matrix<double,6,6>, aligned_allocator<Matrix<double,6,6> > > &diag,
     VectorXd &vin,
-    VectorXd &vout)
+   VectorXd &vout)
 {
     // loop over diag entries
     for (int i=0; i<(int)diag.size(); i++)
@@ -93,13 +93,19 @@ mD(vector< Matrix<double,6,6>, aligned_allocator<Matrix<double,6,6> > > &diag,
 //
 // jacobi-preconditioned block conjugate gradient
 // returns number of iterations
+// stopping criteria <tol> is relative reduction in residual norm squared
+//
+
+static double residual;		// shouldn't do this, it leaves state...
 
 int
 bpcg_jacobi(int iters, double tol,
 	    vector< Matrix<double,6,6>, aligned_allocator<Matrix<double,6,6> > > &diag,
 	    vector< map<int,Matrix<double,6,6>, less<int>, aligned_allocator<Matrix<double,6,6> > > > &cols,
 	    VectorXd &x,
-	    VectorXd &b)
+	    VectorXd &b,
+	    bool abstol,
+	    bool verbose)
 {
   // set up local vars
   VectorXd r,rr,d,q,s;
@@ -124,12 +130,17 @@ bpcg_jacobi(int iters, double tol,
   r = b;
   mD(J,r,d);
   double dn = r.dot(d);
-  double d0 = dn;
+  double d0 = tol*dn;
+  if (abstol)			// change tolerances
+    {
+      if (residual > d0) d0 = residual;
+    }
 
   for (i=0; i<iters; i++)
     {
-      cout << "residual[" << i << "]: " << dn << endl;
-      if (dn < tol*tol*d0) break; // done
+      if (verbose)
+	cout << "residual[" << i << "]: " << dn << endl;
+      if (dn < d0) break;	// done
       mMV(diag,cols,d,q);
       double a = dn / d.dot(q);
       x += a*d;
@@ -142,6 +153,9 @@ bpcg_jacobi(int iters, double tol,
       d = s + ba*d;
     }
 
+  
+  cout << "residual[" << i << "]: " << dn << endl;
+  residual = dn/2.0;
   return i;
 }
 
@@ -184,7 +198,7 @@ bpcg_jacobi_dense(int iters, double tol,
   for (i=0; i<iters; i++)
     {
       cout << "residual[" << i << "]: " << dn << endl;
-      if (dn < tol*tol*d0) break; // done
+      if (dn < tol*d0) break; // done
       
       q = M*d;
       double a = dn / d.dot(q);

@@ -76,7 +76,9 @@ bpcg_jacobi(int iters, double tol,
 	    vector< Matrix<double,6,6>, aligned_allocator<Matrix<double,6,6> > > &diag,
 	    vector< map<int,Matrix<double,6,6>, less<int>, aligned_allocator<Matrix<double,6,6> > > > &cols,
 	    VectorXd &x,
-	    VectorXd &b
+	    VectorXd &b,
+	    bool abstol = false,
+	    bool verbose = false
          );
 
 int
@@ -84,7 +86,6 @@ bpcg_jacobi_dense(int iters, double tol,
 		  MatrixXd &M,
 		  VectorXd &x,
 		  VectorXd &b);
-
 
 }  // end namespace sba
 
