@@ -126,6 +126,12 @@ namespace sba
     { return (i != j) ;}
 
 
+  void CSparse::incDiagBlocks(double lam)
+  {
+    for (int i=0; i<(int)diag.size(); i++)
+      diag[i].diagonal() *= lam;
+  }
+
   // add an off-diagonal block
   void CSparse::addOffdiagBlock(Matrix<double,6,6> &m, int ii, int jj)
   {
@@ -368,6 +374,25 @@ namespace sba
         bool ok = (bool)cs_cholsol(order,A,B.data()); // do the CSparse thang
         return ok;
       }
+  }
+
+
+  // 
+  // block jacobian PCG
+  // max iterations <iter>, ending toleranace <tol>
+  //
+
+  int 
+  CSparse::doBPCG(int iters, double tol, int sba_iter)
+  {
+    int n = B.rows();
+    VectorXd x;
+    x.setZero(n);
+    bool abstol = false;
+    if (sba_iter > 0) abstol = true;
+    int ret = bpcg_jacobi(iters, tol, diag, cols, x, B, abstol);
+    B = x;			// transfer result data
+    return ret;
   }
 
 

@@ -100,6 +100,7 @@ namespace sba
     // add in blocks
     inline void addDiagBlock(Matrix<double,6,6> &m, int n)
       { diag[n]+=m; };
+    void incDiagBlocks(double lam);
     void addOffdiagBlock(Matrix<double,6,6> &m, int ii, int jj);
 
     // set up compressed column structure; <init> true if first time
@@ -124,6 +125,10 @@ namespace sba
 
     // doing the Cholesky with CSparse or Cholmod
     bool doChol();              // solve in place with RHS B
+
+    // doing the BPCG
+    // max iterations <iter>, ending toleranace <tol>    
+    int doBPCG(int iters, double tol, int sba_iter);
 
 #ifdef SBA_CHOLMOD
     // CHOLMOD structures

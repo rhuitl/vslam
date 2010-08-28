@@ -1206,8 +1206,11 @@ void SysSBA::setupSys(double sLambda)
     t2 = utime();
 
     // set up sparse matrix structure from blocks
-    if (sparseType != SBA_BLOCK_JACOBIAN_PCG)
+    if (sparseType == SBA_BLOCK_JACOBIAN_PCG)
+      csp.incDiagBlocks(lam);	// increment diagonal block
+    else
       csp.setupCSstructure(lam,iter==0); 
+    
 
     t3 = utime();
     printf("\n[SetupSparseSys] Block: %0.1f   Cons: %0.1f  CS: %0.1f\n",
@@ -1334,15 +1337,21 @@ void SysSBA::setupSys(double sLambda)
 	
 	// use appropriate linear solver
 	if (useCSparse == SBA_BLOCK_JACOBIAN_PCG)
-	  {}
+	  {
+            if (csp.B.rows() != 0)
+	      {
+		int iters = csp.doBPCG(1000,1.0e-8,iter);
+		cout << "[Block PCG] " << iters << " iterations" << endl;
+	      }
+	  }
         else if (useCSparse > 0)
           {
             if (csp.B.rows() != 0)
-            {
-              bool ok = csp.doChol();
-              if (!ok)
-                cout << "[DoSBA] Sparse Cholesky failed!" << endl;
-            }
+	      {
+		bool ok = csp.doChol();
+		if (!ok)
+		  cout << "[DoSBA] Sparse Cholesky failed!" << endl;
+	      }
           }
         else
           {
