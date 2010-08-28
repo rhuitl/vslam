@@ -153,7 +153,8 @@ int main(int argc, char **argv)
       sba.nFixed = 1;           // one fixed frame
       int niters;
       t0 = utime();
-      niters = sba.doSBA(1,1.0e-3,1); // full system
+      niters = sba.doSBA(1,1.0e-3,SBA_BLOCK_JACOBIAN_PCG); // full system
+      niters = sba.doSBA(1,1.0e-3,SBA_SPARSE_CHOLESKY); // full system
       t1 = utime();
 
 
