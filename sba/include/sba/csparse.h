@@ -70,6 +70,9 @@ extern "C" {
 #include "SparseLib/cg.h"       // IML++ CG template
 #endif
 
+// block jacobian PCG
+#include "bpcg/bpcg.h"
+
 using namespace Eigen;
 using namespace std;
 

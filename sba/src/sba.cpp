@@ -1094,7 +1094,7 @@ void SysSBA::setupSys(double sLambda)
   // but not projection Jacobians
   // CSparse version
 
-  void SysSBA::setupSparseSys(double sLambda, int iter, bool useGradient)
+  void SysSBA::setupSparseSys(double sLambda, int iter, int sparseType)
   {
     // set matrix sizes and clear (step 3)
     int nFree = nodes.size() - nFixed;
@@ -1173,7 +1173,7 @@ void SysSBA::setupSys(double sLambda)
             prj.Tpc = prj.Hpc.transpose() * Hppi;
 
             // iterate over nodes left on the track, plus yourself
-            if (!useGradient)
+            if (sparseType != SBA_GRADIENT)
               for(ProjMap::iterator itr2 = itr; itr2 != prjs.end(); itr2++)
                 {
                   Proj &prj2 = itr2->second;
@@ -1206,7 +1206,8 @@ void SysSBA::setupSys(double sLambda)
     t2 = utime();
 
     // set up sparse matrix structure from blocks
-    csp.setupCSstructure(lam,iter==0); 
+    if (sparseType != SBA_BLOCK_JACOBIAN_PCG)
+      csp.setupCSstructure(lam,iter==0); 
 
     t3 = utime();
     printf("\n[SetupSparseSys] Block: %0.1f   Cons: %0.1f  CS: %0.1f\n",
@@ -1226,7 +1227,8 @@ void SysSBA::setupSys(double sLambda)
   /// Run the LM algorithm that computes a nonlinear SBA estimate.
   /// <niter> is the max number of iterations to perform; returns the
   /// number actually performed.
-  /// <useCSparse> = 0 for dense Cholesky, 1 for sparse system, and 2 for gradient system
+  /// <useCSparse> = 0 for dense Cholesky, 1 for sparse system, 
+  ///                2 for gradient system, 3 for block jacobian PCG
   int SysSBA::doSBA(int niter, double sLambda, int useCSparse)
   {
     // set aux buffer
@@ -1300,7 +1302,7 @@ void SysSBA::setupSys(double sLambda)
         
         t0 = utime();
         if (useCSparse)
-          setupSparseSys(lambda,iter,useCSparse == SBA_GRADIENT); // sparse version
+          setupSparseSys(lambda,iter,useCSparse); // sparse version
         else
           setupSys(lambda);     // set up linear system
 
@@ -1329,7 +1331,11 @@ void SysSBA::setupSys(double sLambda)
 #endif
 
         t1 = utime();
-        if (useCSparse)
+	
+	// use appropriate linear solver
+	if (useCSparse == SBA_BLOCK_JACOBIAN_PCG)
+	  {}
+        else if (useCSparse > 0)
           {
             if (csp.B.rows() != 0)
             {

@@ -59,11 +59,14 @@
 
 // sparse Cholesky
 #include <sba/csparse.h>
+// block jacobian pcg
+#include <bpcg/bpcg.h>
 
 // Defines for methods to use with doSBA().
 #define SBA_DENSE_CHOLESKY 0
 #define SBA_SPARSE_CHOLESKY 1
 #define SBA_GRADIENT 2
+#define SBA_BLOCK_JACOBIAN_PCG 3
 
 namespace sba
 {
@@ -138,7 +141,7 @@ namespace sba
       /// <sLambda> is the diagonal augmentation for the LM step
       double lambda;            // save for continuation
       void setupSys(double sLambda);
-      void setupSparseSys(double sLambda, int iter, bool useGradient);
+      void setupSparseSys(double sLambda, int iter, int sparseType);
 
       /// do LM solution for system; returns number of iterations on
       /// finish.  Argument is max number of iterations to perform.
