@@ -64,7 +64,7 @@ namespace sba
 void
 mMV(vector< Matrix<double,6,6>, aligned_allocator<Matrix<double,6,6> > > &diag,
     vector< map<int,Matrix<double,6,6>, less<int>, aligned_allocator<Matrix<double,6,6> > > > &cols,
-    VectorXd &vin,
+    const VectorXd &vin,
     VectorXd &vout);
 
 //

@@ -47,20 +47,24 @@ namespace sba
   // matrix multiply of compressed column storage + diagonal blocks by a vector
   //
 
+  // need to specify alignment of vin/vout segments, can only do it in Eigen3
+
+
 void
 mMV(vector< Matrix<double,6,6>, aligned_allocator<Matrix<double,6,6> > > &diag,
     vector< map<int,Matrix<double,6,6>, less<int>, aligned_allocator<Matrix<double,6,6> > > > &cols,
-    VectorXd &vin,
+    const VectorXd &vin,
     VectorXd &vout)
   {
     // loop over diag entries
-    for (int i=0; i<(int)diag.size(); i++)
-      vout.segment<6>(i*6) = diag[i]*vin.segment<6>(i*6);
+    //    for (int i=0; i<(int)diag.size(); i++)
 
     // loop over off-diag entries
     if (cols.size() > 0)
     for (int i=0; i<(int)cols.size(); i++)
       {
+	vout.segment<6>(i*6) = diag[i]*vin.segment<6>(i*6); // only works with cols ordering
+
 	map<int,Matrix<double,6,6>, less<int>, 
 	  aligned_allocator<Matrix<double,6,6> > > &col = cols[i];
 	if (col.size() > 0)
@@ -70,13 +74,12 @@ mMV(vector< Matrix<double,6,6>, aligned_allocator<Matrix<double,6,6> > > &diag,
 	    for (it = col.begin(); it != col.end(); it++)
 	      {
 		int ri = (*it).first; // get row index
-		Matrix<double,6,6> &M = (*it).second; // matrix
+		const Matrix<double,6,6> &M = (*it).second; // matrix
 		vout.segment<6>(i*6)  += M.transpose()*vin.segment<6>(ri*6);
 		vout.segment<6>(ri*6) += M*vin.segment<6>(i*6);
 	      }
 	  }
       }
-
   }
 
 void
@@ -108,11 +111,10 @@ bpcg_jacobi(int iters, double tol,
 	    bool verbose)
 {
   // set up local vars
-  VectorXd r,rr,d,q,s;
+  VectorXd r,d,q,s;
   int n = diag.size();
   int n6 = n*6;
   r.setZero(n6);
-  rr.setZero(n6);
   d.setZero(n6);
   q.setZero(n6);
   s.setZero(n6);
