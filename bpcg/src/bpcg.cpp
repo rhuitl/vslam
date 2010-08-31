@@ -140,8 +140,8 @@ bpcg_jacobi(int iters, double tol,
 
   for (i=0; i<iters; i++)
     {
-      if (verbose)
-	cout << "residual[" << i << "]: " << dn << endl;
+      if (verbose && 0)
+	cout << "[BPCG] residual[" << i << "]: " << dn << endl;
       if (dn < d0) break;	// done
       mMV(diag,cols,d,q);
       double a = dn / d.dot(q);
@@ -156,7 +156,8 @@ bpcg_jacobi(int iters, double tol,
     }
 
   
-  cout << "residual[" << i << "]: " << dn << endl;
+  if (verbose)
+    cout << "[BPCG] residual[" << i << "]: " << dn << endl;
   residual = dn/2.0;
   return i;
 }
@@ -363,7 +364,7 @@ bpcg_jacobi3(int iters, double tol,
 
   for (i=0; i<iters; i++)
     {
-      if (verbose)
+      if (verbose && 0)
 	cout << "residual[" << i << "]: " << dn << endl;
       if (dn < d0) break;	// done
       mMV3(diag,cols,d,q);
@@ -379,7 +380,8 @@ bpcg_jacobi3(int iters, double tol,
     }
 
   
-  cout << "residual[" << i << "]: " << dn << endl;
+  if (verbose)
+    cout << "[BPCG] residual[" << i << "]: " << dn << endl;
   residual = dn/2.0;
   return i;
 }
