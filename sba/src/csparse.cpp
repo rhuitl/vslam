@@ -404,6 +404,10 @@ namespace sba
   {
     A = NULL;
     AF = NULL;
+#ifdef SBA_CHOLMOD
+    chA = NULL;
+    chInited = false;
+#endif
     asize = 0;
     csize = 0;
     nnz = 0;
@@ -489,8 +493,13 @@ namespace sba
 
   void CSparse2d::setupCSstructure(double diaginc, bool init)
   {
+#ifdef SBA_CHOLMOD
+    if (useCholmod)
+      cholmod_start(&Common); // this is finished in doChol()
+#endif
+
     // reserve space and set things up
-    if (init)
+    if (init || useCholmod)
       {
         if (A) cs_spfree(A);    // free any previous structure
 
@@ -502,12 +511,36 @@ namespace sba
               aligned_allocator<Matrix<double,3,3> > > &col = cols[i];
             nnz += 9 * col.size(); // 3x3 matrix
           }
-        A = cs_spalloc(csize,csize,nnz,1,0); // allocate sparse matrix
+#ifdef SBA_CHOLMOD
+        if (useCholmod)
+          {
+            //            cholmod_start(&Common); // this is finished in doChol()
+            //            if (chA) 
+            //              cholmod_free_sparse(&chA, &Common);
+            chA = cholmod_allocate_sparse(csize,csize,nnz,true,true,1,CHOLMOD_REAL,&Common);
+          }
+        else
+#endif
+	  {
+	    A = cs_spalloc(csize,csize,nnz,1,0); // allocate sparse matrix
+	  }
         
         // now figure out the column pointers
         int colp = 0;           // index of where the column starts in Ai
-        int *Ap = A->p;        // column pointer
-        int *Ai = A->i;        // row indices
+        int *Ap, *Ai;
+#ifdef SBA_CHOLMOD
+        if (useCholmod)
+          {
+            Ap = (int *)chA->p; // column pointer
+            Ai = (int *)chA->i; // row indices
+          }
+        else
+#endif
+          {
+            Ap = A->p;          // column pointer
+            Ai = A->i;          // row indices
+          }
+
         for (int i=0; i<(int)cols.size(); i++)
           {
             // column i entries
@@ -547,7 +580,14 @@ namespace sba
 
      // now put the entries in place
      int colp = 0;           // index of where the column starts in Ai
-     double *Ax = A->x;         // values
+     double *Ax;
+#ifdef SBA_CHOLMOD
+     if (useCholmod)
+       Ax = (double *)chA->x;   // values
+     else
+#endif
+       Ax = A->x;               // values
+
      for (int i=0; i<(int)cols.size(); i++)
        {
          // column i entries
@@ -610,12 +650,91 @@ namespace sba
   // solve in place, returns RHS B
   bool CSparse2d::doChol()
   {
-    // using order 0 here (natural order); 
-    // may be better to use "1" for large problems (AMD)
-    int order = 0;
-    if (csize > 100) order = 1;
-    bool ok = (bool)cs_cholsol(order,A,B.data()); // do the CSparse2d thang
-    return ok;
+#ifdef SBA_CHOLMOD
+    if (useCholmod)
+      {
+        cholmod_dense *x, b, *R, *R2;
+        cholmod_factor *L ;
+        double *Xx, *Rx, *bb;
+        double one [2], minusone [2];
+        one [0] = 1 ;
+        one [1] = 0 ;
+        minusone [0] = -1 ;
+        minusone [1] = 0 ;
+
+        //        cholmod_start (&Common) ;    // start it up ???
+        cholmod_print_sparse (chA, (char *)"A", &Common) ; // print simple stats
+        b.nrow = csize;
+        b.ncol = 1;
+        b.d = csize;                // leading dimension (???)
+        b.xtype = CHOLMOD_REAL;
+        b.dtype = CHOLMOD_DOUBLE;
+        b.x = B.data();
+        cout << "CHOLMOD analyze..." << flush;
+        L = cholmod_analyze (chA, &Common) ; // analyze 
+        cout << "factorize..." << flush;
+        cholmod_factorize (chA, L, &Common) ; // factorize 
+        cout << "solve..." << flush;
+        x = cholmod_solve (CHOLMOD_A, L, &b, &Common) ; // solve Ax=b
+        //        cholmod_print_factor (L, (char *)"L", &Common) ;
+
+        cout << "refine" << endl;
+        // one step of iterative refinement, cheap
+	/* Ax=b was factorized and solved, R = B-A*X */
+	R = cholmod_copy_dense (&b, &Common) ;
+	cholmod_sdmult(chA, 0, minusone, one, x, R, &Common) ;
+	/* R2 = A\(B-A*X) */
+	R2 = cholmod_solve (CHOLMOD_A, L, R, &Common) ;
+	/* compute X = X + A\(B-A*X) */
+	Xx = (double *)x->x ;
+	Rx = (double *)R2->x ;
+	for (int i=0 ; i<csize ; i++)
+	{
+          Xx[i] = Xx[i] + Rx[i] ;
+	}
+	cholmod_free_dense (&R2, &Common) ;
+	cholmod_free_dense (&R, &Common) ;
+
+        bb = B.data();
+        for (int i=0; i<csize; i++) // transfer answer
+          *bb++ = *Xx++;
+        cholmod_free_factor (&L, &Common) ; // free matrices 
+        cholmod_free_dense (&x, &Common) ;
+        cholmod_free_sparse(&chA, &Common);
+        cholmod_finish (&Common) ;   // finish it ???
+
+        return true;
+      }
+    else
+#endif
+      {
+
+	// using order 0 here (natural order); 
+	// may be better to use "1" for large problems (AMD)
+	int order = 0;
+	if (csize > 100) order = 1;
+	bool ok = (bool)cs_cholsol(order,A,B.data()); // do the CSparse2d thang
+	return ok;
+      }
+  }
+
+
+  // 
+  // block jacobian PCG
+  // max iterations <iter>, ending toleranace <tol>
+  //
+
+  int 
+  CSparse2d::doBPCG(int iters, double tol, int sba_iter)
+  {
+    int n = B.rows();
+    VectorXd x;
+    x.setZero(n);
+    bool abstol = false;
+    if (sba_iter > 0) abstol = true;
+    int ret = bpcg_jacobi3(iters, tol, diag, cols, x, B, abstol);
+    B = x;			// transfer result data
+    return ret;
   }
 
 

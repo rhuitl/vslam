@@ -170,6 +170,7 @@ int main(int argc, char **argv)
   // system
   SysSPA2d spa;
   spa.verbose=false;
+  spa.useCholmod(false);
   spa.print_iros_stats=true;
 
   // use max nodes if we haven't specified it
@@ -204,7 +205,8 @@ int main(int argc, char **argv)
   // long long t0, t1;
   // t0 = utime();
   spa.nFixed = 1;               // one fixed frame
-  spa.doSPA(doiters,1.0e-4,1);
+  //  spa.doSPA(doiters,1.0e-4,SBA_SPARSE_CHOLESKY);
+  spa.doSPA(doiters,1.0e-4,SBA_BLOCK_JACOBIAN_PCG);
   // t1 = utime();
   // printf("[TestSPA] Compute took %0.2f ms/iter\n", 0.001*(double)(t1-t0)/(double)doiters);
   // printf("[TestSPA] Accepted iterations: %d\n", niters);

@@ -329,7 +329,7 @@ namespace sba
 
   // Set up sparse linear system; see setupSys for algorithm.
   // Currently doesn't work with scale variables
-  void SysSPA2d::setupSparseSys(double sLambda, int iter)
+  void SysSPA2d::setupSparseSys(double sLambda, int iter, int sparseType)
   {
     // set matrix sizes and clear
     // assumes scales vars are all free
@@ -468,29 +468,40 @@ namespace sba
         long long t0, t1, t2, t3;
         t0 = utime();
         if (useCSparse)
-          setupSparseSys(lambda,iter); // set up sparse linear system
+          setupSparseSys(lambda,iter,useCSparse); // set up sparse linear system
         else
           setupSys(lambda);     // set up linear system
 
         //        cout << "[SPA] Solving...";
         t1 = utime();
 
-        // Sparse direct Cholesky
-        if (useCSparse == 1)
-          {
-            bool ok = csp.doChol();
-            if (!ok)
-              cout << "[DoSPA] Sparse Cholesky failed!" << endl;
-          }
+	// use appropriate linear solver
+	if (useCSparse == SBA_BLOCK_JACOBIAN_PCG)
+	  {
+            if (csp.B.rows() != 0)
+	      {
+		int iters = csp.doBPCG(30,1.0e-6,iter);
+		cout << "[Block PCG] " << iters << " iterations" << endl;
+	      }
+	  }
 #ifdef SBA_DSIF
         // PCG with incomplete Cholesky
-        else if (useCSparse == 2)
+        else if (useCSparse == 3)
           {
             int res = csp.doPCG(50);
             if (res > 1)
               cout << "[DoSPA] Sparse PCG failed with error " << res << endl;
           }
 #endif
+        else if (useCSparse > 0)
+          {
+            if (csp.B.rows() != 0)
+	      {
+		bool ok = csp.doChol();
+		if (!ok)
+		  cout << "[DoSBA] Sparse Cholesky failed!" << endl;
+	      }
+          }
         // Dense direct Cholesky 
         else
           A.ldlt().solveInPlace(B); // Cholesky decomposition and solution

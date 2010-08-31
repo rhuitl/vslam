@@ -182,12 +182,27 @@ namespace sba
     // RHS Eigen vector
     VectorXd B, Bprev;
 
+    // which algorithm?
+    bool useCholmod;
+
     // doing the Cholesky
     bool doChol();              // solve in place with RHS B
 
     // doing PCG with incomplete Cholesky preconditioner
     // returns 0 on success, 1 on not achieving tolerance, >1 on other errors
     int doPCG(int iters);
+
+    // doing the BPCG
+    // max iterations <iter>, ending toleranace <tol>    
+    int doBPCG(int iters, double tol, int sba_iter);
+
+#ifdef SBA_CHOLMOD
+    // CHOLMOD structures
+    bool chInited;
+    cholmod_sparse *chA;        // linear problem matrix
+    cholmod_common *chc;
+    cholmod_common Common;
+#endif
 
   };
 

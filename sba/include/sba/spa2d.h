@@ -56,6 +56,15 @@
 
 // sparse Cholesky
 #include <sba/csparse.h>
+// block jacobian pcg
+#include <bpcg/bpcg.h>
+
+// Defines for methods to use with doSBA().
+#define SBA_DENSE_CHOLESKY 0
+#define SBA_SPARSE_CHOLESKY 1
+#define SBA_GRADIENT 2
+#define SBA_BLOCK_JACOBIAN_PCG 3
+
 
 // put things into a namespace
 namespace sba
@@ -183,6 +192,8 @@ namespace sba
   class SysSPA2d
     {
     public:
+      EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
       /// constructor
       SysSPA2d() { nFixed = 1; verbose = true; lambda = 1.0e-4, print_iros_stats=false; }
 
@@ -225,14 +236,14 @@ namespace sba
       /// set up linear system, from RSS submission (konolige 2010)
       /// <sLambda> is the diagonal augmentation for the LM step
       void setupSys(double sLambda);
-      void setupSparseSys(double sLambda, int iter);
+      void setupSparseSys(double sLambda, int iter, int sparseType);
 
       /// do LM solution for system; returns number of iterations on
       /// finish.  Argument is max number of iterations to perform,
       /// initial diagonal augmentation, and sparse form of Cholesky.
       /// useCSParse = 0 for dense Cholesky, 1 for sparse Cholesky, 2 for sparse PCG
       double lambda;
-      int doSPA(int niter, double sLambda = 1.0e-4, int useCSparse = 1);
+      int doSPA(int niter, double sLambda = 1.0e-4, int useCSparse = SBA_SPARSE_CHOLESKY);
       int doSPAwindowed(int window, int niter, double sLambda, int useCSparse);
 
 
@@ -251,6 +262,10 @@ namespace sba
 
       /// sparse matrix object
       CSparse2d csp;
+
+      /// use CHOLMOD or CSparse
+      void useCholmod(bool yes)
+      { csp.useCholmod = yes; }
 
       /// if we want statistics
       bool verbose;
