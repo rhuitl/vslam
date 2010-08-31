@@ -164,6 +164,7 @@ namespace sba
     inline void addDiagBlock(Matrix<double,3,3> &m, int n)
       { diag[n]+=m; };
     void addOffdiagBlock(Matrix<double,3,3> &m, int ii, int jj);
+    void incDiagBlocks(double lam);
 
     // set up compressed column structure; <init> true if first time
     // <diaginc> is the diagonal multiplier for LM

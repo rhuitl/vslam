@@ -51,7 +51,6 @@ using namespace sba;
 
 #include <sys/time.h>
 
-#if 0
 // elapsed time in microseconds
 static long long utime()
 {
@@ -62,7 +61,7 @@ static long long utime()
   ts += tv.tv_usec;
   return ts;
 }
-#endif
+
 
 //
 // add a single node to the graph, in the position given by the VERTEX2 entry in the file
@@ -170,8 +169,9 @@ int main(int argc, char **argv)
   // system
   SysSPA2d spa;
   spa.verbose=false;
-  spa.useCholmod(false);
   spa.print_iros_stats=true;
+  spa.useCholmod(true);
+
 
   // use max nodes if we haven't specified it
   if (nnodes == 0) nnodes = ntrans.size();
@@ -188,27 +188,36 @@ int main(int argc, char **argv)
   v(2) = 1.0;
   nd.trans = v;
 
+  double cumtime = 0.0;
   //cout << nd.trans.transpose() << endl << endl;
 
   // add to system
   nd.setTransform();            // set up world2node transform
   nd.setDr();
   spa.nodes.push_back(nd);
-  spa.verbose=false;
   // add in nodes
-  for (int i=1; i<nnodes; i++)
-    addnode(spa, i, ntrans, arots, cind, ctrans, carot, cvar);
+  for (int i=0; i<nnodes-1; i+=doiters)
+    {
+      for (int j=0; j<doiters; j++)
+        addnode(spa, i+j+1, ntrans, arots, cind, ctrans, carot, cvar);
 
-  // cout << "[SysSPA2d] Using " << (int)spa.nodes.size() << " nodes and " 
-  //      << (int)spa.p2cons.size() << " constraints" << endl;
+      // cout << "[SysSPA2d] Using " << (int)spa.nodes.size() << " nodes and " 
+      //      << (int)spa.p2cons.size() << " constraints" << endl;
 
-  // long long t0, t1;
-  // t0 = utime();
-  spa.nFixed = 1;               // one fixed frame
-  //  spa.doSPA(doiters,1.0e-4,SBA_SPARSE_CHOLESKY);
-  spa.doSPA(doiters,1.0e-4,SBA_BLOCK_JACOBIAN_PCG);
-  // t1 = utime();
-  // printf("[TestSPA] Compute took %0.2f ms/iter\n", 0.001*(double)(t1-t0)/(double)doiters);
+      long long t0, t1;
+
+      spa.nFixed = 1;           // one fixed frame
+
+      t0 = utime();
+      //      spa.doSPA(1,1.0e-4,SBA_SPARSE_CHOLESKY);
+      spa.doSPA(1,1.0e-4,SBA_BLOCK_JACOBIAN_PCG);
+      t1 = utime();
+      cumtime += t1 - t0;
+      if (i%100 == 0) cout << i << endl;
+    }
+
+
+  printf("[TestSPA2D] Compute took %0.2f ms/nodes, total %0.2f ms\n", 0.001*(double)cumtime/(double)nnodes, cumtime*0.001);
   // printf("[TestSPA] Accepted iterations: %d\n", niters);
   // printf("[TestSPA] Distance cost: %0.3f m rms\n", sqrt(spa.calcCost(true)/(double)spa.p2cons.size()));
 

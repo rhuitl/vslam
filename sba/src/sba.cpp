@@ -1232,7 +1232,8 @@ void SysSBA::setupSys(double sLambda)
   /// number actually performed.
   /// <useCSparse> = 0 for dense Cholesky, 1 for sparse system, 
   ///                2 for gradient system, 3 for block jacobian PCG
-  int SysSBA::doSBA(int niter, double sLambda, int useCSparse)
+  /// <initTol> is the initial tolerance for CG 
+  int SysSBA::doSBA(int niter, double sLambda, int useCSparse, double initTol)
   {
     // set aux buffer
     oldpoints.clear();
@@ -1340,7 +1341,7 @@ void SysSBA::setupSys(double sLambda)
 	  {
             if (csp.B.rows() != 0)
 	      {
-		int iters = csp.doBPCG(1000,1.0e-8,iter);
+		int iters = csp.doBPCG(1000,initTol,iter);
 		cout << "[Block PCG] " << iters << " iterations" << endl;
 	      }
 	  }

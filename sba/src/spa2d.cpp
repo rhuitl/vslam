@@ -335,15 +335,15 @@ namespace sba
     // assumes scales vars are all free
     int nFree = nodes.size() - nFixed;
 
-    //    long long t0, t1, t2, t3;
-    //    t0 = utime();
+    long long t0, t1, t2, t3;
+    t0 = utime();
 
     if (iter == 0)
       csp.setupBlockStructure(nFree); // initialize CSparse structures
     else
       csp.setupBlockStructure(0); // zero out CSparse structures
 
-    //    t1 = utime();
+    t1 = utime();
 
     VectorXi dcnt(nFree);
     dcnt.setZero(nFree);
@@ -395,15 +395,18 @@ namespace sba
           csp.B.block<3,1>(i1*3,0) -= con.J1t * con.prec * con.err;
       } // finish P2 constraints
 
-    //    t2 = utime();
+    t2 = utime();
 
     // set up sparse matrix structure from blocks
-    csp.setupCSstructure(lam,iter==0); 
+    if (sparseType == SBA_BLOCK_JACOBIAN_PCG)
+      csp.incDiagBlocks(lam);	// increment diagonal block
+    else
+      csp.setupCSstructure(lam,iter==0); 
+    t3 = utime();
 
-    //    t3 = utime();
-
-    //    printf("\n[SetupSparseSys] Block: %0.1f   Cons: %0.1f  CS: %0.1f\n",
-    //           (t1-t0)*.001, (t2-t1)*.001, (t3-t2)*.001);
+    if (verbose)
+      printf("\n[SetupSparseSys] Block: %0.1f   Cons: %0.1f  CS: %0.1f\n",
+           (t1-t0)*.001, (t2-t1)*.001, (t3-t2)*.001);
 
     int ndc = 0;
     for (int i=0; i<nFree; i++)
@@ -418,8 +421,11 @@ namespace sba
   /// <niter> is the max number of iterations to perform; returns the
   /// number actually performed.
   /// <lambda> is the diagonal augmentation for LM.  
-  /// <useCSParse> = 0 for dense Cholesky, 1 for sparse Cholesky, 2 for sparse PCG
-  int SysSPA2d::doSPA(int niter, double sLambda, int useCSparse)
+  /// <useCSparse> = 0 for dense Cholesky, 1 for sparse system, 
+  ///                2 for gradient system, 3 for block jacobian PCG
+  /// <initTol> is the initial tolerance for CG 
+
+  int SysSPA2d::doSPA(int niter, double sLambda, int useCSparse, double initTol)
   {
     // number of nodes
     int ncams = nodes.size();
@@ -481,7 +487,8 @@ namespace sba
             if (csp.B.rows() != 0)
 	      {
 		int iters = csp.doBPCG(30,1.0e-6,iter);
-		cout << "[Block PCG] " << iters << " iterations" << endl;
+                if (verbose)
+                  cout << "[Block PCG] " << iters << " iterations" << endl;
 	      }
 	  }
 #ifdef SBA_DSIF
@@ -502,6 +509,7 @@ namespace sba
 		  cout << "[DoSBA] Sparse Cholesky failed!" << endl;
 	      }
           }
+
         // Dense direct Cholesky 
         else
           A.ldlt().solveInPlace(B); // Cholesky decomposition and solution

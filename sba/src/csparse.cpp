@@ -485,6 +485,13 @@ namespace sba
   }
 
 
+  void CSparse2d::incDiagBlocks(double lam)
+  {
+    for (int i=0; i<(int)diag.size(); i++)
+      diag[i].diagonal() *= lam;
+  }
+
+
   // set up CSparse2d structure; <init> true if first time
   // <diaginc> is the diagonal multiplier for LM
 

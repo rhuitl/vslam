@@ -241,9 +241,9 @@ namespace sba
       /// do LM solution for system; returns number of iterations on
       /// finish.  Argument is max number of iterations to perform,
       /// initial diagonal augmentation, and sparse form of Cholesky.
-      /// useCSParse = 0 for dense Cholesky, 1 for sparse Cholesky, 2 for sparse PCG
+      /// useCSParse = 0 for dense Cholesky, 1 for sparse Cholesky, 2 for BPCG
       double lambda;
-      int doSPA(int niter, double sLambda = 1.0e-4, int useCSparse = SBA_SPARSE_CHOLESKY);
+      int doSPA(int niter, double sLambda = 1.0e-4, int useCSparse = SBA_SPARSE_CHOLESKY, double initTol = 1.0e-8);
       int doSPAwindowed(int window, int niter, double sLambda, int useCSparse);
 
 

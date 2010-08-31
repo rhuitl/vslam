@@ -145,7 +145,11 @@ namespace sba
 
       /// do LM solution for system; returns number of iterations on
       /// finish.  Argument is max number of iterations to perform.
-      int doSBA(int niter, double lambda = 1.0e-4, int useCSparse = 0);
+      /// <lambda> is the LM diagonal factor
+      /// <useCSparse> is one of 
+      ///   SBA_DENSE_CHOLESKY, SBA_SPARSE_CHOLESKY, SBA_GRADIENT, SBA_BLOCK_JACOBIAN_PCG 
+      /// initTol is the initial tolerance for CG iterations
+      int doSBA(int niter, double lambda = 1.0e-4, int useCSparse = 0, double initTol = 1.0e-8);
 
       /// Convergence bound (square of minimum acceptable delta change)
       double sqMinDelta;
