@@ -80,7 +80,7 @@ mMV(vector< Matrix<double,6,6>, aligned_allocator<Matrix<double,6,6> > > &diag,
 	      }
 	  }
       }
-  }
+   }
 
 void
 mD(vector< Matrix<double,6,6>, aligned_allocator<Matrix<double,6,6> > > &diag,
@@ -216,6 +216,231 @@ bpcg_jacobi_dense(int iters, double tol,
 
   return i;
 }
+
+
+///
+/// 3x3 case; templatize already!
+///
+
+//
+// matrix multiply of compressed column storage + diagonal blocks by a vector
+//
+
+// need to specify alignment of vin/vout segments, can only do it in Eigen3
+
+static vector<int> vcind, vrind;
+static vector< Matrix<double,3,3>, aligned_allocator<Matrix<double,3,3> > > vcols;
+
+void
+mMV3(vector< Matrix<double,3,3>, aligned_allocator<Matrix<double,3,3> > > &diag,
+    vector< map<int,Matrix<double,3,3>, less<int>, aligned_allocator<Matrix<double,3,3> > > > &cols,
+    const VectorXd &vin,
+    VectorXd &vout)
+  {
+#if 0
+    // loop over off-diag entries
+    if (cols.size() > 0)
+    for (int i=0; i<(int)cols.size(); i++)
+      {
+	vout.segment<3>(i*3) = diag[i]*vin.segment<3>(i*3); // only works with cols ordering
+
+	map<int,Matrix<double,3,3>, less<int>, 
+	  aligned_allocator<Matrix<double,3,3> > > &col = cols[i];
+	if (col.size() > 0)
+	  {
+	    map<int,Matrix<double,3,3>, less<int>, 
+	      aligned_allocator<Matrix<double,3,3> > >::iterator it;
+	    for (it = col.begin(); it != col.end(); it++)
+	      {
+		int ri = (*it).first; // get row index
+		const Matrix<double,3,3> &M = (*it).second; // matrix
+		vout.segment<3>(i*3)  += M.transpose()*vin.segment<3>(ri*3);
+		vout.segment<3>(ri*3) += M*vin.segment<3>(i*3);
+	      }
+	  }
+      }
+#endif
+
+    // loop over off-diag entries
+    int ii=0;
+    if (cols.size() > 0)
+    for (int i=0; i<(int)cols.size(); i++)
+      {
+	vout.segment<3>(i*3) = diag[i]*vin.segment<3>(i*3); // only works with cols ordering
+
+	if (vcind[i] > 0)
+	  {
+	    for (int j=0; j<vcind[i]; j++, ii++)
+	      {
+		int ri = vrind[ii];
+		const Matrix<double,3,3> &M = vcols[ii];
+		vout.segment<3>(i*3)  += M.transpose()*vin.segment<3>(ri*3);
+		vout.segment<3>(ri*3) += M*vin.segment<3>(i*3);
+	      }
+	  }
+      }
+
+
+  }
+
+void
+mD3(vector< Matrix<double,3,3>, aligned_allocator<Matrix<double,3,3> > > &diag,
+    VectorXd &vin,
+   VectorXd &vout)
+{
+    // loop over diag entries
+    for (int i=0; i<(int)diag.size(); i++)
+      vout.segment<3>(i*3) = diag[i]*vin.segment<3>(i*3);
+}
+
+
+//
+// jacobi-preconditioned block conjugate gradient
+// returns number of iterations
+// stopping criteria <tol> is relative reduction in residual norm squared
+//
+
+int
+bpcg_jacobi3(int iters, double tol,
+	    vector< Matrix<double,3,3>, aligned_allocator<Matrix<double,3,3> > > &diag,
+	    vector< map<int,Matrix<double,3,3>, less<int>, aligned_allocator<Matrix<double,3,3> > > > &cols,
+	    VectorXd &x,
+	    VectorXd &b,
+	    bool abstol,
+	    bool verbose)
+{
+  // set up local vars
+  VectorXd r,d,q,s;
+  int n = diag.size();
+  int n3 = n*3;
+  r.setZero(n3);
+  d.setZero(n3);
+  q.setZero(n3);
+  s.setZero(n3);
+
+  vcind.resize(n);
+  vrind.clear();
+  vcols.clear();
+
+  // set up alternate rep for sparse matrix
+  for (int i=0; i<(int)cols.size(); i++)
+    {
+      map<int,Matrix<double,3,3>, less<int>, 
+	aligned_allocator<Matrix<double,3,3> > > &col = cols[i];
+      vcind[i] = col.size();
+      if (col.size() > 0)
+	{
+	  map<int,Matrix<double,3,3>, less<int>, 
+	    aligned_allocator<Matrix<double,3,3> > >::iterator it;
+          for (it = col.begin(); it != col.end(); it++)
+	    {
+	      int ri = (*it).first; // get row index
+	      vrind.push_back(ri);
+	      vcols.push_back((*it).second);
+	    }
+        }
+    }
+  
+
+  // set up Jacobi preconditioner
+  vector< Matrix<double,3,3>, aligned_allocator<Matrix<double,3,3> > > J3;
+  J3.resize(n);
+  for (int i=0; i<n; i++)
+    {
+      J3[i] = diag[i].inverse();
+      //      J3[i].setIdentity();
+    }
+
+  int i;
+  r = b;
+  mD3(J3,r,d);
+  double dn = r.dot(d);
+  double d0 = tol*dn;
+  if (abstol)			// change tolerances
+    {
+      if (residual > d0) d0 = residual;
+    }
+
+  for (i=0; i<iters; i++)
+    {
+      if (verbose)
+	cout << "residual[" << i << "]: " << dn << endl;
+      if (dn < d0) break;	// done
+      mMV3(diag,cols,d,q);
+      double a = dn / d.dot(q);
+      x += a*d;
+      // TODO: reset residual here every 50 iterations
+      r -= a*q;
+      mD3(J3,r,s);
+      double dold = dn;
+      dn = r.dot(s);
+      double ba = dn / dold;
+      d = s + ba*d;
+    }
+
+  
+  cout << "residual[" << i << "]: " << dn << endl;
+  residual = dn/2.0;
+  return i;
+}
+
+
+//
+// dense algorithm
+//
+
+int
+bpcg_jacobi_dense3(int iters, double tol,
+		  MatrixXd &M,
+		  VectorXd &x,
+		  VectorXd &b)
+{
+  // set up local vars
+  VectorXd r,ad,d,q,s;
+  int n3 = M.cols();
+  int n = n3/3;
+  r.setZero(n3);
+  ad.setZero(n3);
+  d.setZero(n3);
+  q.setZero(n3);
+  s.setZero(n3);
+
+  // set up Jacobi preconditioner
+  vector< Matrix<double,3,3>, aligned_allocator<Matrix<double,3,3> > > J3;
+  J3.resize(n);
+  for (int i=0; i<n; i++)
+    {
+      J3[i] = M.block(i*3,i*3,3,3).inverse();
+      //      J3[i].setIdentity();
+    }
+
+  int i;
+  r = b;
+  mD3(J3,r,d);
+  double dn = r.dot(d);
+  double d0 = dn;
+
+  for (i=0; i<iters; i++)
+    {
+      cout << "residual[" << i << "]: " << dn << endl;
+      if (dn < tol*d0) break; // done
+      
+      q = M*d;
+      double a = dn / d.dot(q);
+      x += a*d;
+      // TODO: reset residual here every 50 iterations
+      r -= a*q;
+      mD3(J3,r,s);
+      double dold = dn;
+      dn = r.dot(s);
+      double ba = dn / dold;
+      d = s + ba*d;
+    }
+
+  return i;
+}
+
+
 
 } // end namespace sba
 

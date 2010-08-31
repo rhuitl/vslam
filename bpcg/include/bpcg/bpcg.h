@@ -87,6 +87,37 @@ bpcg_jacobi_dense(int iters, double tol,
 		  VectorXd &x,
 		  VectorXd &b);
 
+//
+// matrix multiply of compressed column storage + diagonal blocks by a vector
+//
+
+void
+mMV3(vector< Matrix<double,3,3>, aligned_allocator<Matrix<double,3,3> > > &diag,
+    vector< map<int,Matrix<double,3,3>, less<int>, aligned_allocator<Matrix<double,3,3> > > > &cols,
+    const VectorXd &vin,
+    VectorXd &vout);
+
+//
+// jacobi-preconditioned block conjugate gradient
+// returns number of iterations
+
+int
+bpcg_jacobi3(int iters, double tol,
+	    vector< Matrix<double,3,3>, aligned_allocator<Matrix<double,3,3> > > &diag,
+	    vector< map<int,Matrix<double,3,3>, less<int>, aligned_allocator<Matrix<double,3,3> > > > &cols,
+	    VectorXd &x,
+	    VectorXd &b,
+	    bool abstol = false,
+	    bool verbose = false
+         );
+
+int
+bpcg_jacobi_dense3(int iters, double tol,
+		  MatrixXd &M,
+		  VectorXd &x,
+		  VectorXd &b);
+
+
 }  // end namespace sba
 
 #endif // BPCG_H
