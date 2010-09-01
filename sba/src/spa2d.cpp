@@ -424,8 +424,10 @@ namespace sba
   /// <useCSparse> = 0 for dense Cholesky, 1 for sparse system, 
   ///                2 for gradient system, 3 for block jacobian PCG
   /// <initTol> is the initial tolerance for CG 
+  /// <maxCGiters> is max # of iterations in BPCG
 
-  int SysSPA2d::doSPA(int niter, double sLambda, int useCSparse, double initTol)
+  int SysSPA2d::doSPA(int niter, double sLambda, int useCSparse, double initTol,
+                      int maxCGiters)
   {
     // number of nodes
     int ncams = nodes.size();
@@ -486,7 +488,7 @@ namespace sba
 	  {
             if (csp.B.rows() != 0)
 	      {
-		int iters = csp.doBPCG(30,1.0e-6,iter);
+		int iters = csp.doBPCG(maxCGiters,initTol,iter);
                 if (verbose)
                   cout << "[Block PCG] " << iters << " iterations" << endl;
 	      }
@@ -495,7 +497,7 @@ namespace sba
         // PCG with incomplete Cholesky
         else if (useCSparse == 3)
           {
-            int res = csp.doPCG(50);
+            int res = csp.doPCG(maxCGiters);
             if (res > 1)
               cout << "[DoSPA] Sparse PCG failed with error " << res << endl;
           }

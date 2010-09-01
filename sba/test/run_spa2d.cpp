@@ -210,7 +210,7 @@ int main(int argc, char **argv)
 
       t0 = utime();
       //      spa.doSPA(1,1.0e-4,SBA_SPARSE_CHOLESKY);
-      spa.doSPA(1,1.0e-4,SBA_BLOCK_JACOBIAN_PCG);
+      spa.doSPA(1,1.0e-4,SBA_BLOCK_JACOBIAN_PCG,50);
       t1 = utime();
       cumtime += t1 - t0;
       if (i%100 == 0) cout << i << endl;

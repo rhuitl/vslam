@@ -243,7 +243,7 @@ namespace sba
       /// initial diagonal augmentation, and sparse form of Cholesky.
       /// useCSParse = 0 for dense Cholesky, 1 for sparse Cholesky, 2 for BPCG
       double lambda;
-      int doSPA(int niter, double sLambda = 1.0e-4, int useCSparse = SBA_SPARSE_CHOLESKY, double initTol = 1.0e-8);
+      int doSPA(int niter, double sLambda = 1.0e-4, int useCSparse = SBA_SPARSE_CHOLESKY, double initTol = 1.0e-8, int CGiters = 50);
       int doSPAwindowed(int window, int niter, double sLambda, int useCSparse);
 
 
