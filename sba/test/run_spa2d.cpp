@@ -210,14 +210,15 @@ int main(int argc, char **argv)
 
       t0 = utime();
       //      spa.doSPA(1,1.0e-4,SBA_SPARSE_CHOLESKY);
-      spa.doSPA(1,1.0e-4,SBA_BLOCK_JACOBIAN_PCG,50);
+      spa.doSPA(1,1.0e-4,SBA_BLOCK_JACOBIAN_PCG,30);
       t1 = utime();
       cumtime += t1 - t0;
-      if (i%100 == 0) cout << i << endl;
+      if (i%100 == 0) 
+	cout << "[SPA2D] iteration: " << i << " squared cost " << spa.errcost << endl;
     }
 
 
-  printf("[TestSPA2D] Compute took %0.2f ms/nodes, total %0.2f ms\n", 0.001*(double)cumtime/(double)nnodes, cumtime*0.001);
+  printf("[TestSPA2D] Compute took %0.2f ms/node, total squared cost %0.2f ms\n", 0.001*(double)cumtime/(double)nnodes, cumtime*0.001);
   // printf("[TestSPA] Accepted iterations: %d\n", niters);
   // printf("[TestSPA] Distance cost: %0.3f m rms\n", sqrt(spa.calcCost(true)/(double)spa.p2cons.size()));
 
