@@ -207,7 +207,7 @@ namespace frame_common
 	        {
 	          frame.goodPts[i] = true;
 	          Vector3d pt(frame.kpts[i].pt.x,frame.kpts[i].pt.y,disp);
-	          frame.pts[i].start(3) = frame.pix2cam(pt);
+	          frame.pts[i].head(3) = frame.pix2cam(pt);
 	          frame.pts[i](3) = 1.0;
 	          //          cout << pts[i].transpose() << endl;
 	        }
@@ -297,7 +297,7 @@ namespace frame_common
         /* Vector4d p0_pt = Vector4d(pt0.x, pt0.y, pt0.z, 1.0);
         Vector3d expected_proj = projectPoint(p0_pt, frame0.cam);
         
-        Vector3d diff = expected_proj - frame1.pl_kpts[f1_indices[i]].start<3>();
+        Vector3d diff = expected_proj - frame1.pl_kpts[f1_indices[i]].head<3>();
         diff(2) = diff(2) - diff(0);
         
         printf("[Proj difference] %f %f %f\n", diff(0), diff(1), diff(2)); */

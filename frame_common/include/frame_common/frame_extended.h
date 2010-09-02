@@ -135,7 +135,7 @@ namespace frame_common
           Vector4d p0_pt = Vector4d(pt0.x, pt0.y, pt0.z, 1.0);
           Vector3d expected_proj = projectPoint(p0_pt);
           
-          Vector3d diff = expected_proj - pl_kpts[this_indices[i]].start<3>();
+          Vector3d diff = expected_proj - pl_kpts[this_indices[i]].head<3>();
           diff(2) = diff(2) - diff(0);
           
           if ((norm0 - norm1).norm() < 0.5)
