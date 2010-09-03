@@ -1,3 +1,4 @@
+
  /*********************************************************************
  * Software License Agreement (BSD License)
  *
@@ -99,7 +100,7 @@ mD(vector< Matrix<double,6,6>, aligned_allocator<Matrix<double,6,6> > > &diag,
 // stopping criteria <tol> is relative reduction in residual norm squared
 //
 
-static double residual;		// shouldn't do this, it leaves state...
+static double residual = 0.0;   // shouldn't do this, it leaves state...
 
 int
 bpcg_jacobi(int iters, double tol,
@@ -141,7 +142,7 @@ bpcg_jacobi(int iters, double tol,
   for (i=0; i<iters; i++)
     {
       if (verbose && 0)
-	cout << "[BPCG] residual[" << i << "]: " << dn << endl;
+	cout << "[BPCG] residual[" << i << "]: " << dn << " < " << d0 << endl;
       if (dn < d0) break;	// done
       mMV(diag,cols,d,q);
       double a = dn / d.dot(q);
@@ -231,13 +232,16 @@ bpcg_jacobi_dense(int iters, double tol,
 
 static vector<int> vcind, vrind;
 static vector< Matrix<double,3,3>, aligned_allocator<Matrix<double,3,3> > > vcols;
+static int ahead;
 
-void
+double
 mMV3(vector< Matrix<double,3,3>, aligned_allocator<Matrix<double,3,3> > > &diag,
     vector< map<int,Matrix<double,3,3>, less<int>, aligned_allocator<Matrix<double,3,3> > > > &cols,
     const VectorXd &vin,
     VectorXd &vout)
   {
+    double sum = 0;
+
 #if 0
     // loop over off-diag entries
     if (cols.size() > 0)
@@ -260,28 +264,29 @@ mMV3(vector< Matrix<double,3,3>, aligned_allocator<Matrix<double,3,3> > > &diag,
 	      }
 	  }
       }
-#endif
+#else
+
+    // linear storage for matrices
+    // lookahead doesn't help
 
     // loop over off-diag entries
-    int ii=0;
     if (cols.size() > 0)
     for (int i=0; i<(int)cols.size(); i++)
+      vout.segment<3>(i*3) = diag[i]*vin.segment<3>(i*3); // only works with cols ordering
+
+    for (int i=0; i<(int)vcind.size(); i++)
       {
-	vout.segment<3>(i*3) = diag[i]*vin.segment<3>(i*3); // only works with cols ordering
-
-	if (vcind[i] > 0)
-	  {
-	    for (int j=0; j<vcind[i]; j++, ii++)
-	      {
-		int ri = vrind[ii];
-		const Matrix<double,3,3> &M = vcols[ii];
-		vout.segment<3>(i*3)  += M.transpose()*vin.segment<3>(ri*3);
-		vout.segment<3>(ri*3) += M*vin.segment<3>(i*3);
-	      }
-	  }
+        int ri = vrind[i];
+        int ii = vcind[i];
+        const Matrix<double,3,3> &M = vcols[i];
+        int ari = vrind[i+ahead];
+        vout.segment<3>(ii*3)  += M.transpose()*vin.segment<3>(ri*3);
+        vout.segment<3>(ri*3) += M*vin.segment<3>(ii*3);
+        sum += vout[3*ari] + vin[3*ari];
       }
+#endif
 
-
+    return sum;
   }
 
 void
@@ -310,6 +315,9 @@ bpcg_jacobi3(int iters, double tol,
 	    bool abstol,
 	    bool verbose)
 {
+  // lookahead
+  ahead = 8;
+
   // set up local vars
   VectorXd r,d,q,s;
   int n = diag.size();
@@ -319,7 +327,7 @@ bpcg_jacobi3(int iters, double tol,
   q.setZero(n3);
   s.setZero(n3);
 
-  vcind.resize(n);
+  vcind.clear();
   vrind.clear();
   vcols.clear();
 
@@ -328,7 +336,6 @@ bpcg_jacobi3(int iters, double tol,
     {
       map<int,Matrix<double,3,3>, less<int>, 
 	aligned_allocator<Matrix<double,3,3> > > &col = cols[i];
-      vcind[i] = col.size();
       if (col.size() > 0)
 	{
 	  map<int,Matrix<double,3,3>, less<int>, 
@@ -337,10 +344,16 @@ bpcg_jacobi3(int iters, double tol,
 	    {
 	      int ri = (*it).first; // get row index
 	      vrind.push_back(ri);
+	      vcind.push_back(i);
 	      vcols.push_back((*it).second);
 	    }
         }
     }
+
+  // lookahead padding
+  for (int i=0; i<ahead; i++)
+    vrind.push_back(0);
+
   
 
   // set up Jacobi preconditioner
@@ -364,8 +377,8 @@ bpcg_jacobi3(int iters, double tol,
 
   for (i=0; i<iters; i++)
     {
-      if (verbose && 0)
-	cout << "residual[" << i << "]: " << dn << endl;
+      if (verbose)
+	cout << "[BPCG] residual[" << i << "]: " << dn << " < " << d0 << " " << tol << endl;
       if (dn < d0) break;	// done
       mMV3(diag,cols,d,q);
       double a = dn / d.dot(q);
@@ -380,9 +393,10 @@ bpcg_jacobi3(int iters, double tol,
     }
 
   
-  if (verbose)
-    cout << "[BPCG] residual[" << i << "]: " << dn << endl;
   residual = dn/2.0;
+
+  if (verbose)
+    cout << "[BPCG] residual[" << i << "]: " << dn << " " << residual << endl;
   return i;
 }
 

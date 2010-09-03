@@ -56,7 +56,263 @@ using namespace std;
 
 namespace sba
 {
+  /// Let's try templated versions
 
+  template <int N>
+    class jacobiBPCG 
+    {
+    public:
+      jacobiBPCG() { residual = 0.0; };
+      int doBPCG(int iters, double tol,
+                 vector< Matrix<double,N,N>, aligned_allocator<Matrix<double,N,N> > > &diag,
+                 vector< map<int,Matrix<double,N,N>, less<int>, aligned_allocator<Matrix<double,N,N> > > > &cols,
+                 VectorXd &x,
+                 VectorXd &b,
+                 bool abstol = false,
+                 bool verbose = false
+                 );
+
+      // uses internal linear storage for Hessian
+      int doBPCG2(int iters, double tol,
+                 vector< Matrix<double,N,N>, aligned_allocator<Matrix<double,N,N> > > &diag,
+                 vector< map<int,Matrix<double,N,N>, less<int>, aligned_allocator<Matrix<double,N,N> > > > &cols,
+                 VectorXd &x,
+                 VectorXd &b,
+                 bool abstol = false,
+                 bool verbose = false
+                 );
+
+      double residual;
+
+    private:
+      void mMV(vector< Matrix<double,N,N>, aligned_allocator<Matrix<double,N,N> > > &diag,
+               vector< map<int,Matrix<double,N,N>, less<int>, aligned_allocator<Matrix<double,N,N> > > > &cols,
+               const VectorXd &vin,
+               VectorXd &vout);
+ 
+      // uses internal linear storage
+      void mMV2(vector< Matrix<double,N,N>, aligned_allocator<Matrix<double,N,N> > > &diag,
+                const VectorXd &vin,
+                VectorXd &vout);
+ 
+      void mD(vector< Matrix<double,N,N>, aligned_allocator<Matrix<double,N,N> > > &diag,
+              VectorXd &vin,
+              VectorXd &vout);
+
+      vector<int> vcind, vrind;
+      vector< Matrix<double,N,N>, aligned_allocator<Matrix<double,N,N> > > vcols;
+    };
+
+  template <int N>
+    void jacobiBPCG<N>::mMV(vector< Matrix<double,N,N>, aligned_allocator<Matrix<double,N,N> > > &diag,
+                        vector< map<int,Matrix<double,N,N>, less<int>, aligned_allocator<Matrix<double,N,N> > > > &cols,
+                        const VectorXd &vin,
+                        VectorXd &vout)
+    {
+    // loop over all entries
+      if (cols.size() > 0)
+        for (int i=0; i<(int)cols.size(); i++)
+          {
+            vout.segment<N>(i*N) = diag[i]*vin.segment<N>(i*N); // only works with cols ordering
+
+            map<int,Matrix<double,N,N>, less<int>, 
+              aligned_allocator<Matrix<double,N,N> > > &col = cols[i];
+            if (col.size() > 0)
+              {
+                typename map<int,Matrix<double,N,N>, less<int>, // need "typename" here, barf
+                  aligned_allocator<Matrix<double,N,N > > >::iterator it;
+                for (it = col.begin(); it != col.end(); it++)
+                  {
+                    int ri = (*it).first; // get row index
+                    const Matrix<double,N,N> &M = (*it).second; // matrix
+                    vout.segment<N>(i*N)  += M.transpose()*vin.segment<N>(ri*N);
+                    vout.segment<N>(ri*N) += M*vin.segment<N>(i*N);
+                  }
+              }
+          }
+    }
+
+  //
+  // matrix-vector multiply with linear storage
+  //
+
+  template <int N>
+    void jacobiBPCG<N>::mMV2(vector< Matrix<double,N,N>, aligned_allocator<Matrix<double,N,N> > > &diag,
+                             const VectorXd &vin,
+                             VectorXd &vout)
+    {
+      // linear storage for matrices
+      // loop over off-diag entries
+      if (diag.size() > 0)
+        for (int i=0; i<(int)diag.size(); i++)
+          vout.segment<N>(i*N) = diag[i]*vin.segment<N>(i*N); // only works with cols ordering
+
+      for (int i=0; i<(int)vcind.size(); i++)
+        {
+          int ri = vrind[i];
+          int ii = vcind[i];
+          const Matrix<double,N,N> &M = vcols[i];
+          vout.segment<N>(ii*N)  += M.transpose()*vin.segment<N>(ri*N);
+          vout.segment<N>(ri*N) += M*vin.segment<N>(ii*N);
+        }
+    }
+
+
+
+  template <int N>
+    void jacobiBPCG<N>::mD(vector< Matrix<double,N,N>, aligned_allocator<Matrix<double,N,N> > > &diag,
+            VectorXd &vin,
+            VectorXd &vout)
+    {
+      // loop over diag entries
+      for (int i=0; i<(int)diag.size(); i++)
+        vout.segment<N>(i*N) = diag[i]*vin.segment<N>(i*N);
+    }
+
+
+  template <int N>
+    int jacobiBPCG<N>::doBPCG(int iters, double tol,
+	    vector< Matrix<double,N,N>, aligned_allocator<Matrix<double,N,N> > > &diag,
+	    vector< map<int,Matrix<double,N,N>, less<int>, aligned_allocator<Matrix<double,N,N> > > > &cols,
+	    VectorXd &x,
+	    VectorXd &b,
+	    bool abstol,
+	    bool verbose)
+    {
+      // set up local vars
+      VectorXd r,d,q,s;
+      int n = diag.size();
+      int n6 = n*N;
+      r.setZero(n6);
+      d.setZero(n6);
+      q.setZero(n6);
+      s.setZero(n6);
+
+      // set up Jacobi preconditioner
+      vector< Matrix<double,N,N>, aligned_allocator<Matrix<double,N,N> > > J;
+      J.resize(n);
+      for (int i=0; i<n; i++)
+        J[i] = diag[i].inverse();
+
+      int i;
+      r = b;
+      mD(J,r,d);
+      double dn = r.dot(d);
+      double d0 = tol*dn;
+      if (abstol)               // change tolerances
+        {
+          if (residual > d0) d0 = residual;
+        }
+
+      for (i=0; i<iters; i++)
+        {
+          if (verbose && 0)
+            cout << "[BPCG] residual[" << i << "]: " << dn << " < " << d0 << endl;
+          if (dn < d0) break;	// done
+          mMV(diag,cols,d,q);
+          double a = dn / d.dot(q);
+          x += a*d;
+          // TODO: reset residual here every 50 iterations
+          r -= a*q;
+          mD(J,r,s);
+          double dold = dn;
+          dn = r.dot(s);
+          double ba = dn / dold;
+          d = s + ba*d;
+        }
+
+  
+      if (verbose)
+        cout << "[BPCG] residual[" << i << "]: " << dn << endl;
+      residual = dn/2.0;
+      return i;
+    }
+
+
+  // uses internal linear storage for Hessian
+  template <int N>
+    int jacobiBPCG<N>::doBPCG2(int iters, double tol,
+	    vector< Matrix<double,N,N>, aligned_allocator<Matrix<double,N,N> > > &diag,
+	    vector< map<int,Matrix<double,N,N>, less<int>, aligned_allocator<Matrix<double,N,N> > > > &cols,
+	    VectorXd &x,
+	    VectorXd &b,
+	    bool abstol,
+	    bool verbose)
+    {
+      // set up local vars
+      VectorXd r,d,q,s;
+      int n = diag.size();
+      int n6 = n*N;
+      r.setZero(n6);
+      d.setZero(n6);
+      q.setZero(n6);
+      s.setZero(n6);
+
+      vcind.clear();
+      vrind.clear();
+      vcols.clear();
+
+      // set up alternate rep for sparse matrix
+      for (int i=0; i<(int)cols.size(); i++)
+        {
+          map<int,Matrix<double,N,N>, less<int>, 
+            aligned_allocator<Matrix<double,N,N> > > &col = cols[i];
+          if (col.size() > 0)
+            {
+              typename map<int,Matrix<double,N,N>, less<int>, 
+                aligned_allocator<Matrix<double,N,N> > >::iterator it;
+              for (it = col.begin(); it != col.end(); it++)
+                {
+                  int ri = (*it).first; // get row index
+                  vrind.push_back(ri);
+                  vcind.push_back(i);
+                  vcols.push_back((*it).second);
+                }
+            }
+        }
+
+      // set up Jacobi preconditioner
+      vector< Matrix<double,N,N>, aligned_allocator<Matrix<double,N,N> > > J;
+      J.resize(n);
+      for (int i=0; i<n; i++)
+        J[i] = diag[i].inverse();
+
+      int i;
+      r = b;
+      mD(J,r,d);
+      double dn = r.dot(d);
+      double d0 = tol*dn;
+      if (abstol)               // change tolerances
+        {
+          if (residual > d0) d0 = residual;
+        }
+
+      for (i=0; i<iters; i++)
+        {
+          if (verbose && 0)
+            cout << "[BPCG] residual[" << i << "]: " << dn << " < " << d0 << endl;
+          if (dn < d0) break;	// done
+          mMV2(diag,d,q);
+          double a = dn / d.dot(q);
+          x += a*d;
+          // TODO: reset residual here every 50 iterations
+          r -= a*q;
+          mD(J,r,s);
+          double dold = dn;
+          dn = r.dot(s);
+          double ba = dn / dold;
+          d = s + ba*d;
+        }
+
+  
+      if (verbose)
+        cout << "[BPCG] residual[" << i << "]: " << dn << endl;
+      residual = dn/2.0;
+      return i;
+    }
+
+
+#if 0
 //
 // matrix multiply of compressed column storage + diagonal blocks by a vector
 //
@@ -88,16 +344,6 @@ bpcg_jacobi_dense(int iters, double tol,
 		  VectorXd &b);
 
 //
-// matrix multiply of compressed column storage + diagonal blocks by a vector
-//
-
-void
-mMV3(vector< Matrix<double,3,3>, aligned_allocator<Matrix<double,3,3> > > &diag,
-    vector< map<int,Matrix<double,3,3>, less<int>, aligned_allocator<Matrix<double,3,3> > > > &cols,
-    const VectorXd &vin,
-    VectorXd &vout);
-
-//
 // jacobi-preconditioned block conjugate gradient
 // returns number of iterations
 
@@ -117,6 +363,7 @@ bpcg_jacobi_dense3(int iters, double tol,
 		  VectorXd &x,
 		  VectorXd &b);
 
+#endif
 
 }  // end namespace sba
 
