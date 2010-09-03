@@ -33,8 +33,8 @@ class VslamSystem
     /// \param min_keyframe_angle Minimum angle between keyframes, in radians.
     /// \param min_keyframe_inliers Minimum inliers in keyframes.
     VslamSystem(const std::string& vocab_tree_file, const std::string& vocab_weights_file,
-                double min_keyframe_distance=0.2, double min_keyframe_angle=0.1, 
-                int min_keyframe_inliers=0);
+                int min_keyframe_inliers=0, double min_keyframe_distance=0.2, 
+                double min_keyframe_angle=0.1);
 
     /// \brief Add a frame to the system.
     /// \param camera_parameters Camera parameters for the cameras.

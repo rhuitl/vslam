@@ -255,7 +255,7 @@ namespace vslam
         for(ProjMap::iterator itr = prjs.begin(); itr != prjs.end(); itr++)
           {
             Proj &prj = itr->second;
-            if (prj.pointPlane)
+            if (prj.pointPlane && prj.plane_point_index >= 0)
             {
               prj.plane_point_index = pidx[prj.plane_point_index];
               prj.plane_node_index -= 1;

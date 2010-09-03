@@ -42,10 +42,10 @@ using namespace pcl;
 namespace vslam {
 
 VslamSystem::VslamSystem(const std::string& vocab_tree_file, const std::string& vocab_weights_file,
-  double min_keyframe_distance, double min_keyframe_angle, int min_keyframe_inliers)
+  int min_keyframe_inliers, double min_keyframe_distance, double min_keyframe_angle)
   : frame_processor_(10), 
     vo_(boost::shared_ptr<pe::PoseEstimator>(new pe::PoseEstimator3d(1000,true,6.0,8.0,8.0)),
-        40, 10, min_keyframe_distance, min_keyframe_angle, min_keyframe_inliers), // 40 frames, 10 fixed
+        40, 10, min_keyframe_inliers, min_keyframe_distance, min_keyframe_angle), // 40 frames, 10 fixed
     place_recognizer_(vocab_tree_file, vocab_weights_file),
     pose_estimator_(5000, true, 10.0, 3.0, 3.0)
 {
