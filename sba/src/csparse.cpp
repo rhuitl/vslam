@@ -390,7 +390,8 @@ namespace sba
     x.setZero(n);
     bool abstol = false;
     if (sba_iter > 0) abstol = true;
-    int ret = bpcg_jacobi(iters, tol, diag, cols, x, B, abstol);
+    int ret;
+    ret = bpcg.doBPCG2(iters, tol, diag, cols, x, B, abstol);
     B = x;			// transfer result data
     return ret;
   }
@@ -739,7 +740,8 @@ namespace sba
     x.setZero(n);
     bool abstol = false;
     if (sba_iter > 0) abstol = true;
-    int ret = bpcg_jacobi3(iters, tol, diag, cols, x, B, abstol);
+    int ret;
+    ret = bpcg.doBPCG2(iters, tol, diag, cols, x, B, abstol);
     B = x;			// transfer result data
     return ret;
   }

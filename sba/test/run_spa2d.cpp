@@ -169,8 +169,8 @@ int main(int argc, char **argv)
   // system
   SysSPA2d spa;
   spa.verbose=false;
-  spa.print_iros_stats=true;
-  spa.useCholmod(true);
+  spa.print_iros_stats=false;
+  spa.useCholmod(false);
 
 
   // use max nodes if we haven't specified it
@@ -210,12 +210,13 @@ int main(int argc, char **argv)
 
       t0 = utime();
       //      spa.doSPA(1,1.0e-4,SBA_SPARSE_CHOLESKY);
-      spa.doSPA(1,1.0e-4,SBA_BLOCK_JACOBIAN_PCG,30);
+      spa.doSPA(1,1.0e-4,SBA_BLOCK_JACOBIAN_PCG,1.0e-8,10);
       t1 = utime();
       cumtime += t1 - t0;
       if (i%100 == 0) 
 	cout << "[SPA2D] iteration: " << i << " squared cost " << spa.errcost << endl;
     }
+
 
 
   printf("[TestSPA2D] Compute took %0.2f ms/node, total squared cost %0.2f ms\n", 0.001*(double)cumtime/(double)nnodes, cumtime*0.001);

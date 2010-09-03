@@ -127,8 +127,10 @@ namespace sba
     bool doChol();              // solve in place with RHS B
 
     // doing the BPCG
-    // max iterations <iter>, ending toleranace <tol>    
+    // max iterations <iter>, ending toleranace <tol>, current sba iteration <sba_iter>
     int doBPCG(int iters, double tol, int sba_iter);
+    // CG structure for 6x6 matrices
+    jacobiBPCG<6> bpcg;
 
 #ifdef SBA_CHOLMOD
     // CHOLMOD structures
@@ -196,6 +198,8 @@ namespace sba
     // doing the BPCG
     // max iterations <iter>, ending toleranace <tol>    
     int doBPCG(int iters, double tol, int sba_iter);
+    // CG structure for 3x3 matrices
+    jacobiBPCG<3> bpcg;
 
 #ifdef SBA_CHOLMOD
     // CHOLMOD structures
