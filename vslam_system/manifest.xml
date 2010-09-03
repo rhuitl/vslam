@@ -22,6 +22,8 @@
   <depend package="std_msgs"/>
   <depend package="nav_msgs"/>
   <depend package="dynamic_reconfigure"/>
+  <depend package="vslam_interface"/>
+  <depend package="rgbd_util"/>
 
   <export>
     <cpp cflags="-I${prefix}/include -I${prefix}/msg/cpp" lflags="-L${prefix}/lib -Wl,-rpath,${prefix}/lib" />
