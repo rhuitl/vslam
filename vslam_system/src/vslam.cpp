@@ -45,7 +45,7 @@ VslamSystem::VslamSystem(const std::string& vocab_tree_file, const std::string& 
   double min_keyframe_distance, double min_keyframe_angle, int min_keyframe_inliers)
   : frame_processor_(10), 
     vo_(boost::shared_ptr<pe::PoseEstimator>(new pe::PoseEstimator3d(1000,true,6.0,8.0,8.0)),
-        40, 10, min_keyframe_inliers, min_keyframe_distance, min_keyframe_angle), // 40 frames, 10 fixed
+        40, 10, min_keyframe_distance, min_keyframe_angle, min_keyframe_inliers), // 40 frames, 10 fixed
     place_recognizer_(vocab_tree_file, vocab_weights_file),
     pose_estimator_(5000, true, 10.0, 3.0, 3.0)
 {
@@ -69,6 +69,8 @@ bool VslamSystem::addFrame(const frame_common::CamParams& camera_parameters,
   next_frame.setCamParams(camera_parameters); // this sets the projection and reprojection matrices
   frame_processor_.setStereoFrame(next_frame, left, right, nfrac);
   next_frame.frameId = sba_.nodes.size(); // index
+  next_frame.img = cv::Mat();   // remove the images
+  next_frame.imgRight = cv::Mat();
   
   // Add frame to visual odometer
   bool is_keyframe = vo_.addFrame(next_frame);
@@ -105,9 +107,6 @@ bool VslamSystem::addFrame(const frame_common::CamParams& camera_parameters,
   
   // Add frame to visual odometer
   bool is_keyframe = vo_.addFrame(next_frame);
-
-  next_frame.img = cv::Mat();   // remove the images
-  next_frame.imgRight = cv::Mat();
 
   // grow full SBA
   if (is_keyframe)

@@ -40,8 +40,6 @@
 #include <vslam_system/vo.h>
 #include <cstdio>
 
-#include <sba/sba_file_io.h>
-
 using namespace std;
 using namespace frame_common;
 using namespace Eigen;
@@ -60,10 +58,8 @@ namespace vslam
     wsize = ws;                 // total window size
     wfixed = wf;                // size of fixed portion
     mindist = mind;             // meters
-    minang  = mina;             // degrees (Peter: no, actually radians)
+    minang  = mina;             // degrees
     mininls = mini;             // inliers
-
-    min_inliers_to_skip_icp = 0;
 
     // set up structures
     sba.useCholmod(true);
@@ -73,8 +69,7 @@ namespace vslam
   }
 
   // TODO <fnew> is not changed, can be declared const
-  // Peter: I change fnew here (add point-to-plane matches)
-  bool voSt::addFrame(Frame &fnew)
+  bool voSt::addFrame(const Frame &fnew)
   {
     int nframes = frames.size();
     bool init = nframes == 0;
@@ -125,61 +120,9 @@ namespace vslam
         }
       }
 
-    // debug
-#if 0
-    cout << "Inlier count: " << pose_estimator_->inliers.size() << endl;
-    cout << "mininls: " << mininls << endl;
-    cout << "mindist: " << mindist << endl;
-    cout << "minang: " << minang << endl;
-    //cout << "pose_estimator_->getMethod()" << pose_estimator_->getMethod() << endl;
-#endif
-
     Matrix<double,3,4> f2w, f2w_frame0, f2w_frame1;
     if (!init)
       {
-    	// here we inject ICP if the number of inliers is too small
-	    if (m_point_cloud_frame_proc && pose_estimator_->inliers.size() < min_inliers_to_skip_icp) {
-	        rgbd::timer t;
-		    Frame &previous_frame = frames.back();
-		    Eigen::Transform3f relative_pose;
-	    	m_point_cloud_frame_proc->setupICP(previous_frame, fnew);
-
-	    	// get an initial guess for ICP transform
-	    	// use relative transform between previous 2 keyframes
-	    	// todo: compute the number of actual frames between keyframes to extrapolate based on constant velocity
-	    	Eigen::Transform3f icp_initial_transform;
-	    	if (sba.nodes.size() >= 2) {
-	    	    Quaterniond icp_q;
-	    	    Vector4d icp_t;
-	    		transformN2N(icp_t, icp_q, *(sba.nodes.end()-2), *(sba.nodes.end()-1));
-	    		VSlamInterface::sbaToEigenTransform(icp_q, icp_t, icp_initial_transform);
-	    	}
-	    	else {
-	    		icp_initial_transform.setIdentity();
-	    	}
-	    	m_point_cloud_frame_proc->setICPInitialTransform(icp_initial_transform);
-
-	    	bool icp_bool = m_point_cloud_frame_proc->runICP(relative_pose);
-	    	assert(icp_bool);
-
-	    	// debug
-	    	cout << "ICP Relative pose:\n" << relative_pose.matrix() << endl;
-
-	    	m_point_cloud_frame_proc->debugICPPublish(0.2);
-
-	    	// subsequent logic uses both (fq, trans) and pose_estimator_
-	    	VSlamInterface::eigenTransformToPoseEstimate(relative_pose, pose_estimator_->rot, pose_estimator_->trans);
-	        fq = Quaterniond(pose_estimator_->rot);
-	        trans.start(3) = pose_estimator_->trans;
-	        trans(3) = 1.0;
-
-	        // hmmm...don't want spurious inliers clogging sba
-	        pose_estimator_->inliers.clear();
-	        pose_estimator_->matches.clear();
-	        t.stop("ICP Injection");
-	    }
-	    // end ICP injection
-
         // rotation
         Node &nd0 = sba.nodes.back(); // last node
         Quaterniond fq0;
@@ -197,81 +140,6 @@ namespace vslam
         
         transformF2W(f2w_frame0,nd0.trans,nd0.qrot);
       }
-
-    // set up point to plane matches
-    rgbd::timer t;
-    if (m_point_cloud_frame_proc) {
-		//m_point_cloud_frame_proc->prepareOrganizedCloud(fnew);
-		if (init) {
-			m_point_cloud_frame_proc->appendRandomPoints(fnew);
-			cout << "Initial frame has random points: " << fnew.pl_pts.size() << endl;
-		}
-		else {
-		    Frame &previous_frame = frames.back();
-
-		    Eigen::Transform3f relative_pose;
-			VSlamInterface::poseEstimateToEigenTransform(pose_estimator_->rot, pose_estimator_->trans, relative_pose);
-
-		    // this sets up the ability to get corresponding points
-		    m_point_cloud_frame_proc->setupCorrespondenceSearch(previous_frame, fnew);
-
-			// get the corresponding points
-			std::vector<std::pair<unsigned int, unsigned int> > pairs;
-			m_point_cloud_frame_proc->getCorrespondingPoints(relative_pose, pairs, fnew);
-
-			// debug clouds
-			// only needed for debug publishing:
-			Eigen::Transform3f previous_frame_world_pose;
-			VSlamInterface::sbaToEigenTransform(sba.nodes.back().qrot, sba.nodes.back().trans, previous_frame_world_pose);
-			m_point_cloud_frame_proc->debugPublish(
-					previous_frame,
-					fnew,
-					previous_frame_world_pose,
-					relative_pose,
-					pairs);
-
-			// set up the matches
-			pointcloud_matches_.clear();
-			for (unsigned int i = 0; i < pairs.size(); i++) {
-				pointcloud_matches_.push_back(pe::Match(pairs[i].first, pairs[i].second));
-			}
-
-			cout << "New frame has matched points: " << fnew.pl_pts.size() << endl;
-
-			// add more random "seed" points for next frame
-			m_point_cloud_frame_proc->appendRandomPoints(fnew);
-			cout << "Adding random points gives total: " << fnew.pl_pts.size() << endl;
-
-			// write if set
-			if (!m_ptp_folder_write.empty()) {
-				VSlamInterface::matchesToDirectory(pairs, fnew.frameId, m_ptp_folder_write);
-			}
-		}
-
-	    // write if set
-	    if (!m_ptp_folder_write.empty()) {
-			VSlamInterface::ptpToDirectory(fnew, fnew.frameId, m_ptp_folder_write);
-			cv::imwrite(m_ptp_folder_write + VSlamInterface::frameName(fnew.frameId, "-left.png"), fnew.img);
-			cv::imwrite(m_ptp_folder_write + VSlamInterface::frameName(fnew.frameId, "-right.png"), fnew.imgRight);
-			VSlamInterface::PointCloudFrameProc::CloudT cloudToWrite;
-			VSlamInterface::copyPointsAndNormalsToCloud(fnew, cloudToWrite);
-			pcl::io::savePCDFileASCII (m_ptp_folder_write + VSlamInterface::frameName(fnew.frameId, ".pcd"), cloudToWrite);
-	    }
-
-
-	    // debug
-#if 0
-	    //VSlamInterface::ptpToStream(fnew, cout);
-	    for (unsigned int i = 0; i < fnew.pl_normals.size(); i++) {
-	    	if (fabs(fnew.pl_normals[i].norm() - 1.0) > 0.00001) {
-	    		cout << fnew.pl_normals[i].transpose() << endl;
-	    		cout << fnew.pl_normals[i].norm() << endl;
-	    	}
-	    }
-#endif
-    }
-    t.stop("PointCloudFrameProc: ");
-
 
     // Add node for the frame, setting it to fixed if we're iniitializing,
     // floating otherwise.
@@ -301,18 +169,13 @@ namespace vslam
     nframes = frames.size();
 
     // add connections to previous frame
-    // Todo: uncomment this!
-    //addProjections(f0, f1, frames, sba, pose_estimator_->inliers, f2w_frame0, ndi-1, ndi, &ipts);
+    addProjections(f0, f1, frames, sba, pose_estimator_->inliers, f2w_frame0, ndi-1, ndi, &ipts);
     
     // Do pointcloud matching and add the projections to the system.
     if (pointcloud_proc_)
     {
       pointcloud_proc_->match(f0, f1, pose_estimator_->trans, Quaterniond(pose_estimator_->rot), pointcloud_matches_);
       addPointCloudProjections(f0, f1, sba, pointcloud_matches_, f2w_frame0, f2w_frame1, ndi-1, ndi, &ipts);
-    }
-    // alternate:
-    if (m_point_cloud_frame_proc) {
-    	addPointCloudProjections(f0, f1, sba, pointcloud_matches_, f2w_frame0, f2w_frame1, ndi-1, ndi, &ipts);
     }
     
     // do SBA, setting up fixed frames
@@ -323,17 +186,8 @@ namespace vslam
       sba.nFixed = wfixed - (wsize - nframes);
 
     cout << "[Stereo VO] Inliers: " << inl << "  Nodes: " << sba.nodes.size() << "   Points: " << sba.tracks.size() << endl;
-    sba.verbose = 1;
-
-    if (!m_ptp_folder_write.empty()) {
-    	sba::writeBundlerFile( (m_ptp_folder_write + VSlamInterface::frameName(fnew.frameId, "-before.bundler")).c_str(), sba);
-    }
-
+    sba.verbose = 0;
     sba.doSBA(2,1.0e-5,0);          // dense version
-
-    if (!m_ptp_folder_write.empty()) {
-    	sba::writeBundlerFile( (m_ptp_folder_write + VSlamInterface::frameName(fnew.frameId, "-after.bundler")).c_str(), sba);
-    }
 
     return true;
   } // end addFrame
@@ -401,11 +255,8 @@ namespace vslam
         for(ProjMap::iterator itr = prjs.begin(); itr != prjs.end(); itr++)
           {
             Proj &prj = itr->second;
-            // Peter: added plane_point_index check (avoid segfault)
-            if (prj.pointPlane && prj.plane_point_index >= 0)
+            if (prj.pointPlane)
             {
-            	// debug
-            	//cout << "prj.plane_point_index: " << prj.plane_point_index << endl;
               prj.plane_point_index = pidx[prj.plane_point_index];
               prj.plane_node_index -= 1;
               if (prj.plane_node_index < 0 || prj.plane_point_index < 0)

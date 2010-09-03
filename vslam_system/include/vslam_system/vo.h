@@ -50,13 +50,6 @@
 #include <frame_common/frame.h>
 #include <cstdio>
 
-#include <vslam_interface/PointCloudFrameProc.h>
-#include <vslam_interface/conversions.h>
-#include <vslam_interface/PointToPlaneIO.h>
-#include <opencv/highgui.h>
-#include <rgbd_util/timer.h>
-#include <pcl/io/pcd_io.h>
-
 namespace fc  = frame_common;
 
 namespace vslam
@@ -90,16 +83,10 @@ namespace vslam
     double minang;  ///< Minimum angular distance between keyframes (radians).
     int    mininls; ///< Minimum number of inliers.
 
-    /// Point to plane structures...only used if they are set
-    boost::shared_ptr<VSlamInterface::PointCloudFrameProc> m_point_cloud_frame_proc;
-    ///  If write is set, write to folder
-    std::string m_ptp_folder_write;
-    unsigned int min_inliers_to_skip_icp;
-
     /// \brief Add a new frame to the system, if it is a keyframe.
     /// \param fnew The frame to be added.
     /// \return Whether the frame was added as a keyframe.
-    bool addFrame(fc::Frame &fnew);
+    bool addFrame(const fc::Frame &fnew); 
 
     /// \brief Removes oldest frame from the system.
     void removeFrame();
