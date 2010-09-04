@@ -86,7 +86,7 @@ addnode(SysSPA2d &spa, int n,
   Node2d nd1;
 
   nd1.arot = arots[n];
-  nd1.trans.start(2) = ntrans[n];
+  nd1.trans.head(2) = ntrans[n];
   nd1.trans(2) = 1.0;
 
   // add in to system
@@ -184,7 +184,7 @@ int main(int argc, char **argv)
   nd.arot = arots[0];
   // translation
   Vector3d v;
-  v.start(2) = ntrans[0];
+  v.head(2) = ntrans[0];
   v(2) = 1.0;
   nd.trans = v;
 
@@ -242,7 +242,7 @@ int main(int argc, char **argv)
 
   ofstream ofs2("opt2d-opt.txt");
   for (int i=0; i<(int)spa.nodes.size(); i++)
-    ofs2 << spa.nodes[i].trans.transpose().start(2) << endl;
+    ofs2 << spa.nodes[i].trans.transpose().head(2) << endl;
   ofs2.close();
 #endif
 

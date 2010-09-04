@@ -217,7 +217,7 @@ public:
           trans = nd1.trans;
           
           sba::transformF2W(f2w,nd0.trans,nd0.qrot);
-          // trans.start(3) = f2w*trans;
+          // trans.head(3) = f2w*trans;
         }
 
       // Publish node for the frame, setting it to fixed if we're initializing,
@@ -337,7 +337,7 @@ public:
         if (f0.ipts[i0] < 0 && f1.ipts[i1] < 0)    // new point
           {
             Vector4d pt;
-            pt.start(3) = f2w*f0.pts[i0]; // transform to RW coords
+            pt.head(3) = f2w*f0.pts[i0]; // transform to RW coords
             pt(3) = 1.0;
             
             pti = publishPoint(pt);

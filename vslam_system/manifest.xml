@@ -7,9 +7,6 @@
   <review status="unreviewed" notes=""/>
 
   <depend package="roscpp"/>
-  <depend package="sba"/>
-  <depend package="posest"/>
-  <depend package="vocabulary_tree"/>
   
   <depend package="image_transport"/>
   <depend package="image_geometry"/>
@@ -22,6 +19,10 @@
   <depend package="std_msgs"/>
   <depend package="nav_msgs"/>
   <depend package="dynamic_reconfigure"/>
+  
+  <depend package="sba"/>
+  <depend package="posest"/>
+  <depend package="vocabulary_tree"/>
 
   <export>
     <cpp cflags="-I${prefix}/include -I${prefix}/msg/cpp" lflags="-L${prefix}/lib -Wl,-rpath,${prefix}/lib" />

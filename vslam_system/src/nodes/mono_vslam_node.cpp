@@ -147,7 +147,7 @@ public:
       Eigen::Vector4d trans = -vslam_system_.sba_.nodes.back().trans;
       Eigen::Quaterniond rot = vslam_system_.sba_.nodes.back().qrot.conjugate();
       
-      trans.start<3>() = rot.toRotationMatrix()*trans.start<3>(); 
+      trans.head<3>() = rot.toRotationMatrix()*trans.head<3>(); 
       
       tf_transform_.setOrigin(tf::Vector3(trans(0), trans(1), trans(2)));
       tf_transform_.setRotation(tf::Quaternion(rot.x(), rot.y(), rot.z(), rot.w()) );

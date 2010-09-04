@@ -261,7 +261,7 @@ int main(int argc, char **argv)
 
       // translation
       Vector4d v;
-      v.start(3) = ntrans[i];
+      v.head(3) = ntrans[i];
       v(3) = 1.0;
       nd.trans = v;
       nd.setTransform();        // set up world2node transform
@@ -326,7 +326,7 @@ int main(int argc, char **argv)
       Quaterniond qr;
       qr = nd0.qrot;
       transformF2W(f2w,nd0.trans,qr);
-      pt0.start(3) = f2w*pt0;
+      pt0.head(3) = f2w*pt0;
       sba.addPoint(pt0);
       Vector2d kp0,kp1;
       nd0.project2im(kp0,pt0);
@@ -334,7 +334,7 @@ int main(int argc, char **argv)
       Point pt1(ti.x1,ti.y1,ti.z1,1.0);
       qr = nd1.qrot;
       transformF2W(f2w,nd1.trans,qr);
-      pt1.start(3) = f2w*pt1;
+      pt1.head(3) = f2w*pt1;
       nd1.project2im(kp1,pt1);
 
 #if 0
@@ -342,8 +342,8 @@ int main(int argc, char **argv)
       cout << ti.u0 << " " << ti.v0 << " " << ti.u0-ftx/ti.z0 << endl;
       cout << kp1.transpose() << endl;
       cout << ti.u1 << " " << ti.v1 << " " << ti.u1-ftx/ti.z1 << endl;
-      cout << pt0.start(3).transpose() << endl;
-      cout << pt1.start(3).transpose() << endl << endl;
+      cout << pt0.head(3).transpose() << endl;
+      cout << pt1.head(3).transpose() << endl << endl;
 #endif
 
       // projections

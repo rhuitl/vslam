@@ -110,12 +110,12 @@ namespace pe
           continue;
 
         // get centroids
-        Vector3d p0a = f0.pts[i0a].start(3);
-        Vector3d p0b = f0.pts[i0b].start(3);
-        Vector3d p0c = f0.pts[i0c].start(3);
-        Vector3d p1a = f1.pts[i1a].start(3);
-        Vector3d p1b = f1.pts[i1b].start(3);
-        Vector3d p1c = f1.pts[i1c].start(3);
+        Vector3d p0a = f0.pts[i0a].head<3>();
+        Vector3d p0b = f0.pts[i0b].head<3>();
+        Vector3d p0c = f0.pts[i0c].head<3>();
+        Vector3d p1a = f1.pts[i1a].head<3>();
+        Vector3d p1b = f1.pts[i1b].head<3>();
+        Vector3d p1c = f1.pts[i1c].head<3>();
 
         Vector3d c0 = (p0a+p0b+p0c)*(1.0/3.0);
         Vector3d c1 = (p1a+p1b+p1c)*(1.0/3.0);
@@ -223,7 +223,7 @@ namespace pe
       }
 
 #if 0
-    cout << endl << trans.transpose().start(3) << endl << endl;
+    cout << endl << trans.transpose().head(3) << endl << endl;
     cout << rot << endl;
 #endif
 
@@ -276,10 +276,10 @@ namespace pe
 //        cout << endl << "Removed " << nbad << " projections > 2 pixels error" << endl;
         sba.doSBA(5,10e-5,0);
 
-//        cout << endl << sba.nodes[1].trans.transpose().start(3) << endl;
+//        cout << endl << sba.nodes[1].trans.transpose().head(3) << endl;
 
         // get the updated transform
-	      trans = sba.nodes[1].trans.start(3);
+	      trans = sba.nodes[1].trans.head(3);
 	      Quaterniond q1;
 	      q1 = sba.nodes[1].qrot;
 	      rot = q1.toRotationMatrix();

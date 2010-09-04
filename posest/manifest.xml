@@ -6,7 +6,7 @@
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
   <depend package="opencv2"/>
-  <depend package="eigen"/>
+  <depend package="eigen3"/>
   <depend package="frame_common"/>
   <depend package="sba"/>
   <export>

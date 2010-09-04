@@ -59,7 +59,7 @@ int sba::readBundlerFile(const char *filename, SysSBA& sbaout)
         // translation
         Vector3d &camt = camts[i];
         Vector4d frt;
-        frt.start<3>() = camt;//-camRs[i].transpose() * camt; // camera frame translation, from Bundler docs
+        frt.head<3>() = camt;//-camRs[i].transpose() * camt; // camera frame translation, from Bundler docs
         frt[3] = 1.0;
 
         Node nd;
@@ -75,7 +75,7 @@ int sba::readBundlerFile(const char *filename, SysSBA& sbaout)
         // point
         Vector3d &ptp = ptps[i];
         Point pt;
-        pt.start<3>() = ptp;
+        pt.head<3>() = ptp;
         pt[3] = 1.0;
         sbaout.addPoint(pt);
     }
@@ -149,7 +149,7 @@ int sba::writeBundlerFile(const char *filename, SysSBA& sbain)
         outfile << rotmat(1, 0) << ' ' << rotmat(1, 1) << ' ' << rotmat(1, 2) << endl;
         outfile << rotmat(2, 0) << ' ' << rotmat(2, 1) << ' ' << rotmat(2, 2) << endl;
         
-        Vector3d trans = sbain.nodes[i].trans.start<3>();
+        Vector3d trans = sbain.nodes[i].trans.head<3>();
         
         outfile << trans(0) << ' ' << trans(1) << ' ' << trans(2) << endl; 
     }
@@ -531,7 +531,7 @@ int sba::readGraphFile(const char *filename, SysSBA& sbaout)
         // translation
         Vector3d &camt = camts[i];
         Vector4d frt;
-        frt.start<3>() = camt;
+        frt.head<3>() = camt;
         frt[3] = 1.0;
 
         Node nd;
@@ -547,7 +547,7 @@ int sba::readGraphFile(const char *filename, SysSBA& sbaout)
         // point
         Vector3d &ptp = ptps[i];
         Point pt;
-        pt.start<3>() = ptp;
+        pt.head<3>() = ptp;
         pt[3] = 1.0;
         sbaout.addPoint(pt);
     }
@@ -778,7 +778,7 @@ int sba::writeGraphFile(const char *filename, SysSBA& sba)
     {
       outfile << "VERTEX_CAM" << " ";
       outfile << i << " ";      // node number
-      Vector3d trans = sba.nodes[i].trans.start<3>(); // position
+      Vector3d trans = sba.nodes[i].trans.head<3>(); // position
       outfile << trans(0) << ' ' << trans(1) << ' ' << trans(2) << ' ';
       Vector4d rot = sba.nodes[i].qrot.coeffs(); // rotation
       outfile << rot(0) << ' ' << rot(1) << ' ' << rot(2) << ' ' << rot(3) << ' ';

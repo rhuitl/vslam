@@ -131,11 +131,11 @@ int main(int argc, char **argv)
 
       // translation
       Vector4d v;
-      v.start(3) = ntrans[i];
+      v.head(3) = ntrans[i];
       
       // add in offset for later nodes, just for testing convergence
       if (i > 1000)
-        v.start(3) += Vector3d::Constant(10.0 + 0.01*(double)(i-1000));
+        v.head(3) += Vector3d::Constant(10.0 + 0.01*(double)(i-1000));
 
       v(3) = 1.0;
       nd.trans = v;
@@ -189,7 +189,7 @@ int main(int argc, char **argv)
 
   ofstream ofs2("sphere-opt.txt");
   for (int i=0; i<(int)spa.nodes.size(); i++)
-    ofs2 << spa.nodes[i].trans.transpose().start(3) << endl;
+    ofs2 << spa.nodes[i].trans.transpose().head(3) << endl;
   ofs2.close();
 
   spa.writeSparseA("sphere-sparse.txt",true);

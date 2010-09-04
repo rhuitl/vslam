@@ -235,8 +235,8 @@ spiral_setup(SysSBA &sba, CamParams &cpars, vector<Matrix<double,6,1>, Eigen::al
 
       // save it
       Matrix<double,6,1> pos;
-      pos.start(3) = frt.start(3);
-      pos.segment<3>(3) = frq.coeffs().start(3);
+      pos.head(3) = frt.head(3);
+      pos.segment<3>(3) = frq.coeffs().head(3);
       cps.push_back(pos);
 
       // check for points seen by node
@@ -396,7 +396,7 @@ spa_spiral_setup(SysSPA &spa, bool use_cross_links,
 
       // save it
       Matrix<double,6,1> pos;
-      pos.start(3) = frt.start(3);
+      pos.head(3) = frt.head(3);
       pos.segment<3>(3) = frq.vec();
       cps.push_back(pos);
 
@@ -445,11 +445,11 @@ spa_spiral_setup(SysSPA &spa, bool use_cross_links,
                         drand48()*pnoise - pnoise/2);
           frt2 += tinc;         // ok, randomly modified increment
 
-          //          cout << endl << nd.trans.start(3).transpose() << endl;
+          //          cout << endl << nd.trans.head(3).transpose() << endl;
 
-          nd.trans.start(3) = ndq.toRotationMatrix()*frt2 + ndp.trans.start(3);
+          nd.trans.head(3) = ndq.toRotationMatrix()*frt2 + ndp.trans.head(3);
 
-          //          cout << nd.trans.start(3).transpose() << endl;
+          //          cout << nd.trans.head(3).transpose() << endl;
 
 
 
@@ -488,7 +488,7 @@ spa_spiral_setup(SysSPA &spa, bool use_cross_links,
           Vector3d frt2(drand48()*dpnoise - dpnoise/2,
                         drand48()*dpnoise - dpnoise/2,
                         drand48()*dpnoise - dpnoise/2);
-          nd.trans.start(3) += frt2;
+          nd.trans.head(3) += frt2;
 
           dqnoise = M_PI*dqnoise/180.0; // convert to radians
           Quaternion<double> ndq;
@@ -597,7 +597,7 @@ spa2d_spiral_setup(SysSPA2d &spa,
 
       // save it
       Matrix<double,3,1> pos;
-      pos.start(2) = frt.start(2);
+      pos.head(2) = frt.head(2);
       pos(2) = nd.arot;
       cps.push_back(pos);
 
@@ -645,11 +645,11 @@ spa2d_spiral_setup(SysSPA2d &spa,
                         drand48()*pnoise - pnoise/2);
           frt2 += tinc;         // ok, randomly modified increment
 
-          //          cout << endl << nd.trans.start(3).transpose() << endl;
+          //          cout << endl << nd.trans.head(3).transpose() << endl;
 
-          nd.trans.start(2) = ndp.w2n.block<2,2>(0,0).transpose()*frt2 + ndp.trans.start(2);
+          nd.trans.head(2) = ndp.w2n.block<2,2>(0,0).transpose()*frt2 + ndp.trans.head(2);
 
-          //          cout << nd.trans.start(3).transpose() << endl;
+          //          cout << nd.trans.head(3).transpose() << endl;
 
 
           double a = drand48()*qnoise - qnoise/2;
@@ -682,7 +682,7 @@ spa2d_spiral_setup(SysSPA2d &spa,
         {
           Vector2d frt2(drand48()*dpnoise - dpnoise/2,
                         drand48()*dpnoise - dpnoise/2);
-          nd.trans.start(2) += frt2;
+          nd.trans.head(2) += frt2;
 
           dqnoise = M_PI*dqnoise/180.0; // convert to radians
           double a = drand48()*dqnoise - dqnoise/2;
@@ -741,14 +741,14 @@ find_cams(SysSBA &sba, int ci, set<int> &cinds, int nconns)
 {
   int nnear = nconns/2;
   cinds.insert(ci);
-  Vector3d cv = sba.nodes[ci].trans.start(3);
+  Vector3d cv = sba.nodes[ci].trans.head(3);
   
   // order cams relative to ci
   map<double,int> nn;
   for (int i=0; i<(int)sba.nodes.size(); i++)
     {
       if (i == ci) continue;
-      double dist = cv.dot(sba.nodes[i].trans.start(3));
+      double dist = cv.dot(sba.nodes[i].trans.head(3));
       nn.insert(pair<double,int>(dist,i));
     }
 
@@ -808,7 +808,7 @@ sphere_setup(SysSBA &sba, CamParams &cpars, vector<Matrix<double,6,1>, Eigen::al
       // could also set a random rotation here
       //      double ang = drand48()*2.0*M_PI; // radians in [0,2pi]
       Quaternion<double> frq;
-      frq.setFromTwoVectors(Vector3d(0,0,1),-frt.start(3));
+      frq.setFromTwoVectors(Vector3d(0,0,1),-frt.head(3));
       frq.normalize();
       if (frq.w() <= 0.0) frq.coeffs() = -frq.coeffs();
 
@@ -825,8 +825,8 @@ sphere_setup(SysSBA &sba, CamParams &cpars, vector<Matrix<double,6,1>, Eigen::al
 
       // save it
       Matrix<double,6,1> pos;
-      pos.start(3) = frt.start(3);
-      pos.segment<3>(3) = frq.coeffs().start(3);
+      pos.head(3) = frt.head(3);
+      pos.segment<3>(3) = frq.coeffs().head(3);
       cps.push_back(pos);
 
       // add to SBA

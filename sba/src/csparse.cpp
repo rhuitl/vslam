@@ -464,7 +464,7 @@ namespace sba
       {
 	B.setZero(csize);
 	if (Bprev.size() > 0)
-	  B.start(Bprev.size()) = Bprev;
+	  B.head(Bprev.size()) = Bprev;
       }
   }
 

@@ -108,7 +108,7 @@ namespace sba
     // translational part of 0p1 wrt rotational vars of p0
     // dR'/dq * [pw - t]
     Eigen::Matrix<double,2,1> pwt;
-    pwt = (t1-tr).start(2);   // transform translations
+    pwt = (t1-tr).head(2);   // transform translations
 
     // dx
     Eigen::Matrix<double,2,1> dp = nr.dRdx * pwt; // dR'/dq * [pw - t]
@@ -214,7 +214,7 @@ namespace sba
     nd.nodeId = id;
 
     nd.arot = pos(2);
-    nd.trans.start(2) = pos.start(2);
+    nd.trans.head(2) = pos.head(2);
     nd.trans(2) = 1.0;
 
     // add in to system
@@ -248,7 +248,7 @@ namespace sba
     con.ndr = ni0;
     con.nd1 = ni1;
 
-    con.tmean = mean.start(2);
+    con.tmean = mean.head(2);
     con.amean = mean(2);
     con.prec = prec;
     p2cons.push_back(con);
@@ -540,7 +540,7 @@ namespace sba
             if (nd.isFixed) continue; // not to be updated
             nd.oldtrans = nd.trans; // save in case we don't improve the cost
             nd.oldarot = nd.arot;
-            nd.trans.start<2>() += BB.segment<2>(ci);
+            nd.trans.head<2>() += BB.segment<2>(ci);
 
             nd.arot += BB(ci+2); 
             nd.normArot();
@@ -907,7 +907,7 @@ namespace sba
       {
 	Node2d &nd = nodes[i];
 	if (nd.isFixed) continue; // not to be updated
-	nd.trans.start(2) = nd.oldtrans.start(2)+BB.segment<2>(ci);
+	nd.trans.head(2) = nd.oldtrans.head(2)+BB.segment<2>(ci);
 	nd.arot = nd.oldarot+BB(ci+2); 
 	nd.normArot();
 	nd.setTransform();  // set up projection matrix for cost calculation
@@ -1036,10 +1036,10 @@ namespace sba
 	J(1,2) = dRdth(1);
 	Matrix3d Jt = J.transpose();
 	Vector3d u;
-	u.start(2) = nodes[con.ndr].trans.start(2);
+	u.head(2) = nodes[con.ndr].trans.head(2);
 	u(2) = nodes[con.ndr].arot;
 	Vector3d f;
-	f.start(2) = u.start(2) + nodes[con.ndr].w2n.transpose().block<2,2>(0,0) * con.tmean;
+	f.head(2) = u.head(2) + nodes[con.ndr].w2n.transpose().block<2,2>(0,0) * con.tmean;
 	f(2) = u(2) + con.amean;
 	if (f(2) > M_PI) f(2) -= 2.0*M_PI;
 	if (f(2) < M_PI) f(2) += 2.0*M_PI;
@@ -1167,9 +1167,9 @@ namespace sba
 	m = m*1000000;
 	csp.addDiagBlock(m,0);
 	Vector3d u;
-	u.start(2) = nodes[0].trans.start(2);
+	u.head(2) = nodes[0].trans.head(2);
 	u(2) = nodes[0].arot;
-	csp.B.start(3) = u*1000000;
+	csp.B.head(3) = u*1000000;
 	csp.Bprev = csp.B;		// save for next iteration
 	cout << "[doDSIF] B = " << csp.B.transpose() << endl;    
       }
@@ -1215,7 +1215,7 @@ namespace sba
       {
 	Node2d &nd = nodes[i];
 	if (nd.isFixed) continue; // not to be updated
-	nd.trans.start<2>() = BB.segment<2>(ci);
+	nd.trans.head<2>() = BB.segment<2>(ci);
 	nd.arot = BB(ci+2); 
 	nd.normArot();
 	nd.setTransform();  // set up projection matrix for cost calculation
@@ -1302,7 +1302,7 @@ namespace sba
         if (i0>=0)
 	  {
 	    Vector3d u;
-	    u.start(2) = nodes[con.ndr].trans.start(2);
+	    u.head(2) = nodes[con.ndr].trans.head(2);
 	    u(2) = nodes[con.ndr].arot;
 	    Vector3d bm = con.err + con.J0 * u;
 	    csp.B.block<3,1>(i0*3,0) += (bm.transpose() * con.prec * con.J0).transpose();
@@ -1310,7 +1310,7 @@ namespace sba
         if (i1>=0)
 	  {
 	    Vector3d u;
-	    u.start(2) = nodes[con.nd1].trans.start(2);
+	    u.head(2) = nodes[con.nd1].trans.head(2);
 	    u(2) = nodes[con.nd1].arot;
 	    Vector3d bm = con.err + con.J1 * u;
 	    csp.B.block<3,1>(i1*3,0) += (bm.transpose() * con.prec * con.J1).transpose();
@@ -1416,7 +1416,7 @@ namespace sba
       {
 	Node2d &nd = nodes[i];
 	if (nd.isFixed) continue; // not to be updated
-	nd.trans.start<2>() = BB.segment<2>(ci);
+	nd.trans.head<2>() = BB.segment<2>(ci);
 	nd.arot = BB(ci+2); 
 	nd.normArot();
 	nd.setTransform();  // set up projection matrix for cost calculation

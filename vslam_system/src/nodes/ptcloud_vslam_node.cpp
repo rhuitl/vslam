@@ -215,7 +215,7 @@ void publishRegisteredPointclouds(sba::SysSBA& sba,
     if (frames[i].dense_pointcloud.points.size() <= 0)
       continue;
     Eigen::Quaterniond rot = sba.nodes[i].qrot;
-    Eigen::Vector3d trans = sba.nodes[i].trans.start<3>();
+    Eigen::Vector3d trans = sba.nodes[i].trans.head<3>();
     
     transformPointCloud<PointXYZRGB>(frames[i].dense_pointcloud, cloud, Vector3f(0,0,0), rot.cast<float>());
     transformPointCloud<PointXYZRGB>(cloud, cloud, trans.cast<float>(), Quaternionf(1, 0, 0, 0));

@@ -93,7 +93,7 @@ namespace vslam
       {
         inl = pose_estimator_->estimate(frames.back(),fnew);
         fq = Quaterniond(pose_estimator_->rot);
-        trans.start(3) = pose_estimator_->trans;
+        trans.head(3) = pose_estimator_->trans;
         trans(3) = 1.0;
 
         // check for keyframe
@@ -132,7 +132,7 @@ namespace vslam
   
         // translation
         transformF2W(f2w,nd0.trans,fq0);
-        trans.start(3) = f2w*trans;
+        trans.head(3) = f2w*trans;
         
         transformF2W(f2w_frame0,nd0.trans,nd0.qrot);
       }
@@ -292,7 +292,7 @@ namespace vslam
         /// TODO this assumes the most recent VO operation was a keyframe
         /// should use relative pose between last two VO frames
         //fq = Quaterniond(pose_estimator_->rot);
-        //trans.start(3) = pose_estimator_->trans;
+        //trans.head(3) = pose_estimator_->trans;
         //trans(3) = 1.0;
         
         transformN2N(trans, fq, *(sba.nodes.end()-2), *(sba.nodes.end()-1));
@@ -309,9 +309,9 @@ namespace vslam
   
         // translation
         transformF2W(f2w,nd0.trans,fq0);
-        trans.start(3) = f2w*trans;
+        trans.head(3) = f2w*trans;
         //      cout << endl << f2w << endl << endl;
-        //      cout << trans.start(3).transpose() << endl << endl;
+        //      cout << trans.head(3).transpose() << endl << endl;
         
         transformF2W(f2w_frame0,nd0.trans,nd0.qrot);
       }
@@ -416,7 +416,7 @@ namespace vslam
             f1.ipts[i1] = pti;
 
             Vector4d pt;
-            pt.start<3>() = f2w*f0.pts[i0]; // transform to RW coords
+            pt.head<3>() = f2w*f0.pts[i0]; // transform to RW coords
             pt(3) = 1.0;
             sba.addPoint(pt);
             if (ipts)
@@ -493,7 +493,7 @@ namespace vslam
             f0.pl_ipts[i0] = pti;
 
             Vector4d pt;
-            pt.start<3>() = f2w_frame0*f0.pl_pts[i0]; // transform to RW coords
+            pt.head<3>() = f2w_frame0*f0.pl_pts[i0]; // transform to RW coords
             pt(3) = 1.0;
             sba.addPoint(pt);
             if (ipts)
@@ -507,7 +507,7 @@ namespace vslam
             f1.pl_ipts[i1] = pti;
             
             Vector4d pt;
-            pt.start<3>() = f2w_frame1*f1.pl_pts[i1]; // transform to RW coords
+            pt.head<3>() = f2w_frame1*f1.pl_pts[i1]; // transform to RW coords
             pt(3) = 1.0;
             sba.addPoint(pt);
             if (ipts)
@@ -519,8 +519,8 @@ namespace vslam
         // Add point-to-plane projections
         
         // First, figure out normals in world coordinate frame:
-        Vector3d normal0 = f0.pl_normals[i0].start<3>();
-        Vector3d normal1 = f1.pl_normals[i1].start<3>();
+        Vector3d normal0 = f0.pl_normals[i0].head<3>();
+        Vector3d normal1 = f1.pl_normals[i1].head<3>();
         
         //Vector3d normal0 = f2w_frame0* f0.pl_normals[i0];
         //Vector3d normal1 = f2w_frame1* f1.pl_normals[i1];

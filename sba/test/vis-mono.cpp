@@ -239,7 +239,7 @@ void initPrecs()
 
   diagprec.setIdentity();
   diagprec = diagprec*(1000);  
-  diagprec.diagonal().start(3) *= .0001;
+  diagprec.diagonal().head(3) *= .0001;
 }
 
 
@@ -302,7 +302,7 @@ int main(int argc, char **argv)
   ofstream ofs3("P400.init.txt");
   for (int i=0; i<(int)cps.size(); i++)
     {
-      Vector3d tpn = spa.nodes[i].trans.start(3);
+      Vector3d tpn = spa.nodes[i].trans.head(3);
       ofs3 << tpn.transpose() << endl;
     }  
   ofs3.close();
@@ -323,25 +323,25 @@ int main(int argc, char **argv)
           con.nd0 = i;              // first node
           con.nd1 = i+1;            // second node
           con.sv  = k;              // scale index
-          con.ks  = (cps[con.nd1].start(3) - cps[con.nd0].start(3)).squaredNorm(); // measured distance
+          con.ks  = (cps[con.nd1].head(3) - cps[con.nd0].head(3)).squaredNorm(); // measured distance
           spa.scons.push_back(con);
 
           con.nd0 = i+1;            // first node
           con.nd1 = i+2;            // second node
           con.sv  = k;              // scale index
-          con.ks  = (cps[con.nd1].start(3) - cps[con.nd0].start(3)).squaredNorm(); // measured distance
+          con.ks  = (cps[con.nd1].head(3) - cps[con.nd0].head(3)).squaredNorm(); // measured distance
           spa.scons.push_back(con);
 
           con.nd0 = i+2;            // first node
           con.nd1 = i+3;            // second node
           con.sv  = k;              // scale index
-          con.ks  = (cps[con.nd1].start(3) - cps[con.nd0].start(3)).squaredNorm(); // measured distance
+          con.ks  = (cps[con.nd1].head(3) - cps[con.nd0].head(3)).squaredNorm(); // measured distance
           spa.scons.push_back(con);
 
           con.nd0 = i;              // first node
           con.nd1 = i+3;            // second node
           con.sv  = k;              // scale index
-          con.ks  = (cps[con.nd1].start(3) - cps[con.nd0].start(3)).squaredNorm(); // measured distance
+          con.ks  = (cps[con.nd1].head(3) - cps[con.nd0].head(3)).squaredNorm(); // measured distance
           spa.scons.push_back(con);
         }
 
@@ -356,7 +356,7 @@ int main(int argc, char **argv)
           con.sv  = k;              // scale index
           nd0 = spa.nodes[con.nd0];
           nd1 = spa.nodes[con.nd1];
-          con.ks  = (nd1.trans.start(3) - nd0.trans.start(3)).squaredNorm(); // measured distance
+          con.ks  = (nd1.trans.head(3) - nd0.trans.head(3)).squaredNorm(); // measured distance
           spa.scons.push_back(con);
 
           con.nd0 = i+1;            // first node
@@ -364,7 +364,7 @@ int main(int argc, char **argv)
           con.sv  = k;              // scale index
           nd0 = spa.nodes[con.nd0];
           nd1 = spa.nodes[con.nd1];
-          con.ks  = (nd1.trans.start(3) - nd0.trans.start(3)).squaredNorm(); // measured distance
+          con.ks  = (nd1.trans.head(3) - nd0.trans.head(3)).squaredNorm(); // measured distance
           spa.scons.push_back(con);
 
           con.nd0 = i+2;            // first node
@@ -372,7 +372,7 @@ int main(int argc, char **argv)
           con.sv  = k;              // scale index
           nd0 = spa.nodes[con.nd0];
           nd1 = spa.nodes[con.nd1];
-          con.ks  = (nd1.trans.start(3) - nd0.trans.start(3)).squaredNorm(); // measured distance
+          con.ks  = (nd1.trans.head(3) - nd0.trans.head(3)).squaredNorm(); // measured distance
           spa.scons.push_back(con);
 
           con.nd0 = i;              // first node
@@ -380,7 +380,7 @@ int main(int argc, char **argv)
           con.sv  = k;              // scale index
           nd0 = spa.nodes[con.nd0];
           nd1 = spa.nodes[con.nd1];
-          con.ks  = (nd1.trans.start(3) - nd0.trans.start(3)).squaredNorm(); // measured distance
+          con.ks  = (nd1.trans.head(3) - nd0.trans.head(3)).squaredNorm(); // measured distance
           spa.scons.push_back(con);
         }
 
@@ -392,7 +392,7 @@ int main(int argc, char **argv)
           con.nd0 = i-3;              // first node
           con.nd1 = i+1;            // second node
           con.sv  = 0;              // scale index
-          con.ks  = (cps[con.nd1].start(3) - cps[con.nd0].start(3)).squaredNorm(); // measured distance
+          con.ks  = (cps[con.nd1].head(3) - cps[con.nd0].head(3)).squaredNorm(); // measured distance
           spa.scons.push_back(con);
         }
 #endif
@@ -414,8 +414,8 @@ int main(int argc, char **argv)
         con.sv  = i-72;           // scale index
         Node nd0 = spa.nodes[con.nd0];
         Node nd1 = spa.nodes[con.nd1];
-        con.ks  = (nd1.trans.start(3) - nd0.trans.start(3)).squaredNorm(); // measured distance
-        con.ks  = (cps[con.nd1].start(3) - cps[con.nd0].start(3)).squaredNorm(); // measured distance
+        con.ks  = (nd1.trans.head(3) - nd0.trans.head(3)).squaredNorm(); // measured distance
+        con.ks  = (cps[con.nd1].head(3) - cps[con.nd0].head(3)).squaredNorm(); // measured distance
         spa.scons.push_back(con);
 
         con.nd0 = i-72;
@@ -423,8 +423,8 @@ int main(int argc, char **argv)
         con.sv  = i-72;
         nd0 = spa.nodes[con.nd0];
         nd1 = spa.nodes[con.nd1];
-        con.ks  = (nd1.trans.start(3) - nd0.trans.start(3)).squaredNorm(); // measured distance
-        con.ks  = (cps[con.nd1].start(3) - cps[con.nd0].start(3)).squaredNorm(); // measured distance
+        con.ks  = (nd1.trans.head(3) - nd0.trans.head(3)).squaredNorm(); // measured distance
+        con.ks  = (cps[con.nd1].head(3) - cps[con.nd0].head(3)).squaredNorm(); // measured distance
         spa.scons.push_back(con);
       }
   }
@@ -447,7 +447,7 @@ int main(int argc, char **argv)
         Node nd0 = spa.nodes[con.ndr];
         Node nd1 = spa.nodes[con.nd1];
         Vector4d trans;
-        trans.start(3) = cps[con.nd1].start(3);
+        trans.head(3) = cps[con.nd1].head(3);
         trans(3) = 1.0;
 
         con.prec = 1000*diagprec;
@@ -468,7 +468,7 @@ int main(int argc, char **argv)
         Node nd0 = spa.nodes[con.ndr];
         Node nd1 = spa.nodes[con.nd1];
         Vector4d trans;
-        trans.start(3) = cps[con.nd1].start(3);
+        trans.head(3) = cps[con.nd1].head(3);
         trans(3) = 1.0;
 
         con.prec = 1000*diagprec;
@@ -481,7 +481,7 @@ int main(int argc, char **argv)
 
         Matrix<double,3,4> w2n;
         Vector4d t0;
-        t0.start(3) = cps[con.ndr].start(3);
+        t0.head(3) = cps[con.ndr].head(3);
         t0(3) = 1.0;
         transformW2F(w2n,t0,q0);
         con.tmean = lscale * w2n * trans; // translation offset
@@ -499,7 +499,7 @@ int main(int argc, char **argv)
         Node nd0 = spa.nodes[con.ndr];
         Node nd1 = spa.nodes[con.nd1];
         Vector4d trans;
-        trans.start(3) = cps[con.nd1].start(3);
+        trans.head(3) = cps[con.nd1].head(3);
         trans(3) = 1.0;
 
         con.prec = 1000*diagprec;
@@ -523,8 +523,8 @@ int main(int argc, char **argv)
   for (int i=0; i<(int)cps.size(); i++)
     {
       Matrix<double,6,1> &cp = cps[i]; // old camera pose
-      Vector3d tp = cp.start(3);
-      Vector3d tpn = spa.nodes[i].trans.start(3);
+      Vector3d tp = cp.head(3);
+      Vector3d tpn = spa.nodes[i].trans.head(3);
 
       //      printf("\n[TestSPA] Cam %d orig: %0.2f %0.2f %0.2f\n", i, tp[0], tp[1], tp[2]);
       //      printf("[TestSPA] Cam %d new:  %0.2f %0.2f %0.2f\n", i, tpn[0], tpn[1], tpn[2]);
@@ -588,8 +588,8 @@ int main(int argc, char **argv)
   for (int i=0; i<(int)cps.size(); i++)
     {
       Matrix<double,6,1> &cp = cps[i]; // old camera pose
-      Vector3d tp = cp.start(3);
-      Vector3d tpn = spa.nodes[i].trans.start(3);
+      Vector3d tp = cp.head(3);
+      Vector3d tpn = spa.nodes[i].trans.head(3);
 
       //      printf("\n[TestSPA] Cam %d orig: %0.2f %0.2f %0.2f\n", i, tp[0], tp[1], tp[2]);
       //      printf("[TestSPA] Cam %d new:  %0.2f %0.2f %0.2f\n", i, tpn[0], tpn[1], tpn[2]);
@@ -608,8 +608,8 @@ int main(int argc, char **argv)
   for (int i=0; i<(int)cps.size(); i++)
     {
       Matrix<double,6,1> &cp = cps[i]; // old camera pose
-      Vector3d tp = cp.start(3);
-      Vector3d tpn = spa.nodes[i].trans.start(3);
+      Vector3d tp = cp.head(3);
+      Vector3d tpn = spa.nodes[i].trans.head(3);
 
       //      printf("\n[TestSPA] Cam %d orig: %0.2f %0.2f %0.2f\n", i, tp[0], tp[1], tp[2]);
       //      printf("[TestSPA] Cam %d new:  %0.2f %0.2f %0.2f\n", i, tpn[0], tpn[1], tpn[2]);

@@ -419,7 +419,7 @@ ReadSPA2dFile(char *fin,          // input file
           // coords of scan points are in world system!!!!
           double a = narot[n];  // angle of node for this scan
           Vector3d tr;
-          tr.start(2) = ntrans[n]; // translation
+          tr.head(2) = ntrans[n]; // translation
           tr[2] = 1.0;
           Matrix<double,2,3> w2n;
           w2n(0,0) = w2n(1,1) = cos(a);

@@ -164,7 +164,7 @@ public:
         Eigen::Vector4d trans = -vslam_system_.sba_.nodes.back().trans;
         Eigen::Quaterniond rot = vslam_system_.sba_.nodes.back().qrot.conjugate();
         
-        trans.start<3>() = rot.toRotationMatrix()*trans.start<3>(); 
+        trans.head<3>() = rot.toRotationMatrix()*trans.head<3>(); 
         
         tf_transform_.setOrigin(tf::Vector3(trans(0), trans(1), trans(2)));
         tf_transform_.setRotation(tf::Quaternion(rot.x(), rot.y(), rot.z(), rot.w()) );
@@ -245,7 +245,7 @@ void publishRegisteredPointclouds(sba::SysSBA& sba,
     if (sba.nodes.size() < i)
       break;
     Eigen::Matrix3d rotmat = sba.nodes[i].qrot.toRotationMatrix();
-    Eigen::Vector3d trans = sba.nodes[i].trans.start<3>();
+    Eigen::Vector3d trans = sba.nodes[i].trans.head<3>();
     
     for (size_t j=0; j < frames[i].pts.size(); j++)
     {

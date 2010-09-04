@@ -179,7 +179,7 @@ int main(int argc, char **argv)
       // translation
       Vector3d &camt = camts[i];
       Vector4d frt;
-      frt.start<3>() = -camRs[i].transpose() * camt; // camera frame translation, from Bundler docs
+      frt.head<3>() = -camRs[i].transpose() * camt; // camera frame translation, from Bundler docs
       frt[3] = 1.0;
 
       Node nd;
@@ -202,7 +202,7 @@ int main(int argc, char **argv)
       // point
       Vector3d &ptp = ptps[i];
       Point pt;
-      pt.start<3>() = ptp;
+      pt.head<3>() = ptp;
       pt[3] = 1.0;
       sys.addPoint(pt);
     }

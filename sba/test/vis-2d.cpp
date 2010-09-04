@@ -118,16 +118,16 @@ addnode(SysSPA2d &spa, int n,
 	  // set node translation
 	  Vector2d itr = nd0.w2n.transpose().block<2,2>(0,0) * ctrans[i];
 	  nd1.trans = nd0.trans;
-	  nd1.trans.start(2) += itr;
+	  nd1.trans.head(2) += itr;
 	  
           if (useInit == 1)     // file init
             {
-              nd1.trans.start(2) = ntrans[n]; // init to file params
+              nd1.trans.head(2) = ntrans[n]; // init to file params
               nd1.arot = arots[n];
               nd1.normArot();
             }
           else if (useInit == 2)
-	    nd1.trans.start(2) = Vector2d(0.0,0.001*n);  // init to zero
+	    nd1.trans.head(2) = Vector2d(0.0,0.001*n);  // init to zero
 
 	  // add in to system
 	  nd1.setTransform();   // set up world2node transform
@@ -148,16 +148,16 @@ addnode(SysSPA2d &spa, int n,
           // set node translation
           Vector2d itr = nd1.w2n.transpose().block<2,2>(0,0) * ctrans[i];
           nd1.trans = nd0.trans;
-          nd1.trans.start(2) -= itr;
+          nd1.trans.head(2) -= itr;
 	
           if (useInit == 1)     // file init
             {
-              nd1.trans.start(2) = ntrans[n]; // init to file params
+              nd1.trans.head(2) = ntrans[n]; // init to file params
               nd1.arot = arots[n];
               nd1.normArot();
             }
           else if (useInit == 2)
-	    nd1.trans.start(2) = Vector2d(0.0,0.001*n);  // init to zero
+	    nd1.trans.head(2) = Vector2d(0.0,0.001*n);  // init to zero
 
           // add in to system
           nd1.setDr();
@@ -297,12 +297,12 @@ drawgraph(SysSPA2d &spa, ros::Publisher &marker_pub, ros::Publisher &marker2_pub
         std::vector< Eigen::Vector2d, Eigen::aligned_allocator<Eigen::Vector2d> > &scan = spa.scans[i];
         Node2d &nd = spa.nodes[i];
         Matrix<double,2,3> n2w;
-        n2w.col(2) = nd.trans.start(2);
+        n2w.col(2) = nd.trans.head(2);
         n2w.block<2,2>(0,0) = nd.w2n.block<2,2>(0,0).transpose();
         for (int j=0; j<(int)scan.size(); j+=nskip)
           {
             Vector3d v;
-            v.start(2) = scan[j];
+            v.head(2) = scan[j];
             v(2) = 1.0;
             Vector2d p = n2w * v;
             marker_pts.points[--npts].x = p[0];
@@ -393,7 +393,7 @@ int main(int argc, char **argv)
   nd.arot = arots[0];
   // translation
   Vector3d v;
-  v.start(2) = ntrans[0];
+  v.head(2) = ntrans[0];
   v(2) = 1.0;
   nd.trans = v;
 

@@ -35,7 +35,7 @@ namespace sba
     if (stereo)
       return err.norm();
     else
-      return err.start<2>().norm();
+      return err.head<2>().norm();
   }
   
   double Proj::getErrSquaredNorm()
@@ -43,7 +43,7 @@ namespace sba
     if (stereo)
       return err.squaredNorm();
     else
-      return err.start<2>().squaredNorm();
+      return err.head<2>().squaredNorm();
   }
   
   void Proj::setCovariance(const Eigen::Matrix3d &covar)
@@ -84,7 +84,7 @@ namespace sba
     Eigen::Matrix<double,3,1> pwt;
 
     // check for local vars
-    pwt = (pt-nd.trans).start<3>(); // transform translations, use differential rotation
+    pwt = (pt-nd.trans).head<3>(); // transform translations, use differential rotation
 
     // dx
     Eigen::Matrix<double,3,1> dp = nd.dRdx * pwt; // dR'/dq * [pw - t]
@@ -132,15 +132,15 @@ namespace sba
     Hpp = jacp.transpose() * jacp;
     Hcc = jacc.transpose() * jacc;
     Hpc = jacp.transpose() * jacc;
-    JcTE = jacc.transpose() * err.start<2>();
-    Bp = jacp.transpose() * err.start<2>();
+    JcTE = jacc.transpose() * err.head<2>();
+    Bp = jacp.transpose() * err.head<2>();
   }
 
   // calculate error of a projection
   // we should do something about negative Z
   double Proj::calcErrMono_(const Node &nd, const Point &pt)
   {
-    Eigen::Vector3d p1 = nd.w2i * pt; err = p1.start(2)/p1(2); 
+    Eigen::Vector3d p1 = nd.w2i * pt; err = p1.head(2)/p1(2); 
     if (p1(2) <= 0.0) 
     {
 #ifdef DEBUG
@@ -151,7 +151,7 @@ namespace sba
       return 0.0;
     }
     err -= kp;
-    return err.start<2>().squaredNorm(); 
+    return err.head<2>().squaredNorm(); 
   }
 
 
@@ -183,7 +183,7 @@ namespace sba
     Eigen::Matrix<double,3,1> pwt;
 
     // check for local vars
-    pwt = (pt-nd.trans).start(3); // transform translations, use differential rotation
+    pwt = (pt-nd.trans).head(3); // transform translations, use differential rotation
 
     // dx
     Eigen::Matrix<double,3,1> dp = nd.dRdx * pwt; // dR'/dq * [pw - t]
@@ -262,9 +262,9 @@ namespace sba
     if (pointPlane)
     {
       // Project point onto plane.
-      Eigen::Vector3d w = pt.start<3>()-plane_point;
+      Eigen::Vector3d w = pt.head<3>()-plane_point;
       //printf("w: %f %f %f\n", w.x(), w.y(), w.z());
-      //Eigen::Vector3d projpt = pt.start<3>()+(w.dot(plane_normal))*plane_normal;
+      //Eigen::Vector3d projpt = pt.head<3>()+(w.dot(plane_normal))*plane_normal;
       Eigen::Vector3d projpt = plane_point+(w.dot(plane_normal))*plane_normal;
       //printf("[Proj] Distance to plane: %f\n", w.dot(plane_normal));
       p1 = nd.w2i*Eigen::Vector4d(projpt.x(), projpt.y(), projpt.z(), 1.0);
@@ -273,7 +273,7 @@ namespace sba
     
     double invp1 = 1.0/p1(2);
     
-    err.start<2>() = p1.start<2>()*invp1;
+    err.head<2>() = p1.head<2>()*invp1;
     // right camera px
     p2 = nd.Kcam*(p2-pb);
  

@@ -244,7 +244,7 @@ namespace sba
     // translational part of 0p1 wrt rotational vars of p0
     // dR'/dq * [pw - t]
     Eigen::Matrix<double,3,1> pwt;
-    pwt = (t1-tr).start(3);   // transform translations
+    pwt = (t1-tr).head(3);   // transform translations
 
     // dx
     Eigen::Matrix<double,3,1> dp = nr.dRdx * pwt; // dR'/dq * [pw - t]
@@ -388,7 +388,7 @@ namespace sba
     Node &n1 = nodes[nd1];
     Matrix<double,4,1> &t1 = n1.trans;
 
-    Eigen::Matrix<double,3,1> td = (t1-t0).start(3);
+    Eigen::Matrix<double,3,1> td = (t1-t0).head(3);
 
     // Jacobians wrt first frame parameters
     //  (ti - tj)^2 - a*kij
@@ -431,7 +431,7 @@ namespace sba
 
     // translational part of 0p1 wrt rotational vars of p0
     // dR'/dq * [pw - t]
-    Matrix<double,3,1> pwt = (t1-tr).start(3);
+    Matrix<double,3,1> pwt = (t1-tr).head(3);
     Matrix<double,3,1> dp = nr.dRdx * pwt; // dR'/dqx * [pw - t]
     J10.block<3,1>(0,3) = dp;
     dp = nr.dRdy * pwt; // dR'/dqy * [pw - t]
@@ -473,7 +473,7 @@ namespace sba
 
     // translational part of 0p2 wrt rotational vars of p0
     // dR'/dq * [pw - t]
-    pwt = (t2-tr).start(3);
+    pwt = (t2-tr).head(3);
     dp = nr.dRdx * pwt; // dR'/dqx * [pw - t]
     J20.block<3,1>(0,3) = dp;
     dp = nr.dRdy * pwt; // dR'/dqy * [pw - t]
@@ -589,7 +589,7 @@ namespace sba
   inline double ConP2::calcErr(const Node &nd0, const Node &nd1)
     { 
       Quaternion<double> q0p,q1;
-      q0p.vec()   = -nd0.qrot.coeffs().start(3); // invert quaternion
+      q0p.vec()   = -nd0.qrot.coeffs().head(3); // invert quaternion
       q0p.w()     =  nd0.qrot.w();
       q1          =  nd1.qrot;
       err.block<3,1>(0,0) = nd0.w2n * nd1.trans - tmean;
@@ -986,7 +986,7 @@ namespace sba
             if (nd.isFixed) continue; // not to be updated
             nd.oldtrans = nd.trans; // save in case we don't improve the cost
             nd.oldqrot = nd.qrot;
-            nd.trans.start<3>() += BB.segment<3>(ci);
+            nd.trans.head<3>() += BB.segment<3>(ci);
 
             Quaternion<double> qr;
             qr.vec() = BB.segment<3>(ci+3); 

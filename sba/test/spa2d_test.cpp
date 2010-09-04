@@ -92,7 +92,7 @@ void initPrecs()
 
   diagprec.setIdentity();
   //  diagprec = diagprec*(1000);  
-  //  diagprec.diagonal().start(2) *= .0001;
+  //  diagprec.diagonal().head(2) *= .0001;
 }
 
 
@@ -359,8 +359,8 @@ TEST(TestSPA2d, TestSimple10_i90)
   for (int i=0; i<(int)cps.size(); i++)
     {
       Matrix<double,3,1> &cp = cps[i]; // old camera pose
-      Vector2d tp = cp.start(2);
-      Vector2d tpn = spa.nodes[i].trans.start(2);
+      Vector2d tp = cp.head(2);
+      Vector2d tpn = spa.nodes[i].trans.head(2);
       //      printf("\n[TestSPA2d] Cam %d orig: %0.2f %0.2f %0.2f\n", i, tp[0], tp[1], tp[2]);
       //      printf("[TestSPA2d] Cam %d new:  %0.2f %0.2f %0.2f\n", i, tpn[0], tpn[1], tpn[2]);
       Vector2d err = tp-tpn;
@@ -405,8 +405,8 @@ TEST(TestSPA2d, TestSimple10_i0)
   for (int i=0; i<(int)cps.size(); i++)
     {
       Matrix<double,3,1> &cp = cps[i]; // old camera pose
-      Vector2d tp = cp.start(2);
-      Vector2d tpn = spa.nodes[i].trans.start(2);
+      Vector2d tp = cp.head(2);
+      Vector2d tpn = spa.nodes[i].trans.head(2);
       //      printf("\n[TestSPA2d] Cam %d orig: %0.2f %0.2f %0.2f\n", i, tp[0], tp[1], tp[2]);
       //      printf("[TestSPA2d] Cam %d new:  %0.2f %0.2f %0.2f\n", i, tpn[0], tpn[1], tpn[2]);
       Vector2d err = tp-tpn;
@@ -453,8 +453,8 @@ TEST(TestSPA2d, TestSimple400nodesSparse)
   for (int i=0; i<(int)cps.size(); i++)
     {
       Matrix<double,3,1> &cp = cps[i]; // old camera pose
-      Vector2d tp = cp.start(2);
-      Vector2d tpn = spa.nodes[i].trans.start(2);
+      Vector2d tp = cp.head(2);
+      Vector2d tpn = spa.nodes[i].trans.head(2);
       //      printf("\n[TestSPA2d] Cam %d orig: %0.2f %0.2f\n", i, tp[0], tp[1]);
       //      printf("[TestSPA2d] Cam %d new:  %0.2f %0.2f\n", i, tpn[0], tpn[1]);
       Vector2d err = tp-tpn;
@@ -518,8 +518,8 @@ TEST(TestSPA2d, TestSimple400nodes)
   for (int i=0; i<(int)cps.size(); i++)
     {
       Matrix<double,3,1> &cp = cps[i]; // old camera pose
-      Vector2d tp = cp.start(2);
-      Vector2d tpn = spa.nodes[i].trans.start(2);
+      Vector2d tp = cp.head(2);
+      Vector2d tpn = spa.nodes[i].trans.head(2);
       //      printf("\n[TestSPA2d] Cam %d orig: %0.2f %0.2f\n", i, tp[0], tp[1]);
       //      printf("[TestSPA2d] Cam %d new:  %0.2f %0.2f\n", i, tpn[0], tpn[1]);
       Vector2d err = tp-tpn;

@@ -37,11 +37,11 @@ namespace sba
   void Node::normRot()
   { 
     //      std::cout << "[NormRot] qrot start = " << qrot.transpose() << std::endl;
-    if (qrot.w() < 0) qrot.coeffs().start<3>() = -qrot.coeffs().start<3>();
-    double sn = qrot.coeffs().start<3>().squaredNorm();
+    if (qrot.w() < 0) qrot.coeffs().head<3>() = -qrot.coeffs().head<3>();
+    double sn = qrot.coeffs().head<3>().squaredNorm();
     if (sn >= 0.9999)            // too close to high derivatives
-      qrot.coeffs().start<3>() *= -1.0/(sqrt(sn)*1.0001); // switch sides; 1e-4 seems to work well
-    qrot.w() = sqrt(1.0 - qrot.coeffs().start<3>().squaredNorm());
+      qrot.coeffs().head<3>() *= -1.0/(sqrt(sn)*1.0001); // switch sides; 1e-4 seems to work well
+    qrot.w() = sqrt(1.0 - qrot.coeffs().head<3>().squaredNorm());
     if (isnan(qrot.x()) || isnan(qrot.y()) || isnan(qrot.z()) || isnan(qrot.w()) )
       { 
         printf("[NormRot] Bad quaternion: %f %f %f %f\n", qrot.x(), qrot.y(), qrot.z(), qrot.w()); 
@@ -122,7 +122,7 @@ namespace sba
   void Node::normRotLocal()
   {
       qrot.normalize();
-      if (qrot.w() < 0) qrot.coeffs().start<3>() = -qrot.coeffs().start<3>();
+      if (qrot.w() < 0) qrot.coeffs().head<3>() = -qrot.coeffs().head<3>();
       if (isnan(qrot.x()) || isnan(qrot.y()) || isnan(qrot.z()) || isnan(qrot.w()) )
         { 
           printf("[NormRot] Bad quaternion in normRotLocal(): %f %f %f %f\n", qrot.x(), qrot.y(), qrot.z(), qrot.w());
@@ -136,7 +136,7 @@ namespace sba
     Vector2d proj2d;
     project2im(proj2d, point);
     
-    proj.start<2>() = proj2d;
+    proj.head<2>() = proj2d;
   }
   
   void Node::projectStereo(const Point& point, Eigen::Vector3d& proj)
@@ -148,7 +148,7 @@ namespace sba
     // Camera coords for right camera
     baseline_vect << baseline, 0, 0;
     pc = Kcam * (w2n*point - baseline_vect); 
-    proj.start<2>() = proj2d;
+    proj.head<2>() = proj2d;
     proj(2) = pc(0)/pc(2);
   }
   
@@ -168,7 +168,7 @@ namespace sba
                     const Eigen::Quaternion<double> &qrot)
   {
     m.block<3,3>(0,0) = qrot.toRotationMatrix();
-    m.col(3) = trans.start(3);
+    m.col(3) = trans.head(3);
   };
 
 
@@ -182,7 +182,7 @@ namespace sba
     Quaterniond q0,q1;
     q0 = nd0.qrot;
     transformW2F(tfm,nd0.trans,q0);
-    trans.start(3) = tfm*nd1.trans;
+    trans.head(3) = tfm*nd1.trans;
     trans(3) = 1.0;
     q1 = nd1.qrot;
     qr = q0.inverse()*q1;

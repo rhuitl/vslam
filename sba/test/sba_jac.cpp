@@ -139,16 +139,16 @@ TEST(TestJacobians, TestJacGlobalAngles)
   //  calculated in the Node setDr() method
   {
     Vector4d cs2 = frq1.coeffs()+Vector4d(dq,0,0,0);
-    cs2(3) = sqrt(1.0 - cs2.start(3).squaredNorm()); // have to normalize w!!!!
+    cs2(3) = sqrt(1.0 - cs2.head(3).squaredNorm()); // have to normalize w!!!!
     Quaternion<double> frq2(cs2);
     Matrix<double,3,3> Rp = frq2.toRotationMatrix().transpose();
     Matrix<double,3,3> R =  frq1.toRotationMatrix().transpose();
 
     // check projection against numeric derivative
-    Vector3d pc1 = R  * pt1.start(3);
-    Vector3d pc2 = Rp * pt1.start(3);
+    Vector3d pc1 = R  * pt1.head(3);
+    Vector3d pc2 = Rp * pt1.head(3);
     Vector3d pc  = (pc2 - pc1)/dq;
-    Vector3d pcd = nd1.dRdx * pt1.start(3); // analytic derivative
+    Vector3d pcd = nd1.dRdx * pt1.head(3); // analytic derivative
 
     //    cout << pc1 << endl << endl;
     //    cout << pc  << endl << endl;
@@ -160,16 +160,16 @@ TEST(TestJacobians, TestJacGlobalAngles)
 
   {
     Vector4d cs2 = frq1.coeffs()+Vector4d(0,dq,0,0);
-    cs2(3) = sqrt(1.0 - cs2.start(3).squaredNorm()); // have to normalize w!!!!
+    cs2(3) = sqrt(1.0 - cs2.head(3).squaredNorm()); // have to normalize w!!!!
     Quaternion<double> frq2(cs2);
     Matrix<double,3,3> Rp = frq2.toRotationMatrix().transpose();
     Matrix<double,3,3> R =  frq1.toRotationMatrix().transpose();
 
     // check projection against numeric derivative
-    Vector3d pc1 = R  * pt1.start(3);
-    Vector3d pc2 = Rp * pt1.start(3);
+    Vector3d pc1 = R  * pt1.head(3);
+    Vector3d pc2 = Rp * pt1.head(3);
     Vector3d pc  = (pc2 - pc1)/dq;
-    Vector3d pcd = nd1.dRdy * pt1.start(3); // analytic derivative
+    Vector3d pcd = nd1.dRdy * pt1.head(3); // analytic derivative
 
     //    cout << pc1 << endl << endl;
     //    cout << pc  << endl << endl;
@@ -181,16 +181,16 @@ TEST(TestJacobians, TestJacGlobalAngles)
 
   {
     Vector4d cs2 = frq1.coeffs()+Vector4d(0,0,dq,0);
-    cs2(3) = sqrt(1.0 - cs2.start(3).squaredNorm()); // have to normalize w!!!!
+    cs2(3) = sqrt(1.0 - cs2.head(3).squaredNorm()); // have to normalize w!!!!
     Quaternion<double> frq2(cs2);
     Matrix<double,3,3> Rp = frq2.toRotationMatrix().transpose();
     Matrix<double,3,3> R =  frq1.toRotationMatrix().transpose();
 
     // check projection against numeric derivative
-    Vector3d pc1 = R  * pt1.start(3);
-    Vector3d pc2 = Rp * pt1.start(3);
+    Vector3d pc1 = R  * pt1.head(3);
+    Vector3d pc2 = Rp * pt1.head(3);
     Vector3d pc  = (pc2 - pc1)/dq;
-    Vector3d pcd = nd1.dRdz * pt1.start(3); // analytic derivative
+    Vector3d pcd = nd1.dRdz * pt1.head(3); // analytic derivative
 
     //    cout << pc1 << endl << endl;
     //    cout << pc  << endl << endl;
@@ -209,7 +209,7 @@ TEST(TestJacobians, TestJacGlobalAngles)
   Node nd2;
   {
     Vector4d cs2 = frq1.coeffs()+Vector4d(dq,0,0,0);
-    cs2(3) = sqrt(1.0 - cs2.start(3).squaredNorm()); // have to normalize w!!!!
+    cs2(3) = sqrt(1.0 - cs2.head(3).squaredNorm()); // have to normalize w!!!!
     nd2.qrot = cs2;
     nd2.trans = frt1;
     nd2.setTransform();		// set up world2node transform
@@ -217,7 +217,7 @@ TEST(TestJacobians, TestJacGlobalAngles)
   
     Vector3d pc1 = nd1.w2i * pt1;
     Vector3d pc2 = nd2.w2i * pt1;
-    Vector2d pc = pc2.start(2)/pc2(2) - pc1.start(2)/pc1(2);
+    Vector2d pc = pc2.head(2)/pc2(2) - pc1.head(2)/pc1(2);
     pc = s*pc/dq;
 
     for (int i=0; i<2; i++)
@@ -226,7 +226,7 @@ TEST(TestJacobians, TestJacGlobalAngles)
 
   {
     Vector4d cs2 = frq1.coeffs()+Vector4d(0,dq,0,0);
-    cs2(3) = sqrt(1.0 - cs2.start(3).squaredNorm()); // have to normalize w!!!!
+    cs2(3) = sqrt(1.0 - cs2.head(3).squaredNorm()); // have to normalize w!!!!
     nd2.qrot = cs2;
     nd2.trans = frt1;
     nd2.setTransform();		// set up world2node transform
@@ -234,7 +234,7 @@ TEST(TestJacobians, TestJacGlobalAngles)
   
     Vector3d pc1 = nd1.w2i * pt1;
     Vector3d pc2 = nd2.w2i * pt1;
-    Vector2d pc = pc2.start(2)/pc2(2) - pc1.start(2)/pc1(2);
+    Vector2d pc = pc2.head(2)/pc2(2) - pc1.head(2)/pc1(2);
     pc = s*pc/dq;
 
     for (int i=0; i<2; i++)
@@ -243,7 +243,7 @@ TEST(TestJacobians, TestJacGlobalAngles)
 
   {
     Vector4d cs2 = frq1.coeffs()+Vector4d(0,0,dq,0);
-    cs2(3) = sqrt(1.0 - cs2.start(3).squaredNorm()); // have to normalize w!!!!
+    cs2(3) = sqrt(1.0 - cs2.head(3).squaredNorm()); // have to normalize w!!!!
     nd2.qrot = cs2;
     nd2.trans = frt1;
     nd2.setTransform();		// set up world2node transform
@@ -251,7 +251,7 @@ TEST(TestJacobians, TestJacGlobalAngles)
   
     Vector3d pc1 = nd1.w2i * pt1;
     Vector3d pc2 = nd2.w2i * pt1;
-    Vector2d pc = pc2.start(2)/pc2(2) - pc1.start(2)/pc1(2);
+    Vector2d pc = pc2.head(2)/pc2(2) - pc1.head(2)/pc1(2);
     pc = s*pc/dq;
 
     for (int i=0; i<2; i++)
@@ -268,7 +268,7 @@ TEST(TestJacobians, TestJacGlobalAngles)
   
     Vector3d pc1 = nd1.w2i * pt1;
     Vector3d pc2 = nd2.w2i * pt1;
-    Vector2d pc = pc2.start(2)/pc2(2) - pc1.start(2)/pc1(2);
+    Vector2d pc = pc2.head(2)/pc2(2) - pc1.head(2)/pc1(2);
     pc = pc/dq;
 
     for (int i=0; i<2; i++)
@@ -284,7 +284,7 @@ TEST(TestJacobians, TestJacGlobalAngles)
   
     Vector3d pc1 = nd1.w2i * pt1;
     Vector3d pc2 = nd2.w2i * pt1;
-    Vector2d pc = pc2.start(2)/pc2(2) - pc1.start(2)/pc1(2);
+    Vector2d pc = pc2.head(2)/pc2(2) - pc1.head(2)/pc1(2);
     pc = pc/dq;
 
     for (int i=0; i<2; i++)
@@ -300,7 +300,7 @@ TEST(TestJacobians, TestJacGlobalAngles)
   
     Vector3d pc1 = nd1.w2i * pt1;
     Vector3d pc2 = nd2.w2i * pt1;
-    Vector2d pc = pc2.start(2)/pc2(2) - pc1.start(2)/pc1(2);
+    Vector2d pc = pc2.head(2)/pc2(2) - pc1.head(2)/pc1(2);
     pc = pc/dq;
 
     for (int i=0; i<2; i++)
@@ -317,7 +317,7 @@ TEST(TestJacobians, TestJacGlobalAngles)
   
     Vector3d pc1 = nd1.w2i * pt1;
     Vector3d pc2 = nd2.w2i * (pt1 + Vector4d(dq,0,0,0));
-    Vector2d pc = pc2.start(2)/pc2(2) - pc1.start(2)/pc1(2);
+    Vector2d pc = pc2.head(2)/pc2(2) - pc1.head(2)/pc1(2);
     pc = pc/dq;
 
     for (int i=0; i<2; i++)
@@ -333,7 +333,7 @@ TEST(TestJacobians, TestJacGlobalAngles)
   
     Vector3d pc1 = nd1.w2i * pt1;
     Vector3d pc2 = nd2.w2i * (pt1 + Vector4d(0,dq,0,0));
-    Vector2d pc = pc2.start(2)/pc2(2) - pc1.start(2)/pc1(2);
+    Vector2d pc = pc2.head(2)/pc2(2) - pc1.head(2)/pc1(2);
     pc = pc/dq;
 
     for (int i=0; i<2; i++)
@@ -349,7 +349,7 @@ TEST(TestJacobians, TestJacGlobalAngles)
   
     Vector3d pc1 = nd1.w2i * pt1;
     Vector3d pc2 = nd2.w2i * (pt1 + Vector4d(0,0,dq,0));
-    Vector2d pc = pc2.start(2)/pc2(2) - pc1.start(2)/pc1(2);
+    Vector2d pc = pc2.head(2)/pc2(2) - pc1.head(2)/pc1(2);
     pc = pc/dq;
 
     for (int i=0; i<2; i++)
@@ -407,7 +407,7 @@ TEST(TestJacobians, TestJacLocalAngles)
   
     Vector3d pc1 = nd1.w2i * pt1;
     Vector3d pc2 = nd2.w2i * pt1;
-    Vector2d pc = pc2.start(2)/pc2(2) - pc1.start(2)/pc1(2);
+    Vector2d pc = pc2.head(2)/pc2(2) - pc1.head(2)/pc1(2);
     pc = s*pc/dq;
 
     for (int i=0; i<2; i++)
@@ -425,7 +425,7 @@ TEST(TestJacobians, TestJacLocalAngles)
   
     Vector3d pc1 = nd1.w2i * pt1;
     Vector3d pc2 = nd2.w2i * pt1;
-    Vector2d pc = pc2.start(2)/pc2(2) - pc1.start(2)/pc1(2);
+    Vector2d pc = pc2.head(2)/pc2(2) - pc1.head(2)/pc1(2);
     pc = s*pc/dq;
 
     for (int i=0; i<2; i++)
@@ -443,7 +443,7 @@ TEST(TestJacobians, TestJacLocalAngles)
   
     Vector3d pc1 = nd1.w2i * pt1;
     Vector3d pc2 = nd2.w2i * pt1;
-    Vector2d pc = pc2.start(2)/pc2(2) - pc1.start(2)/pc1(2);
+    Vector2d pc = pc2.head(2)/pc2(2) - pc1.head(2)/pc1(2);
     pc = s*pc/dq;
 
     for (int i=0; i<2; i++)

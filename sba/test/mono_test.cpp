@@ -142,7 +142,7 @@ void initPrecs()
 
   diagprec.setIdentity();
   diagprec = diagprec*(1000);  
-  diagprec.diagonal().start(3) *= .0001;
+  diagprec.diagonal().head(3) *= .0001;
 }
 
 
@@ -310,7 +310,7 @@ TEST(TestMono, TestMonoLocalScale)
   ofstream ofs3("P400.init.txt");
   for (int i=0; i<(int)cps.size(); i++)
     {
-      Vector3d tpn = spa.nodes[i].trans.start(3);
+      Vector3d tpn = spa.nodes[i].trans.head(3);
       ofs3 << tpn.transpose() << endl;
     }  
   ofs3.close();
@@ -328,25 +328,25 @@ TEST(TestMono, TestMonoLocalScale)
       con.nd0 = i;              // first node
       con.nd1 = i+1;            // second node
       con.sv  = i;              // scale index
-      con.ks  = (cps[con.nd1].start(3) - cps[con.nd0].start(3)).squaredNorm(); // measured distance
+      con.ks  = (cps[con.nd1].head(3) - cps[con.nd0].head(3)).squaredNorm(); // measured distance
       spa.scons.push_back(con);
 
       con.nd0 = i+1;            // first node
       con.nd1 = i+2;            // second node
       con.sv  = i;              // scale index
-      con.ks  = (cps[con.nd1].start(3) - cps[con.nd0].start(3)).squaredNorm(); // measured distance
+      con.ks  = (cps[con.nd1].head(3) - cps[con.nd0].head(3)).squaredNorm(); // measured distance
       spa.scons.push_back(con);
 
       con.nd0 = i+2;            // first node
       con.nd1 = i+3;            // second node
       con.sv  = i;              // scale index
-      con.ks  = (cps[con.nd1].start(3) - cps[con.nd0].start(3)).squaredNorm(); // measured distance
+      con.ks  = (cps[con.nd1].head(3) - cps[con.nd0].head(3)).squaredNorm(); // measured distance
       spa.scons.push_back(con);
 
       con.nd0 = i;              // first node
       con.nd1 = i+3;            // second node
       con.sv  = i;              // scale index
-      con.ks  = (cps[con.nd1].start(3) - cps[con.nd0].start(3)).squaredNorm(); // measured distance
+      con.ks  = (cps[con.nd1].head(3) - cps[con.nd0].head(3)).squaredNorm(); // measured distance
       spa.scons.push_back(con);
 
 
@@ -356,7 +356,7 @@ TEST(TestMono, TestMonoLocalScale)
           con.nd0 = i-3;              // first node
           con.nd1 = i+1;            // second node
           con.sv  = 0;              // scale index
-          con.ks  = (cps[con.nd1].start(3) - cps[con.nd0].start(3)).squaredNorm(); // measured distance
+          con.ks  = (cps[con.nd1].head(3) - cps[con.nd0].head(3)).squaredNorm(); // measured distance
           spa.scons.push_back(con);
         }
 #endif
@@ -367,7 +367,7 @@ TEST(TestMono, TestMonoLocalScale)
           con.nd1 = i;
           con.nd0 = i-72;
           con.sv  = 0;
-          con.ks = (cps[con.nd1].start(3) - cps[con.nd0].start(3)).squaredNorm(); // measured distance
+          con.ks = (cps[con.nd1].head(3) - cps[con.nd0].head(3)).squaredNorm(); // measured distance
           spa.scons.push_back(con);
         }
 #endif
@@ -387,13 +387,13 @@ TEST(TestMono, TestMonoLocalScale)
       con.nd0 = i;              // first node
       con.nd1 = i-2;            // second node
       con.sv  = i-72;           // scale index
-      con.ks  = (cps[con.nd1].start(3) - cps[con.nd0].start(3)).squaredNorm(); // measured distance
+      con.ks  = (cps[con.nd1].head(3) - cps[con.nd0].head(3)).squaredNorm(); // measured distance
       spa.scons.push_back(con);
 
       con.nd0 = i-72;
       con.nd1 = i;
       con.sv  = i-72;
-      con.ks = (cps[con.nd1].start(3) - cps[con.nd0].start(3)).squaredNorm(); // measured distance
+      con.ks = (cps[con.nd1].head(3) - cps[con.nd0].head(3)).squaredNorm(); // measured distance
       spa.scons.push_back(con);
     }
 #endif
@@ -409,7 +409,7 @@ TEST(TestMono, TestMonoLocalScale)
     Node nd0 = spa.nodes[con.ndr];
     Node nd1 = spa.nodes[con.nd1];
     Vector4d trans;
-    trans.start(3) = cps[con.nd1].start(3);
+    trans.head(3) = cps[con.nd1].head(3);
     trans(3) = 1.0;
 
     con.prec = 1000*diagprec;
@@ -431,8 +431,8 @@ TEST(TestMono, TestMonoLocalScale)
   for (int i=0; i<(int)cps.size(); i++)
     {
       Matrix<double,6,1> &cp = cps[i]; // old camera pose
-      Vector3d tp = cp.start(3);
-      Vector3d tpn = spa.nodes[i].trans.start(3);
+      Vector3d tp = cp.head(3);
+      Vector3d tpn = spa.nodes[i].trans.head(3);
 
       //      printf("\n[TestSPA] Cam %d orig: %0.2f %0.2f %0.2f\n", i, tp[0], tp[1], tp[2]);
       //      printf("[TestSPA] Cam %d new:  %0.2f %0.2f %0.2f\n", i, tpn[0], tpn[1], tpn[2]);
@@ -479,8 +479,8 @@ TEST(TestMono, TestMonoLocalScale)
   for (int i=0; i<(int)cps.size(); i++)
     {
       Matrix<double,6,1> &cp = cps[i]; // old camera pose
-      Vector3d tp = cp.start(3);
-      Vector3d tpn = spa.nodes[i].trans.start(3);
+      Vector3d tp = cp.head(3);
+      Vector3d tpn = spa.nodes[i].trans.head(3);
 
       //      printf("\n[TestSPA] Cam %d orig: %0.2f %0.2f %0.2f\n", i, tp[0], tp[1], tp[2]);
       //      printf("[TestSPA] Cam %d new:  %0.2f %0.2f %0.2f\n", i, tpn[0], tpn[1], tpn[2]);
@@ -499,8 +499,8 @@ TEST(TestMono, TestMonoLocalScale)
   for (int i=0; i<(int)cps.size(); i++)
     {
       Matrix<double,6,1> &cp = cps[i]; // old camera pose
-      Vector3d tp = cp.start(3);
-      Vector3d tpn = spa.nodes[i].trans.start(3);
+      Vector3d tp = cp.head(3);
+      Vector3d tpn = spa.nodes[i].trans.head(3);
 
       //      printf("\n[TestSPA] Cam %d orig: %0.2f %0.2f %0.2f\n", i, tp[0], tp[1], tp[2]);
       //      printf("[TestSPA] Cam %d new:  %0.2f %0.2f %0.2f\n", i, tpn[0], tpn[1], tpn[2]);

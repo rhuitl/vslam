@@ -977,7 +977,7 @@ void reprojectPoints(const Mat& intrinsics, const Mat& R, const Mat& T, const ve
 inline double calcNodeErr(sba::Proj& prj, const sba::Node &nd, const sba::Point &pt)
 {
     Eigen::Vector3d p1 = nd.w2i * pt;
-    prj.err = p1.start(2)/p1(2);
+    prj.err = p1.head(2)/p1(2);
     if (p1(2) <= 0.0)
     {
       prj.err = Vector3d(0.0,0.0,0.0);
@@ -1078,8 +1078,8 @@ void sba(const Mat& intrinsics, Mat& rvec, Mat& tvec, vector<Point3f>& points, c
     cout << endl << "Removed " << nbad << " projections > 2 pixels error" << endl;
     sba0.doSBA(5,10e-5,false);
 
-	//        cout << endl << sba.nodes[1].trans.transpose().start(3) << endl;
-	Eigen::Vector3d trans = sba0.nodes[1].trans.start(3);
+	//        cout << endl << sba.nodes[1].trans.transpose().head(3) << endl;
+	Eigen::Vector3d trans = sba0.nodes[1].trans.head(3);
 	printf("trans = %f %f %f\n", trans(0), trans(1), trans(2));
     // do the convertion manually as there are
     *sbaTvec.ptr<Point3f>(0) = Point3f(trans(0), trans(1), trans(2));

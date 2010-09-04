@@ -135,7 +135,7 @@ namespace sba
   {
     if (tracks[pi].projections.count(ci) > 0)
     {
-      if (tracks[pi].projections[ci].kp.start(2) == q)
+      if (tracks[pi].projections[ci].kp.head(2) == q)
         return true;
       return false;
     }
@@ -181,7 +181,7 @@ namespace sba
     
     Proj &forward_proj = tracks[pi0].projections[ci1];
     forward_proj.pointPlane = true;
-    forward_proj.plane_point = pt1.start<3>();
+    forward_proj.plane_point = pt1.head<3>();
     forward_proj.plane_local_normal = normal1;
     forward_proj.plane_point_index = pi1;
     forward_proj.plane_node_index = ci0;
@@ -196,7 +196,7 @@ namespace sba
     
     Proj &backward_proj = tracks[pi1].projections[ci0];
     backward_proj.pointPlane = true;
-    backward_proj.plane_point = pt0.start<3>();
+    backward_proj.plane_point = pt0.head<3>();
     backward_proj.plane_local_normal = normal0;
     backward_proj.plane_point_index = pi0;
     backward_proj.plane_node_index = ci1;
@@ -217,7 +217,7 @@ namespace sba
             Proj &prj = itr->second;      
             if (!prj.pointPlane || !prj.isValid) continue;
             
-            prj.plane_point = tracks[prj.plane_point_index].point.start<3>();
+            prj.plane_point = tracks[prj.plane_point_index].point.head<3>();
             
             // Rotation between nodes into the projection's image plane
             Quaterniond qrot = nodes[prj.ndi].qrot;
@@ -1394,7 +1394,7 @@ void SysSBA::setupSys(double sLambda)
             if (nd.isFixed) continue; // not to be updated
             nd.oldtrans = nd.trans; // save in case we don't improve the cost
             nd.oldqrot = nd.qrot;
-            nd.trans.start<3>() += BB.segment<3>(ci);
+            nd.trans.head<3>() += BB.segment<3>(ci);
 
             if (useLocalAngles)
               {
@@ -1410,7 +1410,7 @@ void SysSBA::setupSys(double sLambda)
               }
             else
               {
-                nd.qrot.coeffs().start<3>() += BB.segment<3>(ci+3); 
+                nd.qrot.coeffs().head<3>() += BB.segment<3>(ci+3); 
                 nd.normRot();
               }
 
@@ -1441,7 +1441,7 @@ void SysSBA::setupSys(double sLambda)
               }  
             // update point
             oldpoints[pi] = tracks[pi].point; // save for backing out
-            tracks[pi].point.start(3) += tp;
+            tracks[pi].point.head(3) += tp;
           }
 
         t3 = utime();

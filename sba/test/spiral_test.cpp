@@ -216,8 +216,8 @@ TEST(TestSBA, SpiralSystem_init90n)
   for (int i=0; i<(int)cps.size(); i++)
     {
       Matrix<double,6,1> &cp = cps[i]; // old camera pose
-      Vector3d tp = cp.start(3);
-      Vector3d tpn = sba.nodes[i].trans.start(3);
+      Vector3d tp = cp.head(3);
+      Vector3d tpn = sba.nodes[i].trans.head(3);
       //      printf("\n[TestSBA] Cam %d orig: %0.2f %0.2f %0.2f\n", i, tp[0], tp[1], tp[2]);
       //      printf("[TestSBA] Cam %d new:  %0.2f %0.2f %0.2f\n", i, tpn[0], tpn[1], tpn[2]);
       Vector3d err = tp-tpn;
@@ -279,8 +279,8 @@ TEST(TestSBA, SpiralSystem_init0)
   for (int i=0; i<(int)cps.size(); i++)
     {
       Matrix<double,6,1> &cp = cps[i]; // old camera pose
-      Vector3d tp = cp.start(3);
-      Vector3d tpn = sba.nodes[i].trans.start(3);
+      Vector3d tp = cp.head(3);
+      Vector3d tpn = sba.nodes[i].trans.head(3);
       //      printf("\n[TestSBA] Cam %d orig: %0.2f %0.2f %0.2f\n", i, tp[0], tp[1], tp[2]);
       //      printf("[TestSBA] Cam %d new:  %0.2f %0.2f %0.2f\n", i, tpn[0], tpn[1], tpn[2]);
       Vector3d err = tp-tpn;
@@ -341,8 +341,8 @@ TEST(TestSBA, SpiralSystem_global_init0)
   for (int i=0; i<(int)cps.size(); i++)
     {
       Matrix<double,6,1> &cp = cps[i]; // old camera pose
-      Vector3d tp = cp.start(3);
-      Vector3d tpn = sba.nodes[i].trans.start(3);
+      Vector3d tp = cp.head(3);
+      Vector3d tpn = sba.nodes[i].trans.head(3);
       //      printf("\n[TestSBA] Cam %d orig: %0.2f %0.2f %0.2f\n", i, tp[0], tp[1], tp[2]);
       //      printf("[TestSBA] Cam %d new:  %0.2f %0.2f %0.2f\n", i, tpn[0], tpn[1], tpn[2]);
       Vector3d err = tp-tpn;
@@ -402,8 +402,8 @@ TEST(TestSBA, SpiralSystem_init90)
   for (int i=0; i<(int)cps.size(); i++)
     {
       Matrix<double,6,1> &cp = cps[i]; // old camera pose
-      Vector3d tp = cp.start(3);
-      Vector3d tpn = sba.nodes[i].trans.start(3);
+      Vector3d tp = cp.head(3);
+      Vector3d tpn = sba.nodes[i].trans.head(3);
       //      printf("\n[TestSBA] Cam %d orig: %0.2f %0.2f %0.2f\n", i, tp[0], tp[1], tp[2]);
       //      printf("[TestSBA] Cam %d new:  %0.2f %0.2f %0.2f\n", i, tpn[0], tpn[1], tpn[2]);
       Vector3d err = tp-tpn;
@@ -466,8 +466,8 @@ TEST(TestSBA, SpiralSystem_init180)
   for (int i=0; i<(int)cps.size(); i++)
     {
       Matrix<double,6,1> &cp = cps[i]; // old camera pose
-      Vector3d tp = cp.start(3);
-      Vector3d tpn = sba.nodes[i].trans.start(3);
+      Vector3d tp = cp.head(3);
+      Vector3d tpn = sba.nodes[i].trans.head(3);
       //      printf("\n[TestSBA] Cam %d orig: %0.2f %0.2f %0.2f\n", i, tp[0], tp[1], tp[2]);
       //      printf("[TestSBA] Cam %d new:  %0.2f %0.2f %0.2f\n", i, tpn[0], tpn[1], tpn[2]);
       Vector3d err = tp-tpn;
@@ -528,8 +528,8 @@ TEST(TestSBA, SpiralSystem_global_init180)
   for (int i=0; i<(int)cps.size(); i++)
     {
       Matrix<double,6,1> &cp = cps[i]; // old camera pose
-      Vector3d tp = cp.start(3);
-      Vector3d tpn = sba.nodes[i].trans.start(3);
+      Vector3d tp = cp.head(3);
+      Vector3d tpn = sba.nodes[i].trans.head(3);
       //      printf("\n[TestSBA] Cam %d orig: %0.2f %0.2f %0.2f\n", i, tp[0], tp[1], tp[2]);
       //      printf("[TestSBA] Cam %d new:  %0.2f %0.2f %0.2f\n", i, tpn[0], tpn[1], tpn[2]);
       Vector3d err = tp-tpn;
@@ -594,8 +594,8 @@ TEST(TestSBA, SpiralSystem_global_init90n)
   for (int i=0; i<(int)cps.size(); i++)
     {
       Matrix<double,6,1> &cp = cps[i]; // old camera pose
-      Vector3d tp = cp.start(3);
-      Vector3d tpn = sba.nodes[i].trans.start(3);
+      Vector3d tp = cp.head(3);
+      Vector3d tpn = sba.nodes[i].trans.head(3);
       //      printf("\n[TestSBA] Cam %d orig: %0.2f %0.2f %0.2f\n", i, tp[0], tp[1], tp[2]);
       //      printf("[TestSBA] Cam %d new:  %0.2f %0.2f %0.2f\n", i, tpn[0], tpn[1], tpn[2]);
       Vector3d err = tp-tpn;
@@ -669,8 +669,8 @@ TEST(TestSBA, SpiralSystem_global_400)
   for (int i=0; i<(int)cps.size(); i++)
     {
       Matrix<double,6,1> &cp = cps[i]; // old camera pose
-      Vector3d tp = cp.start(3);
-      Vector3d tpn = sba.nodes[i].trans.start(3);
+      Vector3d tp = cp.head(3);
+      Vector3d tpn = sba.nodes[i].trans.head(3);
       //      printf("\n[TestSBA] Cam %d orig: %0.2f %0.2f %0.2f\n", i, tp[0], tp[1], tp[2]);
       //      printf("[TestSBA] Cam %d new:  %0.2f %0.2f %0.2f\n", i, tpn[0], tpn[1], tpn[2]);
       Vector3d err = tp-tpn;
@@ -753,8 +753,8 @@ TEST(TestSBA, SpiralSystem_54)
   for (int i=0; i<(int)cps.size(); i++)
     {
       Matrix<double,6,1> &cp = cps[i]; // old camera pose
-      Vector3d tp = cp.start(3);
-      Vector3d tpn = sba.nodes[i].trans.start(3);
+      Vector3d tp = cp.head(3);
+      Vector3d tpn = sba.nodes[i].trans.head(3);
       //      printf("\n[TestSBA] Cam %d orig: %0.2f %0.2f %0.2f\n", i, tp[0], tp[1], tp[2]);
       //      printf("[TestSBA] Cam %d new:  %0.2f %0.2f %0.2f\n", i, tpn[0], tpn[1], tpn[2]);
       Vector3d err = tp-tpn;
@@ -835,8 +835,8 @@ TEST(TestSBA, SpiralSystem_400)
   for (int i=0; i<(int)cps.size(); i++)
     {
       Matrix<double,6,1> &cp = cps[i]; // old camera pose
-      Vector3d tp = cp.start(3);
-      Vector3d tpn = sba.nodes[i].trans.start(3);
+      Vector3d tp = cp.head(3);
+      Vector3d tpn = sba.nodes[i].trans.head(3);
       //      printf("\n[TestSBA] Cam %d orig: %0.2f %0.2f %0.2f\n", i, tp[0], tp[1], tp[2]);
       //      printf("[TestSBA] Cam %d new:  %0.2f %0.2f %0.2f\n", i, tpn[0], tpn[1], tpn[2]);
       Vector3d err = tp-tpn;

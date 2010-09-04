@@ -190,7 +190,7 @@ int main(int argc, char** argv)
       printf("Number of inliers: %d; RANSAC+polish time is %0.2f ms\n", inl, t4-t3);
       printf("Total time: %0.2f ms\n", t4-t0);
 
-      cout << "Translation: " << pe.trans.transpose().start(3) << endl << endl;
+      cout << "Translation: " << pe.trans.transpose().head(3) << endl << endl;
       //      cout << pe.rot << endl;
 
 

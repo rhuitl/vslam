@@ -28,7 +28,7 @@ class Plane
       
       for (unsigned int i = 0; i < points.size(); i++)
       {
-        points[i].start<3>() = rotmat*points[i].start<3>();
+        points[i].head<3>() = rotmat*points[i].head<3>();
       }
       
       normal = rotmat*normal;
@@ -44,7 +44,7 @@ class Plane
     {
       for (unsigned int i = 0; i < points.size(); i++)
       {
-        points[i].start<3>() += trans;
+        points[i].head<3>() += trans;
       }
     }
     
@@ -248,7 +248,7 @@ void calculateProj(SysSBA& sba, Point& point, int ndi, Vector3d& proj)
     // Camera coords for right camera
     baseline << sba.nodes[ndi].baseline, 0, 0;
     pc = sba.nodes[ndi].Kcam * (sba.nodes[ndi].w2n*point - baseline); 
-    proj.start<2>() = proj2d;
+    proj.head<2>() = proj2d;
     proj(2) = pc(0)/pc(2);
 }
 

@@ -91,7 +91,7 @@ TEST(TestJacobians, TestJacGlobalAngles)
   Node nd2;
   {
     Vector4d cs2 = frq1.coeffs()+Vector4d(dq,0,0,0);
-    cs2(3) = sqrt(1.0 - cs2.start(3).squaredNorm()); // have to normalize w!!!!
+    cs2(3) = sqrt(1.0 - cs2.head(3).squaredNorm()); // have to normalize w!!!!
     nd2.qrot = cs2;
     nd2.trans = frt1;
     nd2.setTransform();		// set up world2node transform
@@ -102,7 +102,7 @@ TEST(TestJacobians, TestJacGlobalAngles)
     Vector3d pcn1 = nd1.Kcam * (nd1.w2n * pt1 - b);
     Vector3d pcn2 = nd2.Kcam * (nd2.w2n * pt1 - b);
     Vector3d pc;
-    pc.start(2) = pc2.start(2)/pc2(2) - pc1.start(2)/pc1(2);
+    pc.head(2) = pc2.head(2)/pc2(2) - pc1.head(2)/pc1(2);
     pc(2) = pcn2(0)/pcn2(2) - pcn1(0)/pcn1(2);
     pc = pc/dq;
 
@@ -112,7 +112,7 @@ TEST(TestJacobians, TestJacGlobalAngles)
 
   {
     Vector4d cs2 = frq1.coeffs()+Vector4d(0,dq,0,0);
-    cs2(3) = sqrt(1.0 - cs2.start(3).squaredNorm()); // have to normalize w!!!!
+    cs2(3) = sqrt(1.0 - cs2.head(3).squaredNorm()); // have to normalize w!!!!
     nd2.qrot = cs2;
     nd2.trans = frt1;
     nd2.setTransform();		// set up world2node transform
@@ -123,7 +123,7 @@ TEST(TestJacobians, TestJacGlobalAngles)
     Vector3d pcn1 = nd1.Kcam * (nd1.w2n * pt1 - b);
     Vector3d pcn2 = nd2.Kcam * (nd2.w2n * pt1 - b);
     Vector3d pc;
-    pc.start(2) = pc2.start(2)/pc2(2) - pc1.start(2)/pc1(2);
+    pc.head(2) = pc2.head(2)/pc2(2) - pc1.head(2)/pc1(2);
     pc(2) = pcn2(0)/pcn2(2) - pcn1(0)/pcn1(2);
     pc = pc/dq;
 
@@ -133,7 +133,7 @@ TEST(TestJacobians, TestJacGlobalAngles)
 
   {
     Vector4d cs2 = frq1.coeffs()+Vector4d(0,0,dq,0);
-    cs2(3) = sqrt(1.0 - cs2.start(3).squaredNorm()); // have to normalize w!!!!
+    cs2(3) = sqrt(1.0 - cs2.head(3).squaredNorm()); // have to normalize w!!!!
     nd2.qrot = cs2;
     nd2.trans = frt1;
     nd2.setTransform();		// set up world2node transform
@@ -144,7 +144,7 @@ TEST(TestJacobians, TestJacGlobalAngles)
     Vector3d pcn1 = nd1.Kcam * (nd1.w2n * pt1 - b);
     Vector3d pcn2 = nd2.Kcam * (nd2.w2n * pt1 - b);
     Vector3d pc;
-    pc.start(2) = pc2.start(2)/pc2(2) - pc1.start(2)/pc1(2);
+    pc.head(2) = pc2.head(2)/pc2(2) - pc1.head(2)/pc1(2);
     pc(2) = pcn2(0)/pcn2(2) - pcn1(0)/pcn1(2);
     pc = pc/dq;
 
@@ -165,7 +165,7 @@ TEST(TestJacobians, TestJacGlobalAngles)
     Vector3d pcn1 = nd1.Kcam * (nd1.w2n * pt1 - b);
     Vector3d pcn2 = nd2.Kcam * (nd2.w2n * pt1 - b);
     Vector3d pc;
-    pc.start(2) = pc2.start(2)/pc2(2) - pc1.start(2)/pc1(2);
+    pc.head(2) = pc2.head(2)/pc2(2) - pc1.head(2)/pc1(2);
     pc(2) = pcn2(0)/pcn2(2) - pcn1(0)/pcn1(2);
     pc = pc/dq;
 
@@ -185,7 +185,7 @@ TEST(TestJacobians, TestJacGlobalAngles)
     Vector3d pcn1 = nd1.Kcam * (nd1.w2n * pt1 - b);
     Vector3d pcn2 = nd2.Kcam * (nd2.w2n * pt1 - b);
     Vector3d pc;
-    pc.start(2) = pc2.start(2)/pc2(2) - pc1.start(2)/pc1(2);
+    pc.head(2) = pc2.head(2)/pc2(2) - pc1.head(2)/pc1(2);
     pc(2) = pcn2(0)/pcn2(2) - pcn1(0)/pcn1(2);
     pc = pc/dq;
 
@@ -205,7 +205,7 @@ TEST(TestJacobians, TestJacGlobalAngles)
     Vector3d pcn1 = nd1.Kcam * (nd1.w2n * pt1 - b);
     Vector3d pcn2 = nd2.Kcam * (nd2.w2n * pt1 - b);
     Vector3d pc;
-    pc.start(2) = pc2.start(2)/pc2(2) - pc1.start(2)/pc1(2);
+    pc.head(2) = pc2.head(2)/pc2(2) - pc1.head(2)/pc1(2);
     pc(2) = pcn2(0)/pcn2(2) - pcn1(0)/pcn1(2);
     pc = pc/dq;
 
@@ -226,7 +226,7 @@ TEST(TestJacobians, TestJacGlobalAngles)
     Vector3d pcn1 = nd1.Kcam * (nd1.w2n * pt1 - b);
     Vector3d pcn2 = nd2.Kcam * (nd2.w2n * (pt1 + Vector4d(dq,0,0,0)) - b);
     Vector3d pc;
-    pc.start(2) = pc2.start(2)/pc2(2) - pc1.start(2)/pc1(2);
+    pc.head(2) = pc2.head(2)/pc2(2) - pc1.head(2)/pc1(2);
     pc(2) = pcn2(0)/pcn2(2) - pcn1(0)/pcn1(2);
     pc = pc/dq;
 
@@ -246,7 +246,7 @@ TEST(TestJacobians, TestJacGlobalAngles)
     Vector3d pcn1 = nd1.Kcam * (nd1.w2n * pt1 - b);
     Vector3d pcn2 = nd2.Kcam * (nd2.w2n * (pt1 + Vector4d(0,dq,0,0)) - b);
     Vector3d pc;
-    pc.start(2) = pc2.start(2)/pc2(2) - pc1.start(2)/pc1(2);
+    pc.head(2) = pc2.head(2)/pc2(2) - pc1.head(2)/pc1(2);
     pc(2) = pcn2(0)/pcn2(2) - pcn1(0)/pcn1(2);
     pc = pc/dq;
 
@@ -266,7 +266,7 @@ TEST(TestJacobians, TestJacGlobalAngles)
     Vector3d pcn1 = nd1.Kcam * (nd1.w2n * pt1 - b);
     Vector3d pcn2 = nd2.Kcam * (nd2.w2n * (pt1 + Vector4d(0,0,dq,0)) - b);
     Vector3d pc;
-    pc.start(2) = pc2.start(2)/pc2(2) - pc1.start(2)/pc1(2);
+    pc.head(2) = pc2.head(2)/pc2(2) - pc1.head(2)/pc1(2);
     pc(2) = pcn2(0)/pcn2(2) - pcn1(0)/pcn1(2);
     pc = pc/dq;
 
@@ -328,7 +328,7 @@ TEST(TestJacobians, TestJacLocalAngles)
     Vector3d pcn1 = nd1.Kcam * (nd1.w2n * pt1 - b);
     Vector3d pcn2 = nd2.Kcam * (nd2.w2n * pt1 - b);
     Vector3d pc;
-    pc.start(2) = pc2.start(2)/pc2(2) - pc1.start(2)/pc1(2);
+    pc.head(2) = pc2.head(2)/pc2(2) - pc1.head(2)/pc1(2);
     pc(2) = pcn2(0)/pcn2(2) - pcn1(0)/pcn1(2);
     pc = pc/dq;
 
@@ -350,7 +350,7 @@ TEST(TestJacobians, TestJacLocalAngles)
     Vector3d pcn1 = nd1.Kcam * (nd1.w2n * pt1 - b);
     Vector3d pcn2 = nd2.Kcam * (nd2.w2n * pt1 - b);
     Vector3d pc;
-    pc.start(2) = pc2.start(2)/pc2(2) - pc1.start(2)/pc1(2);
+    pc.head(2) = pc2.head(2)/pc2(2) - pc1.head(2)/pc1(2);
     pc(2) = pcn2(0)/pcn2(2) - pcn1(0)/pcn1(2);
     pc = pc/dq;
 
@@ -372,7 +372,7 @@ TEST(TestJacobians, TestJacLocalAngles)
     Vector3d pcn1 = nd1.Kcam * (nd1.w2n * pt1 - b);
     Vector3d pcn2 = nd2.Kcam * (nd2.w2n * pt1 - b);
     Vector3d pc;
-    pc.start(2) = pc2.start(2)/pc2(2) - pc1.start(2)/pc1(2);
+    pc.head(2) = pc2.head(2)/pc2(2) - pc1.head(2)/pc1(2);
     pc(2) = pcn2(0)/pcn2(2) - pcn1(0)/pcn1(2);
     pc = pc/dq;
 

@@ -25,7 +25,7 @@ class Plane
       
       for (unsigned int i = 0; i < points.size(); i++)
       {
-        points[i].start<3>() = rotmat*points[i].start<3>();
+        points[i].head<3>() = rotmat*points[i].head<3>();
       }
       
       normal = rotmat*normal;
@@ -41,7 +41,7 @@ class Plane
     {
       for (unsigned int i = 0; i < points.size(); i++)
       {
-        points[i].start<3>() += trans;
+        points[i].head<3>() += trans;
       }
     }
     
@@ -211,7 +211,7 @@ void setupSBA(SysSBA &sys)
         // Camera coords for right camera
         baseline << sys.nodes[j].baseline, 0, 0;
         pc = sys.nodes[j].Kcam * (sys.nodes[j].w2n*points[i] - baseline); 
-        proj.start<2>() = proj2d;
+        proj.head<2>() = proj2d;
         proj(2) = pc(0)/pc(2);
         
         // If valid (within the range of the image size), add the stereo 

@@ -7,7 +7,7 @@
   <review status="unreviewed" notes=""/>
   
   <depend package="roscpp"/>
-  <depend package="eigen"/>
+  <depend package="eigen3"/>
   <depend package="suitesparse"/>
   <depend package="sparselib"/>
   <depend package="csparse"/>

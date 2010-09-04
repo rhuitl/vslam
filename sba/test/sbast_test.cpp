@@ -175,7 +175,7 @@ TEST(SBAtest, SimpleSystem)
       n2.setRandom();
       nd1.project2im(ipt,pt); // set up projection measurement
       prj.ndi = 0;		// nd1 index
-      ipt3.start(2) = ipt;
+      ipt3.head(2) = ipt;
       pc = nd1.Kcam * (nd1.w2n*pt - b); // camera coords for right cam
       ipt3(2) = pc(0)/pc(2);
       prj.kp = ipt3 + n2*inoise;
@@ -184,7 +184,7 @@ TEST(SBAtest, SimpleSystem)
       n2.setRandom();
       nd2.project2im(ipt,pt);	// set up projection measurement
       prj.ndi = 1;		// nd2 index
-      ipt3.start(2) = ipt;
+      ipt3.head(2) = ipt;
       pc = nd2.Kcam * (nd2.w2n*pt - b); // camera coords for right cam
       ipt3(2) = pc(0)/pc(2);
       prj.kp = ipt3 + n2*inoise;
@@ -193,7 +193,7 @@ TEST(SBAtest, SimpleSystem)
       n2.setRandom();
       nd3.project2im(ipt,pt);	// set up projection measurement
       prj.ndi = 2;		// nd3 index
-      ipt3.start(2) = ipt;
+      ipt3.head(2) = ipt;
       pc = nd3.Kcam * (nd3.w2n*pt - b); // camera coords for right cam
       ipt3(2) = pc(0)/pc(2);
       prj.kp = ipt3 + n2*inoise;
@@ -212,10 +212,10 @@ TEST(SBAtest, SimpleSystem)
   double tnoise = 0.1;		// in meters
 
   // add random noise to node positions
-  nd2.qrot.coeffs().start<3>() += qnoise*Vector3d::Random();
+  nd2.qrot.coeffs().head<3>() += qnoise*Vector3d::Random();
   nd2.normRot();
   cout << "Quaternion: " << nd2.qrot.coeffs().transpose() << endl << endl;
-  nd2.trans.start<3>() += tnoise*Vector3d::Random();
+  nd2.trans.head<3>() += tnoise*Vector3d::Random();
   nd2.setTransform();		// set up world2node transform
   nd2.setProjection();
 #ifdef LOCAL_ANGLES
@@ -225,10 +225,10 @@ TEST(SBAtest, SimpleSystem)
 #endif
   sys.nodes[1] = nd2;		// reset node
   
-  nd3.qrot.coeffs().start<3>() += qnoise*Vector3d::Random();
+  nd3.qrot.coeffs().head<3>() += qnoise*Vector3d::Random();
   nd3.normRot();
   //  cout << "Quaternion: " << nd3.qrot.transpose() << endl << endl;
-  nd3.trans.start<3>() += tnoise*Vector3d::Random();
+  nd3.trans.head<3>() += tnoise*Vector3d::Random();
   nd3.setTransform();		// set up world2node transform
   nd3.setProjection();		// set up node2image projection
 #ifdef LOCAL_ANGLES
@@ -268,14 +268,14 @@ TEST(SBAtest, SimpleSystem)
   cout << endl << "Quaternion: " << sys.nodes[1].qrot.coeffs().transpose() << endl;
   // normalize output translation
   Vector4d frt2a = sys.nodes[1].trans;
-  double s = frt2.start<3>().norm() / frt2a.start<3>().norm();
-  frt2a.start<3>() *= s;
+  double s = frt2.head<3>().norm() / frt2a.head<3>().norm();
+  frt2a.head<3>() *= s;
   cout << "Translation: " << frt2a.transpose() << endl << endl;
 
   cout << "Quaternion: " << sys.nodes[2].qrot.coeffs().transpose() << endl;
   Vector4d frt3a = sys.nodes[2].trans;
-  s = frt3.start<3>().norm() / frt3a.start<3>().norm();
-  frt3a.start<3>() *= s;
+  s = frt3.head<3>().norm() / frt3a.head<3>().norm();
+  frt3a.head<3>() *= s;
   cout << "Translation: " << frt3a.transpose() << endl << endl;
 
   // calculate cost, should be close to zero

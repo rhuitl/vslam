@@ -426,7 +426,7 @@ int main(int argc, char** argv)
               nd1.normRot();
               // translation
               transformF2W(f2w,nd0.trans,fq0);
-              nd1.trans.start(3) = f2w*trans;
+              nd1.trans.head(3) = f2w*trans;
               nd1.trans(3) = 1.0;
               nd1.setTransform(); // set up world2node transform
               nd1.setDr(true);
@@ -436,7 +436,7 @@ int main(int argc, char** argv)
               ConP2 con;
               con.ndr = ndi0;
               con.nd1 = ndi0+1;
-              con.tmean = trans.start(3);
+              con.tmean = trans.head(3);
               // NOTE: the definition of qpmean is somewhat odd, should 
               // revise SPA code
               con.qpmean = qr.inverse();
