@@ -171,6 +171,11 @@ void PoseEstimator::matchFrames(const fc::Frame& f0, const fc::Frame& f1, std::v
     return estimate(f0, f1, matches);
   }
 
+  void PoseEstimator::setMatcher(const cv::Ptr<cv::DescriptorMatcher>& new_matcher)
+  {
+    matcher = new_matcher;
+  }
+  
   void PoseEstimator::setTestMode(bool mode)
   {
     testMode = mode;
