@@ -154,7 +154,8 @@ namespace frame_common
     /// the given frame.
     /// \param frame The frame to process.
     /// \param img   Monocular image to process.
-    void setMonoFrame(Frame& frame, const cv::Mat &img);
+    /// \param img   Monocular image to process.
+    void setMonoFrame(Frame& frame, const cv::Mat &img, const cv::Mat& mask = cv::Mat() );
 
     /// \brief Do stereo processing on the frame, assuming descriptors and
     /// extractors are already set.
@@ -172,6 +173,15 @@ namespace frame_common
     /// \param nfrac Fractional disparity. If above 0, then imgr is a disparity
     ///              image instead.
     void setStereoFrame(Frame &frame, const cv::Mat &img, const cv::Mat &imgr, int nfrac = 0);
+
+    /// \brief Set up stereo frame, assumes frame has camera parameters already set.
+    /// \param frame The frame to be processed.
+    /// \param img   Left camera image.
+    /// \param imgr  Right camera image.
+    /// \param nfrac Fractional disparity. If above 0, then imgr is a disparity
+    ///              image instead.
+    /// \param mask  ROI for left image
+    void setStereoFrame(Frame &frame, const cv::Mat &img, const cv::Mat &imgr, const cv::Mat &left_mask, int nfrac = 0 );
   };
   
   class PointcloudProc

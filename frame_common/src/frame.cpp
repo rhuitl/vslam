@@ -138,14 +138,14 @@ namespace frame_common
   }
 
   // set up mono frame
-  void FrameProc::setMonoFrame(Frame& frame, const cv::Mat &img)
+  void FrameProc::setMonoFrame(Frame& frame, const cv::Mat &img, const cv::Mat& mask )
   {
     frame.img = img;
 
     // set keypoints and descriptors
     frame.kpts.clear();
     //double t0 = mstime();
-    detector->detect(img, frame.kpts);
+    detector->detect(img, frame.kpts, mask);
     //double t1 = mstime();
     extractor->compute(img, frame.kpts, frame.dtors);
     //double t2 = mstime();
@@ -158,20 +158,23 @@ namespace frame_common
   // set up stereo frame
   // assumes frame has camera params already set
   // <nfrac> is nonzero if <imgr> is a dense stereo image
-  void FrameProc::setStereoFrame(Frame &frame, const cv::Mat &img, const cv::Mat &imgr, int nfrac)
+  void FrameProc::setStereoFrame(Frame &frame, const cv::Mat &img, const cv::Mat &imgr, const cv::Mat &left_mask, int nfrac )
   {
-    setMonoFrame(frame, img);
+    setMonoFrame( frame, img, left_mask );
 
     frame.imgRight = imgr;
 
     // set stereo
-    setStereoPoints(frame,nfrac);
-    //double t3 = mstime();
-
-    //  printf("detect %0.2f  extract %0.2f  stereo %0.2f \n", t1-t0, t2-t1, t3-t2);
-
+    setStereoPoints( frame, nfrac );
   }
 
+  // set up stereo frame
+  // assumes frame has camera params already set
+  // <nfrac> is nonzero if <imgr> is a dense stereo image
+  void FrameProc::setStereoFrame(Frame &frame, const cv::Mat &img, const cv::Mat &imgr, int nfrac )
+  {
+    setStereoFrame( frame, img, imgr, cv::Mat(), nfrac );
+  }
 
   // set up stereo points
   void FrameProc::setStereoPoints(Frame &frame, int nfrac)
