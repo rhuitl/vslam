@@ -491,7 +491,7 @@ double filterDecompositionsEpipolar(const Mat& intrinsics_inv, vector<Homography
 
     vector<double> epipolar_error;
     epipolar_error.resize(decompositions.size());
-    for(int i = 0; i < decompositions.size(); i++)
+    for(unsigned int i = 0; i < decompositions.size(); i++)
     {
         Mat essential = calcEssentialMatrix(intrinsics_inv, decompositions[i].R, decompositions[i].T);
 
@@ -568,7 +568,7 @@ void sample(int max_index, int count, vector<int>& sample_indices)
         }
 
         sample_indices.push_back(index);
-        if(sample_indices.size() == max_index)
+        if((int)sample_indices.size() == max_index)
         {
           break;
         }
@@ -645,7 +645,7 @@ double SFMwithSBA(const Mat& intrinsics, vector<Point2f>& points1, vector<Point2
 {
     if(points1.size() < 4 || points2.size() < 4)
     {
-        printf("SFMwithSBA called with %d points, exiting...\n", points1.size());
+        printf("SFMwithSBA called with %d points, exiting...\n", (int)points1.size());
         return -1.0;
     }
 
@@ -786,7 +786,7 @@ double SFM(const Mat& intrinsics, const vector<Point2f>& points1, const vector<P
             best_decomposition = decompositions[0];
             best_decompositions = _decompositions;
 
-            if(error < min_acceptable_error && inliers1.size() > min_acceptable_inlier_count)
+            if(error < min_acceptable_error && (int)inliers1.size() > min_acceptable_inlier_count)
             {
                 printf("Finishing after iteration %d, inlier count %d\n", i, (int)inliers1.size());
 //                dumpFltMat("H", H);
@@ -1018,7 +1018,7 @@ double calcCamProjCost(sba::SysSBA& sba, int cam)
 
 void sba(const Mat& intrinsics, Mat& rvec, Mat& tvec, vector<Point3f>& points, const vector<Point2f>& points1, const vector<Point2f>& points2)
 {
-    printf("sba got %d points\n", points.size());
+    printf("sba got %d points\n", (int)points.size());
     // system
     sba::SysSBA sba0;
     sba0.verbose = 0;
@@ -1062,7 +1062,7 @@ void sba(const Mat& intrinsics, Mat& rvec, Mat& tvec, vector<Point3f>& points, c
 
     }
 
-    printf("Added %d points, %d tracks\n", sba0.tracks.size(), sba0.tracks.size());
+    printf("Added %d points, %d tracks\n", (int)sba0.tracks.size(), (int)sba0.tracks.size());
 
     double error1 = calcCamProjCost(sba0, 0);
     double error2 = calcCamProjCost(sba0, 1);
@@ -1131,7 +1131,7 @@ float calcScaledPointCloudDistance(const vector<Point3f>& points1, const vector<
         Point3f d = points1[i]*s - points2[i];
         sum += d.dot(d);
 
-        printf("Pair %d: (%f %f %f) vs (%f %f %f), dist = %f\n", points1[i].x*s, points1[i].y*s,
+        printf("Pair %d: (%f %f %f) vs (%f %f %f), dist = %f\n", (int)i, points1[i].x*s, points1[i].y*s,
             points1[i].z*s, points2[i].x, points2[i].y, points2[i].z, sqrt(d.dot(d)));
     }
 

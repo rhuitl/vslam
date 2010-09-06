@@ -7,8 +7,8 @@
   <review status="unreviewed" notes=""/>
   <depend package="opencv2"/>
   <depend package="eigen3"/>
-  <depend package="sba"/>  
   <depend package="frame_common"/>
+  <depend package="sba"/>
   <export>
     <cpp cflags="-I${prefix}/include -I${prefix}/msg/cpp" lflags="-L${prefix}/lib -Wl,-rpath,${prefix}/lib -lposest -lpe_simulated" />
   </export>
