@@ -772,7 +772,7 @@ int sba::writeGraphFile(const char *filename, SysSBA& sba)
     // Info about each camera
     //   VERTEX_CAM n x y z qx qy qz qw fx fy cx cy baseline
     //   <baseline> is 0 for monocular data
-    //   <n> is the camera index, starting at 0
+    //   <n> is the camera index, heading at 0
     int ncams = sba.nodes.size();
     for (i = 0; i < (unsigned int)ncams; i++)
     {

@@ -149,7 +149,8 @@ namespace sba
       /// <useCSparse> is one of 
       ///   SBA_DENSE_CHOLESKY, SBA_SPARSE_CHOLESKY, SBA_GRADIENT, SBA_BLOCK_JACOBIAN_PCG 
       /// initTol is the initial tolerance for CG iterations
-      int doSBA(int niter, double lambda = 1.0e-4, int useCSparse = 0, double initTol = 1.0e-8);
+      int doSBA(int niter, double lambda = 1.0e-4, int useCSparse = 0, double initTol = 1.0e-8,
+                  int maxCGiters = 100);
 
       /// Convergence bound (square of minimum acceptable delta change)
       double sqMinDelta;
@@ -432,7 +433,11 @@ namespace sba
       EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
       /// constructor
-      SysSPA() { nFixed = 1; useLocalAngles = true; Node::initDr(); lambda = 1.0e-4; }
+        SysSPA() { nFixed = 1; useLocalAngles = true; Node::initDr(); lambda = 1.0e-4; 
+                   verbose = false;}
+
+      /// print info
+      bool verbose;
 
       /// set of nodes (camera frames) for SPA system, indexed by position;
       std::vector<Node,Eigen::aligned_allocator<Node> > nodes;
@@ -467,12 +472,13 @@ namespace sba
       /// <sLambda> is the diagonal augmentation for the LM step
       double lambda;            // save for continuation
       void setupSys(double sLambda);
-      void setupSparseSys(double sLambda, int iter);
+      void setupSparseSys(double sLambda, int iter, int sparseType);
 
       /// do LM solution for system; returns number of iterations on
       /// finish.  Argument is max number of iterations to perform,
       /// initial diagonal augmentation, and sparse form of Cholesky.
-      int doSPA(int niter, double sLambda = 1.0e-4, bool useCSparse = false);
+      int doSPA(int niter, double sLambda = 1.0e-4, int useCSparse = SBA_SPARSE_CHOLESKY,
+                  double initTol = 1.0e-8, int CGiters = 50);
 
       /// Convergence bound (square of minimum acceptable delta change)
       double sqMinDelta;

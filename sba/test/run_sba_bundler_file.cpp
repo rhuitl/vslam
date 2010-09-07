@@ -317,7 +317,7 @@ int main(int argc, char **argv)
 
 
   //  sys.doSBA(10,1e-4,SBA_SPARSE_CHOLESKY);
-  sys.doSBA(10,1e-4,SBA_BLOCK_JACOBIAN_PCG);
+  sys.doSBA(10,1e-4,SBA_BLOCK_JACOBIAN_PCG,1e-8,200);
 
   cout << endl << "Switch to full system" << endl;
   sys.connMat.resize(0);

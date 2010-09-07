@@ -804,7 +804,7 @@ namespace sba
 
   // Set up sparse linear system; see setupSys for algorithm.
   // Currently doesn't work with scale variables
-  void SysSPA::setupSparseSys(double sLambda, int iter)
+  void SysSPA::setupSparseSys(double sLambda, int iter, int sparseType)
   {
     // set matrix sizes and clear
     // assumes scales vars are all free
@@ -871,7 +871,10 @@ namespace sba
     //    t2 = utime();
 
     // set up sparse matrix structure from blocks
-    csp.setupCSstructure(lam,iter==0); 
+    if (sparseType == SBA_BLOCK_JACOBIAN_PCG)
+      csp.incDiagBlocks(lam);	// increment diagonal block
+    else
+      csp.setupCSstructure(lam,iter==0); 
 
     //    t3 = utime();
 
@@ -892,7 +895,12 @@ namespace sba
   /// number actually performed.
   /// <lambda> is the diagonal augmentation for LM.  
   /// <useCSparse> is true for sparse Cholesky.
-  int SysSPA::doSPA(int niter, double sLambda, bool useCSparse)
+  ///                2 for gradient system, 3 for block jacobian PCG
+  /// <initTol> is the initial tolerance for CG 
+  /// <maxCGiters> is max # of iterations in BPCG
+
+  int SysSPA::doSPA(int niter, double sLambda, int useCSparse, double initTol,
+                      int maxCGiters)
   {
     Node::initDr();
     int nFree = nodes.size() - nFixed; // number of free nodes
@@ -949,13 +957,23 @@ namespace sba
         long long t0, t1, t2, t3;
         t0 = utime();
         if (useCSparse)
-          setupSparseSys(lambda,iter); // set up sparse linear system
+          setupSparseSys(lambda,iter,useCSparse); // set up sparse linear system
         else
           setupSys(lambda);     // set up linear system
 
         //        cout << "[SPA] Solving...";
         t1 = utime();
-        if (useCSparse)
+	// use appropriate linear solver
+	if (useCSparse == SBA_BLOCK_JACOBIAN_PCG)
+	  {
+            if (csp.B.rows() != 0)
+	      {
+		int iters = csp.doBPCG(maxCGiters,initTol,iter);
+                if (verbose)
+                  cout << "[Block PCG] " << iters << " iterations" << endl;
+	      }
+	  }
+        else if (useCSparse > 0)
           {
             bool ok = csp.doChol();
             if (!ok)
@@ -1011,7 +1029,7 @@ namespace sba
           }
 
         // update the scales
-        ci = 6*nFree;       // start of scale vars
+        ci = 6*nFree;       // head of scale vars
         if (nscales > 0)        // could be empty
           for(int i=0; i < nscales; i++)
             {
@@ -1092,7 +1110,7 @@ namespace sba
     // cameras
     if (useCSparse)
       {
-        setupSparseSys(0.0,0);
+        setupSparseSys(0.0,0,useCSparse);
         
         int *Ai = csp.A->i;
         int *Ap = csp.A->p;

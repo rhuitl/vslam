@@ -655,7 +655,7 @@ namespace sba
 
 
   // set the connectivity matrix based on a minimum number of points
-  // greedy algorithm, starts with lowest and preserves connectivity
+  // greedy algorithm, heads with lowest and preserves connectivity
   void SysSBA::setConnMat(int minpts)
   {
     // data structures
@@ -885,7 +885,7 @@ namespace sba
 
   // delete any track that doesn't reduce the connection number between two nodes below
   //   a minimum
-  // greedy algorithm, starts with largest (smallest???) tracks
+  // greedy algorithm, heads with largest (smallest???) tracks
   int SysSBA::remExcessTracks(int minpts)
   {
     // data structures
@@ -1233,7 +1233,7 @@ void SysSBA::setupSys(double sLambda)
   /// <useCSparse> = 0 for dense Cholesky, 1 for sparse system, 
   ///                2 for gradient system, 3 for block jacobian PCG
   /// <initTol> is the initial tolerance for CG 
-  int SysSBA::doSBA(int niter, double sLambda, int useCSparse, double initTol)
+  int SysSBA::doSBA(int niter, double sLambda, int useCSparse, double initTol, int maxCGiter)
   {
     // set aux buffer
     oldpoints.clear();
@@ -1341,7 +1341,7 @@ void SysSBA::setupSys(double sLambda)
 	  {
             if (csp.B.rows() != 0)
 	      {
-		int iters = csp.doBPCG(1000,initTol,iter);
+		int iters = csp.doBPCG(maxCGiter,initTol,iter);
 		cout << "[Block PCG] " << iters << " iterations" << endl;
 	      }
 	  }

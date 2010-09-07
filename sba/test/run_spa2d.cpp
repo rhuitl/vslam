@@ -214,7 +214,10 @@ int main(int argc, char **argv)
       t1 = utime();
       cumtime += t1 - t0;
       if (i%100 == 0) 
-	cout << "[SPA2D] iteration: " << i << " squared cost " << spa.errcost << endl;
+        {
+          cout << "[SPA2D] iteration: " << i << " squared cost " << spa.errcost << endl;
+          cerr << i << " " << cumtime*.001 << " " << spa.errcost << endl;
+        }
     }
 
 
