@@ -28,7 +28,7 @@ int sba::readBundlerFile(const char *filename, SysSBA& sbaout)
     /* cout << "Points: " << npts << "  Tracks: " << ptts.size() 
          << "  Projections: " << nprjs << endl; */
          
-    // cout << "Setting up nodes..." << flush;
+    cout << "Setting up nodes..." << flush;
     for (int i=0; i<ncams; i++)
     {
         // camera params
@@ -69,7 +69,7 @@ int sba::readBundlerFile(const char *filename, SysSBA& sbaout)
     // cout << "done" << endl;
 
     // set up points
-    // cout << "Setting up points..." << flush;
+    cout << "Setting up points..." << flush;
     for (int i=0; i<npts; i++)
     {
         // point
@@ -87,26 +87,26 @@ int sba::readBundlerFile(const char *filename, SysSBA& sbaout)
 
     // set up projections
     int ntot = 0;
-    // cout << "Setting up projections..." << flush;
+    cout << "Setting up projections..." << flush;
     for (int i=0; i<npts; i++)
     {
-        // track
-        vector<Vector4d, Eigen::aligned_allocator<Vector4d> > &ptt = ptts[i];
-        int nprjs = ptt.size();
-        for (int j=0; j<nprjs; j++)
+      // track
+      vector<Vector4d, Eigen::aligned_allocator<Vector4d> > &ptt = ptts[i];
+      int nprjs = ptt.size();
+      for (int j=0; j<nprjs; j++)
         {
-            // projection
-            Vector4d &prj = ptt[j];
-            int cami = (int)prj[0];
-            Vector2d pt = prj.segment<2>(2);
-            pt[1] = -pt[1];	// NOTE: Bundler image Y is reversed
-            if (cami >= ncams)
-                cout << "*** Cam index exceeds bounds: " << cami << endl;
-            sbaout.addMonoProj(cami,i,pt); // Monocular projections
-            ntot++;
+	  // projection
+	  Vector4d &prj = ptt[j];
+	  int cami = (int)prj[0];
+	  Vector2d pt = prj.segment<2>(2);
+	  pt[1] = -pt[1];	// NOTE: Bundler image Y is reversed
+	  if (cami >= ncams)
+	    cout << "*** Cam index exceeds bounds: " << cami << endl;
+	  sbaout.addMonoProj(cami,i,pt); // Monocular projections
+	  ntot++;
         }
     }
-    // cout << "done" << endl;
+    cout << "done" << endl;
     
     return 0;
 }
@@ -488,11 +488,11 @@ void sba::writeSparseA(const char *fname, SysSBA& sba)
 int sba::readGraphFile(const char *filename, SysSBA& sbaout)
 { 
     // Create vectors to hold the data from the graph file. 
-    vector< Vector4d, Eigen::aligned_allocator<Vector4d> > camps;	// cam params <f d1 d2>
+    vector< Vector5d, Eigen::aligned_allocator<Vector5d> > camps;	// cam params <f d1 d2>
     vector< Vector4d, Eigen::aligned_allocator<Vector4d> > camqs;	// cam rotation matrix
     vector< Vector3d, Eigen::aligned_allocator<Vector3d> > camts;	// cam translation
     vector< Vector3d, Eigen::aligned_allocator<Vector3d> > ptps;	// point position
-    vector< vector< Vector4d, Eigen::aligned_allocator<Vector4d> > > ptts; // point tracks - each vector is <camera_index kp_idex u v>
+    vector< vector< Vector11d, Eigen::aligned_allocator<Vector11d> > > ptts; // point tracks - each vector is <camera_index kp_idex u v>
 
     int ret = ParseGraphFile(filename, camps, camqs, camts, ptps, ptts);
     if (ret < 0)
@@ -506,12 +506,14 @@ int sba::readGraphFile(const char *filename, SysSBA& sbaout)
     /* cout << "Points: " << npts << "  Tracks: " << ptts.size() 
          << "  Projections: " << nprjs << endl; */
          
+    sbaout.tracks.resize(npts);
+
     // cout << "Setting up nodes..." << flush;
     for (int i=0; i<ncams; i++)
     {
         // camera params
-        Vector4d &camp = camps[i];
-        CamParams cpars = {camp[0],-camp[1],camp[2],camp[3],0}; // set focal length and offsets
+        Vector5d &camp = camps[i];
+        CamParams cpars = {camp[0],camp[1],camp[2],camp[3],camp[4]}; // set focal length and offsets
 	                                                        // note fy is negative...
         //
         // NOTE: not sure how graph files parameterize rotations
@@ -563,18 +565,26 @@ int sba::readGraphFile(const char *filename, SysSBA& sbaout)
     for (int i=0; i<npts; i++)
     {
         // track
-        vector<Vector4d, Eigen::aligned_allocator<Vector4d> > &ptt = ptts[i];
+        vector<Vector11d, Eigen::aligned_allocator<Vector11d> > &ptt = ptts[i];
         int nprjs = ptt.size();
         for (int j=0; j<nprjs; j++)
         {
             // projection
-            Vector4d &prj = ptt[j];
+            Vector11d &prj = ptt[j];
             int cami = (int)prj[0];
-            Vector2d pt = prj.segment<2>(2);
-            pt[1] = -pt[1];	// NOTE: Bundler image Y is reversed
-            if (cami >= ncams)
-                cout << "*** Cam index exceeds bounds: " << cami << endl;
-            sbaout.addMonoProj(cami,i,pt); // Monocular projections
+	    if (cami >= ncams)
+	      cout << "*** Cam index exceeds bounds: " << cami << endl;
+	    if (prj[4] > 0)	// stereo
+	      {
+		Vector3d pt = prj.segment<3>(2);
+		sbaout.addStereoProj(cami,i,pt); // Monocular projections
+	      }
+	    else		// mono
+	      {
+		Vector2d pt = prj.segment<2>(2);
+		sbaout.addMonoProj(cami,i,pt); // Monocular projections
+	      }
+
             ntot++;
         }
     }
@@ -601,11 +611,13 @@ static void make_qrot(double rr, double rp, double ry, Vector4d &v)
 }
 
 int  sba::ParseGraphFile(const char *fin,	// input file
-  vector< Vector4d, Eigen::aligned_allocator<Vector4d> > &camp, // cam params <fx fy cx cy>
-  vector< Vector4d, Eigen::aligned_allocator<Vector4d> > &camq, // cam rotation quaternion
+  vector< Vector5d, Eigen::aligned_allocator<Vector5d> > &camp, // cam params <fx fy cx cy>
+			 vector< Vector4d, Eigen::aligned_allocator<Vector4d> > &camq, // cam rotation quaternion
   vector< Vector3d, Eigen::aligned_allocator<Vector3d> > &camt, // cam translation
   vector< Vector3d, Eigen::aligned_allocator<Vector3d> > &ptp, // point position
-  vector< vector< Vector4d, Eigen::aligned_allocator<Vector4d> > > &ptts // point tracks - each vector is <camera_index point_index u v>; point index is redundant
+  // point tracks - each vector is <camera_index point_index u v d>; 
+  // point index is redundant, d is 0 for mono, >0 for stereo
+  vector< vector< Vector11d, Eigen::aligned_allocator<Vector11d> > > &ptts 
 		)
 {
   // input stream
@@ -639,8 +651,9 @@ int  sba::ParseGraphFile(const char *fin,	// input file
       if (type == "VERTEX_SE3")    // have a camera node
         {
           int n;
-          double tx,ty,tz,rr,rp,ry;
-          if (!(ss >> n >> tx >> ty >> tz >> rr >> rp >> ry))
+          double tx,ty,tz,qx,qy,qz,qw,fx,fy,cx,cy,bline;
+          if (!(ss >> n >> tx >> ty >> tz >> qx >> qy >> qz >> qw >> fx >> fy >>
+		cx >> cy >> bline))
             {
               cout << "[ReadSPA] Bad VERTEX_SE3 at line " << nline << endl;
               return -1;
@@ -648,12 +661,14 @@ int  sba::ParseGraphFile(const char *fin,	// input file
 	  nodemap.insert(pair<int,int>(n,nid));
 	  nid++;
           camt.push_back(Vector3d(tx,ty,tz));
-          Vector4d v;
-          make_qrot(rr,rp,ry,v);
+	  Vector4d v(qx,qy,qz,qw); // use quaternions
+	  //          make_qrot(rr,rp,ry,v);
           camq.push_back(v);
 
-	  // fake params, filled in by projections
-	  camp.push_back(Vector4d(0,0,0,0));
+	  // fx,fy,cx,cy
+	  Vector5d cp;
+	  cp << fx,fy,cx,cy,bline;
+	  camp.push_back(cp);
         }
 
       else if (type == "VERTEX_XYZ")    // have a point
@@ -670,18 +685,34 @@ int  sba::ParseGraphFile(const char *fin,	// input file
           ptp.push_back(Vector3d(tx,ty,tz));
         }
 
-      else if (type == "EDGE_PROJECT_XYZ") // have an edge
+      else if (type == "EDGE_PROJECT_XYZ" ||
+	       type == "EDGE_PROJECT_P2MC" ||
+	       type == "EDGE_PROJECT_P2SC") // have an edge
         {
           int n1,n2;
-          double u,v,fx,fy,cx,cy;
-	  double cv0, cv1, cv2;	// covars of point projection, not used
+	  double u,v,d;		// projection, including disparity
+	  double cv0, cv1, cv2, cv3, cv4, cv5; // covars of point projection, not used
+	  cv3 = cv4 =cv5 = 0.0;
 
           // indices and measurement
-          if (!(ss >> n1 >> n2 >> u >> v >> fx >> fy >> cx >> cy >> cv0 >> cv1 >> cv2))
-            {
-              cout << "[ReadSPA] Bad EDGE_PROJECT_XYZ at line " << nline << endl;
-              return -1;
-            }
+	  d = 0;
+	  if (type == "EDGE_PROJECT_P2SC")
+	    {
+	      if (!(ss >> n1 >> n2 >> u >> v >> d >>
+		    cv0 >> cv1 >> cv2 >> cv3 >> cv4 >> cv5))
+		{
+		  cout << "[ReadSPA] Bad EDGE_PROJECT_XYZ at line " << nline << endl;
+		  return -1;
+		}
+	    }
+	  else
+	    {
+	      if (!(ss >> n1 >> n2 >> u >> v >> cv0 >> cv1 >> cv2))
+		{
+		  cout << "[ReadSPA] Bad EDGE_PROJECT_XYZ at line " << nline << endl;
+		  return -1;
+		}
+	    }
 
 	  // get true indices
 	  map<int,int>::iterator it;
@@ -716,12 +747,10 @@ int  sba::ParseGraphFile(const char *fin,	// input file
 	  // get point track
 	  if (ptts.size() < (size_t)pi+1)
 	    ptts.resize(pi+1);
-	  vector< Vector4d, Eigen::aligned_allocator<Vector4d> > &trk = ptts[pi];
-	  trk.push_back(Vector4d(ci,pi,u,v));
-
-	  // set up cam params
-	  camp[ci] = Vector4d(fx,fy,cx,cy);
-
+	  vector< Vector11d, Eigen::aligned_allocator<Vector11d> > &trk = ptts[pi];
+	  Vector11d tv;
+	  tv << ci,pi,u,v,d,cv0,cv1,cv2,cv3,cv4,cv5;
+	  trk.push_back(tv);
 	}
 
       else
@@ -794,7 +823,7 @@ int sba::writeGraphFile(const char *filename, SysSBA& sba)
     //    EDGE_PROJECT_P2C pt_ind cam_ind u v
     for (i = 0; i < sba.tracks.size(); i++)
     {
-      outfile << "VERTEX_POINT" << ' ' << ncams+i << ' '; // index
+      outfile << "VERTEX_XYZ" << ' ' << ncams+i << ' '; // index
       // World <x y z>
       outfile << sba.tracks[i].point(0) << ' ' << sba.tracks[i].point(1) 
               << ' ' << sba.tracks[i].point(2) << endl;
@@ -805,13 +834,22 @@ int sba::writeGraphFile(const char *filename, SysSBA& sba)
       //   Mono projections have 0 for the disparity
       for(ProjMap::iterator itr = prjs.begin(); itr != prjs.end(); itr++)
         {
+	  // TODO: output real covariance, if available
           Proj &prj = itr->second;
 	  if (prj.stereo)
-	    outfile << "EDGE_PROJECT_P2SC "; // stereo edge
+	    {
+	      outfile << "EDGE_PROJECT_P2SC "; // stereo edge
+	      outfile << ncams+i << ' ' << prj.ndi << ' ' << prj.kp(0) << ' ' 
+		      << prj.kp(1) << ' ' << prj.kp(2) << ' ';
+	      outfile << "1 0 0 0 1 1" << endl;	// covariance
+	    }
 	  else
-	    outfile << "EDGE_PROJECT_P2MC "; // mono edge
-          outfile << ncams+i << ' ' << prj.ndi << ' ' << prj.kp(0) << ' ' 
-		  << prj.kp(1) << ' ' << prj.kp(2) << endl;
+	    {
+	      outfile << "EDGE_PROJECT_P2MC "; // mono edge
+	      outfile << ncams+i << ' ' << prj.ndi << ' ' << prj.kp(0) << ' ' 
+		      << prj.kp(1) << ' ';
+	      outfile << "1 0 1" << endl; // covariance
+	    }
         }
     }
 
