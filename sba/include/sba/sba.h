@@ -94,6 +94,9 @@ namespace sba
       /// \brief Set of tracks for each point P (projections onto camera frames).
       std::vector<Track, Eigen::aligned_allocator<Track> > tracks;
 
+      /// \brief Return total number of projections
+      int countProjs();
+
       /// \brief Calculate the total cost of the system by adding the squared 
       /// error over all projections.
       /// \return Total error of the system, in pixels^2.

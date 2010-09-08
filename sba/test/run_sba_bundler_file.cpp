@@ -111,8 +111,6 @@ void cholmod_timing(char *fA, char *fB)
 
 int main(int argc, char **argv)
 {
-  //  cholmod_timing((char *)"test/A819.venice-A.tri",(char *)"test/A819.venice-B.txt");
-
   char *fin;
 
   if (argc < 2)
@@ -126,6 +124,7 @@ int main(int argc, char **argv)
     minpts = atoi(argv[2]);
 
   fin = argv[1];
+
 
   // construct an SBA system
   SysSBA sys;
@@ -141,7 +140,7 @@ int main(int argc, char **argv)
       cout << "Split " << nrem << " / " << sys.tracks.size() << " tracks" << endl; 
     }
 
-  int nprjs = 1;
+  int nprjs = sys.countProjs();
 
   cout << "Calculating cost" << endl;
   double cost = sys.calcCost();
@@ -149,13 +148,12 @@ int main(int argc, char **argv)
 
   sys.nFixed = 1;
   sys.printStats();
-  sys.csp.useCholmod = false;
+  sys.csp.useCholmod = true;
 
 
 #if 1
   //  sba::writeLourakisFile((char *)"bra-340", sys);
   //  cout << endl << "Wrote SBA system in Lourakis format" << endl << endl;
-  cout << "starting file write" << endl;
   sba::writeGraphFile((char *)"output.g2o", sys);
   cout << endl << "Wrote SBA system in g2o format" << endl << endl;
 #endif

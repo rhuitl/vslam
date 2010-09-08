@@ -59,7 +59,7 @@ int sba::readBundlerFile(const char *filename, SysSBA& sbaout)
         // translation
         Vector3d &camt = camts[i];
         Vector4d frt;
-        frt.head<3>() = camt;//-camRs[i].transpose() * camt; // camera frame translation, from Bundler docs
+        frt.head<3>() = -camRs[i].transpose() * camt; // camera frame translation, from Bundler docs
         frt[3] = 1.0;
 
         Node nd;
@@ -150,7 +150,7 @@ int sba::writeBundlerFile(const char *filename, SysSBA& sbain)
         outfile << rotmat(2, 0) << ' ' << rotmat(2, 1) << ' ' << rotmat(2, 2) << endl;
         
         Vector3d trans = sbain.nodes[i].trans.head<3>();
-        
+        trans = -rotmat*trans;
         outfile << trans(0) << ' ' << trans(1) << ' ' << trans(2) << endl; 
     }
     
@@ -503,11 +503,9 @@ int sba::readGraphFile(const char *filename, SysSBA& sbaout)
     int nprjs = 0;
     for (int i=0; i<npts; i++)
         nprjs += (int)ptts[i].size();
-    /* cout << "Points: " << npts << "  Tracks: " << ptts.size() 
-         << "  Projections: " << nprjs << endl; */
+    //    cout << "Points: " << npts << "  Tracks: " << ptts.size() 
+    //         << "  Projections: " << nprjs << endl; 
          
-    sbaout.tracks.resize(npts);
-
     // cout << "Setting up nodes..." << flush;
     for (int i=0; i<ncams; i++)
     {
@@ -648,7 +646,8 @@ int  sba::ParseGraphFile(const char *fin,	// input file
       if (pos != string::npos)
         continue;               // comment line
 
-      if (type == "VERTEX_SE3")    // have a camera node
+      if (type == "VERTEX_SE3" || 
+          type == "VERTEX_CAM")    // have a camera node
         {
           int n;
           double tx,ty,tz,qx,qy,qz,qw,fx,fy,cx,cy,bline;

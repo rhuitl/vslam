@@ -234,6 +234,19 @@ namespace sba
       }
   }
 
+  // help function
+  int SysSBA::countProjs()
+  {
+    int tot = 0;
+    for(size_t i=0; i<tracks.size(); i++)
+      {
+        ProjMap &prjs = tracks[i].projections;
+        tot += prjs.size();
+      }
+    return tot;
+  }
+
+
   // error measure, squared
   // assumes node projection matrices have already been calculated
   double SysSBA::calcCost()

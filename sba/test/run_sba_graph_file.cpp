@@ -69,20 +69,17 @@ int main(int argc, char **argv)
 
   SysSBA sys;
   readGraphFile(fin, sys);
-  writeGraphFile("sba-out.graph", sys);
-
-  sys.useLocalAngles = true;    // use local angles
-  sys.nFixed = 1;
+  //  writeGraphFile("sba-out.graph", sys);
 
   double cost = sys.calcCost();
   cout << "Initial squared cost: " << cost << endl;
 
   sys.nFixed = 1;
   sys.printStats();
-  sys.csp.useCholmod = false;
+  sys.csp.useCholmod = true;
 
-  sys.doSBA(10,1e-4,SBA_SPARSE_CHOLESKY);
-  //  sys.doSBA(10,1e-4,SBA_BLOCK_JACOBIAN_PCG);
+  //  sys.doSBA(10,1e-4,SBA_SPARSE_CHOLESKY);
+  sys.doSBA(10,1e-4,SBA_BLOCK_JACOBIAN_PCG,1e-8,200);
 
   return 0;
 }
