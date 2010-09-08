@@ -280,6 +280,10 @@ namespace sba
       
       /// variables for each track
       std::vector<Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d> > tps;
+
+      /// storage for Jacobian products
+	std::vector<JacobProds, Eigen::aligned_allocator<JacobProds> > jps;
+
     };
 
 

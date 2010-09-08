@@ -1017,6 +1017,12 @@ void SysSBA::setupSys(double sLambda)
       {
         ProjMap &prjs = tracks[pi].projections;
         if (prjs.size() < 2) continue; // this catches some problems with bad tracks
+
+	// Jacobian product storage
+	if (prjs.size() > jps.size())
+	  jps.resize(prjs.size());
+
+	// local storage
         Matrix3d Hpp;
         Hpp.setZero();            // zero it out
         Vector3d bp;
@@ -1024,22 +1030,23 @@ void SysSBA::setupSys(double sLambda)
       
         // "compute derivates" of step 4
         // assume error has already been calculated in the cost function
-        for(ProjMap::iterator itr = prjs.begin(); itr != prjs.end(); itr++)
+	int ii=0;
+        for(ProjMap::iterator itr = prjs.begin(); itr != prjs.end(); itr++, ii++)
           {
             Proj &prj = itr->second;
             if (!prj.isValid) continue;
             int ci = (prj.ndi - nFixed) * 6; // index of camera params (6DOF)
                                              // NOTE: assumes fixed cams are at beginning
-            prj.setJacobians(nodes[prj.ndi],tracks[pi].point); // calculate derivatives
-            Hpp += prj.Hpp; // add in JpT*Jp
-            bp  -= prj.Bp; // subtract JcT*f from bp; compute transpose twice???
+            prj.setJacobians(nodes[prj.ndi],tracks[pi].point,&jps[ii]); // calculate derivatives
+            Hpp += prj.jp->Hpp; // add in JpT*Jp
+            bp  -= prj.jp->Bp; // subtract JcT*f from bp; compute transpose twice???
 
             if (!nodes[prj.ndi].isFixed)  // if not a fixed camera, do more
               {
                 dcnt(prj.ndi - nFixed)++;
                 // NOTE: A is symmetric, only need the upper/lower triangular part
-                A.block<6,6>(ci,ci) += prj.Hcc; // add JcT*Jc to A; diagonal augmented????
-                B.block<6,1>(ci,0) -= prj.JcTE;
+                A.block<6,6>(ci,ci) += prj.jp->Hcc; // add JcT*Jc to A; diagonal augmented????
+                B.block<6,1>(ci,0) -= prj.jp->JcTE;
               }
           }
 
@@ -1059,8 +1066,8 @@ void SysSBA::setupSys(double sLambda)
             if (nodes[prj.ndi].isFixed) continue; // skip fixed cameras
             int ci = (prj.ndi - nFixed) * 6; // index of camera params (6DOF)
                                              // NOTE: assumes fixed cams are at beginning
-            B.block<6,1>(ci,0) -= prj.Hpc.transpose() * tp; // Hpc * tp subtracted from B
-            prj.Tpc = prj.Hpc.transpose() * Hppi;
+            B.block<6,1>(ci,0) -= prj.jp->Hpc.transpose() * tp; // Hpc * tp subtracted from B
+            prj.Tpc = prj.jp->Hpc.transpose() * Hppi;
 
             // iterate over nodes left on the track, plus yourself
             for(ProjMap::iterator itr2 = itr; itr2 != prjs.end(); itr2++)
@@ -1071,7 +1078,7 @@ void SysSBA::setupSys(double sLambda)
                 int ci2 = (prj2.ndi - nFixed) * 6; // index of camera params (6DOF)
                                                // NOTE: assumes fixed cams are at beginning
                 // NOTE: this only does upper triangular part
-                A.block<6,6>(ci,ci2) -= prj.Tpc * prj2.Hpc; // Tpc * Hpc2 subtracted from A(c,c2)
+                A.block<6,6>(ci,ci2) -= prj.Tpc * prj2.jp->Hpc; // Tpc * Hpc2 subtracted from A(c,c2)
                 // lower triangular part - this can be dropped for CSparse, uses ~30% of setup time
                 if (ci != ci2)
                   A.block<6,6>(ci2,ci) = A.block<6,6>(ci,ci2).transpose();
@@ -1137,6 +1144,12 @@ void SysSBA::setupSys(double sLambda)
       {
         ProjMap &prjs = tracks[pi].projections;
         if (prjs.size() < 2) continue; // this catches some problems with bad tracks
+
+	// set up vector storage of Jacobian products
+	if (prjs.size() > jps.size())
+	  jps.resize(prjs.size());
+
+	// local storage
         Matrix3d Hpp;
         Hpp.setZero();            // zero it out
         Vector3d bp;
@@ -1144,24 +1157,25 @@ void SysSBA::setupSys(double sLambda)
       
         // "compute derivates" of step 4
         // assume error has already been calculated in the cost function
-        for(ProjMap::iterator itr = prjs.begin(); itr != prjs.end(); itr++)
+	int ii=0;
+        for(ProjMap::iterator itr = prjs.begin(); itr != prjs.end(); itr++, ii++)
           {
             Proj &prj = itr->second;
             if (!prj.isValid) continue;
             int ni = prj.ndi - nFixed;
             int ci = ni * 6;    // index of camera params (6DOF)
                                              // NOTE: assumes fixed cams are at beginning
-            prj.setJacobians(nodes[prj.ndi],tracks[pi].point); // calculate derivatives
-            Hpp += prj.Hpp; // add in JpT*Jp
-            bp  -= prj.Bp; // subtract JcT*f from bp; compute transpose twice???
+            prj.setJacobians(nodes[prj.ndi],tracks[pi].point,&jps[ii]); // calculate derivatives
+            Hpp += prj.jp->Hpp; // add in JpT*Jp
+            bp  -= prj.jp->Bp; // subtract JcT*f from bp; compute transpose twice???
 
             if (!nodes[prj.ndi].isFixed)  // if not a fixed camera, do more
               {
                 dcnt(prj.ndi - nFixed)++;
                 // NOTE: A is symmetric, only need the upper/lower triangular part
                 //                jctjc.diagonal() *= lam;  // now done at end
-                csp.addDiagBlock(prj.Hcc,ni);
-                csp.B.block<6,1>(ci,0) -= prj.JcTE;
+                csp.addDiagBlock(prj.jp->Hcc,ni);
+                csp.B.block<6,1>(ci,0) -= prj.jp->JcTE;
               }
           }
 
@@ -1182,8 +1196,8 @@ void SysSBA::setupSys(double sLambda)
             int ni = prj.ndi - nFixed;
             int ci = ni * 6;    // index of camera params (6DOF)
                                 // NOTE: assumes fixed cams are at beginning
-            csp.B.block<6,1>(ci,0) -= prj.Hpc.transpose() * tp; // Hpc * tp subtracted from B
-            prj.Tpc = prj.Hpc.transpose() * Hppi;
+            csp.B.block<6,1>(ci,0) -= prj.jp->Hpc.transpose() * tp; // Hpc * tp subtracted from B
+            prj.Tpc = prj.jp->Hpc.transpose() * Hppi;
 
             // iterate over nodes left on the track, plus yourself
             if (sparseType != SBA_GRADIENT)
@@ -1198,7 +1212,7 @@ void SysSBA::setupSys(double sLambda)
                       nskip++;
                       continue;
                     }
-                  Matrix<double,6,6> m = -prj.Tpc * prj2.Hpc;
+                  Matrix<double,6,6> m = -prj.Tpc * prj2.jp->Hpc;
                   if (ni == ni2)
                     csp.addDiagBlock(m,ni);
                   else
@@ -1206,7 +1220,7 @@ void SysSBA::setupSys(double sLambda)
                 }
             else                // gradient calculation
               {
-                Matrix<double,6,6> m = -prj.Tpc * prj.Hpc;
+                Matrix<double,6,6> m = -prj.Tpc * prj.jp->Hpc;
                 csp.addDiagBlock(m,ni);
               }
 

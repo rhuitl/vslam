@@ -1,6 +1,10 @@
 #ifndef _PROJ_H_
 #define _PROJ_H_
 
+#ifndef EIGEN_USE_NEW_STDVECTOR
+#define EIGEN_USE_NEW_STDVECTOR
+#endif // EIGEN_USE_NEW_STDVECTOR
+
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 #include <Eigen/LU>
@@ -11,6 +15,36 @@
 
 namespace sba
 {
+  class JacobProds
+  {
+  public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW // needed for 16B alignment
+
+    JacobProds() 
+    {
+      Hpp.setZero();
+      Hpc.setZero();
+      Hcc.setZero();
+      Bp.setZero();
+      JcTE.setZero();
+    }
+
+    /// Point-to-point Hessian (JpT*Jp).
+    Eigen::Matrix<double,3,3> Hpp;
+      
+    /// Point-to-camera Hessian (JpT*Jc)
+    Eigen::Matrix<double,3,6> Hpc;
+      
+    /// Camera-to-camera Hessian (JcT*Jc)
+    Eigen::Matrix<double,6,6> Hcc;
+      
+    /// The B matrix with respect to points (JpT*Err)
+    Eigen::Matrix<double,3,1> Bp;
+      
+    /// Another matrix with respect to cameras (JcT*Err)
+    Eigen::Matrix<double,6,1> JcTE;
+  };
+
   class Proj; // Forward reference.
   
   /// Obnoxiously long type def for the map type that holds the point 
@@ -23,6 +57,9 @@ namespace sba
   class Proj
   {
     public:
+
+      EIGEN_MAKE_ALIGNED_OPERATOR_NEW // needed for 16B alignment
+
       /// \brief General & stereo constructor. To construct a monocular 
       /// projection, either use stereo = false or the other constructor.
       /// NOTE: sets the projection to be valid.
@@ -77,24 +114,13 @@ namespace sba
           d(px/pz)/du = [ pz dpx/du - px dpz/du ] / pz^2,
           works for all variables
           only change for right cam is px += b */
-      void setJacobians(const Node &nd, const Point &pt);
+      void setJacobians(const Node &nd, const Point &pt, JacobProds *jpp);
       
-      /// Point-to-point Hessian (JpT*Jp).
-      Eigen::Matrix<double,3,3> Hpp;
-      
-      /// Point-to-camera Hessian (JpT*Jc)
-      Eigen::Matrix<double,3,6> Hpc;
-      
-      /// Camera-to-camera Hessian (JcT*Jc)
-      Eigen::Matrix<double,6,6> Hcc;
-      
-      /// The B matrix with respect to points (JpT*Err)
-      Eigen::Matrix<double,3,1> Bp;
-      
-      /// Another matrix with respect to cameras (JcT*Err)
-      Eigen::Matrix<double,6,1> JcTE;
+      /// Jacobian products
+      JacobProds *jp;
       
       /// Point-to-camera matrix (HpcT*Hpp^-1)
+      /// Need to save this
       Eigen::Matrix<double,6,3> Tpc;
       
       /// valid or not (could be out of bounds)
@@ -138,14 +164,13 @@ namespace sba
       /// Clear the covariance matrix and no longer use it.
       void clearCovariance();
       
-      EIGEN_MAKE_ALIGNED_OPERATOR_NEW // needed for 16B alignment
       
     protected:
       /// Set monocular jacobians/hessians.
-      void setJacobiansMono_(const Node &nd, const Point &pt);
+      void setJacobiansMono_(const Node &nd, const Point &pt, JacobProds *jpp);
       
       /// Set stereo jacobians/hessians.
-      void setJacobiansStereo_(const Node &nd, const Point &pt);
+      void setJacobiansStereo_(const Node &nd, const Point &pt, JacobProds *jpp);
       
       /// Calculate error function for stereo.
       double calcErrMono_(const Node &nd, const Point &pt);

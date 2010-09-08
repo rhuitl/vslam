@@ -14,12 +14,12 @@ namespace sba
       : ndi(0), kp(0, 0, 0), 
         stereo(false), isValid(false), useCovar(false), pointPlane(false) {}
 
-  void Proj::setJacobians(const Node &nd, const Point &pt)
+  void Proj::setJacobians(const Node &nd, const Point &pt, JacobProds *jpp)
   {
     if (stereo)
-      setJacobiansStereo_(nd, pt);
+      setJacobiansStereo_(nd, pt, jpp);
     else
-      setJacobiansMono_(nd, pt);
+      setJacobiansMono_(nd, pt, jpp);
   }
   
   double Proj::calcErr(const Node &nd, const Point &pt)
@@ -57,7 +57,7 @@ namespace sba
     useCovar = false;
   }
 
-  void Proj::setJacobiansMono_(const Node &nd, const Point &pt)
+  void Proj::setJacobiansMono_(const Node &nd, const Point &pt, JacobProds *jpp)
   {
     // first get the world point in camera coords
     Eigen::Matrix<double,3,1> pc = nd.w2n * pt;
@@ -129,11 +129,13 @@ namespace sba
 #endif
     
     // Set Hessians + extras.
-    Hpp = jacp.transpose() * jacp;
-    Hcc = jacc.transpose() * jacc;
-    Hpc = jacp.transpose() * jacc;
-    JcTE = jacc.transpose() * err.head<2>();
-    Bp = jacp.transpose() * err.head<2>();
+    jpp->Hpp = jacp.transpose() * jacp;
+    jpp->Hcc = jacc.transpose() * jacc;
+    jpp->Hpc = jacp.transpose() * jacc;
+    jpp->JcTE = jacc.transpose() * err.head<2>();
+    jpp->Bp = jacp.transpose() * err.head<2>();
+
+    jp = jpp;
   }
 
   // calculate error of a projection
@@ -155,7 +157,7 @@ namespace sba
   }
 
 
-  void Proj::setJacobiansStereo_(const Node &nd, const Point &pt)
+  void Proj::setJacobiansStereo_(const Node &nd, const Point &pt, JacobProds *jpp)
   {
     // first get the world point in camera coords
     Eigen::Matrix<double,3,1> pc = nd.w2n * pt;
@@ -242,12 +244,13 @@ namespace sba
     }
 
     // Set Hessians + extras.
-    Hpp = jacp.transpose() * jacp;
-    Hcc = jacc.transpose() * jacc;
-    Hpc = jacp.transpose() * jacc;
-    JcTE = jacc.transpose() * err;
-    Bp = jacp.transpose() * err;
+    jpp->Hpp = jacp.transpose() * jacp;
+    jpp->Hcc = jacc.transpose() * jacc;
+    jpp->Hpc = jacp.transpose() * jacc;
+    jpp->JcTE = jacc.transpose() * err;
+    jpp->Bp = jacp.transpose() * err;
     
+    jp = jpp;
   }
 
   // calculate error of a projection

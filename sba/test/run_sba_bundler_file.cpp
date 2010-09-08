@@ -151,7 +151,7 @@ int main(int argc, char **argv)
   sys.csp.useCholmod = true;
 
 
-#if 1
+#if 0
   //  sba::writeLourakisFile((char *)"bra-340", sys);
   //  cout << endl << "Wrote SBA system in Lourakis format" << endl << endl;
   sba::writeGraphFile((char *)"output.g2o", sys);
