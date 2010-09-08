@@ -15,6 +15,12 @@
 
 #include "sba/sba.h"
 
+namespace Eigen
+{
+  typedef Matrix<double,11,1> Vector11d;
+  typedef Matrix<double,5,1>  Vector5d;
+}
+
 namespace sba
 {
 
@@ -64,11 +70,11 @@ namespace sba
   /** \brief A low-level parser for graph files. */
   int 
   ParseGraphFile(const char *fin,	// input file
-		  std::vector< Eigen::Vector4d, Eigen::aligned_allocator<Eigen::Vector4d> > &camps, // cam params <fx fy cx cy>
+		  std::vector< Eigen::Vector5d, Eigen::aligned_allocator<Eigen::Vector5d> > &camps, // cam params <fx fy cx cy>
 		  std::vector< Eigen::Vector4d, Eigen::aligned_allocator<Eigen::Vector4d> > &camqs, // cam rotation matrix
 		  std::vector< Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d> > &camts, // cam translation
 		  std::vector< Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d> > &ptps, // point position
-		  std::vector< std::vector< Eigen::Vector4d, Eigen::aligned_allocator<Eigen::Vector4d> > > &ptts // point tracks - each vector is <camera_index u v>
+		  std::vector< std::vector< Eigen::Vector11d, Eigen::aligned_allocator<Eigen::Vector11d> > > &ptts // point tracks - each vector is <camera_index u v>
     );
 
 
