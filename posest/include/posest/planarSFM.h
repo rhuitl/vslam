@@ -112,6 +112,19 @@ void filterVector(const std::vector<T>& src, const std::vector<bool>& valid, std
 };
 
 template<class T>
+void filterVector(const std::vector<T>& src, const std::vector<int>& valid, std::vector<T>& dst)
+{
+    dst.clear();
+    for(size_t i = 0; i < valid.size(); i++)
+    {
+        if(valid[i])
+        {
+            dst.push_back(src[i]);
+        }
+    }
+};
+
+template<class T>
 void filterVector(std::vector<T>& v, const std::vector<bool>& valid)
 {
     std::vector<T> out;
@@ -142,6 +155,12 @@ void vectorSubset(const std::vector<T>& src, const std::vector<int>& indices, st
 
 void sample(int max_index, int count, std::vector<int>& sample_indices);
 
+cv::Point3f mult(const cv::Mat& M, const cv::Point3f& p);
+
+void calcRelativeRT(const cv::Mat& R1, const cv::Mat& T1, const cv::Mat& R2, const cv::Mat& T2,
+                    cv::Mat& dR, cv::Mat& dT);
+
 }
+
 
 #endif //_PLANAR_SFM_H

@@ -40,6 +40,7 @@
 #include <posest/pnp_ransac.h>
 
 #include <iostream>
+#include <algorithm>
 
 using namespace cv;
 
@@ -145,9 +146,29 @@ void filterMatchesOpticalFlow(const fc::Frame& frame1, const fc::Frame& frame2, 
 #endif
 }
 
-int PoseEstimator2d::estimate(const fc::Frame& frame1, const fc::Frame& frame2, const std::vector<Match> &matches)
+bool greaterMatchPredicate(const Match& m1, const Match& m2)
 {
-//  vector<Match> matches = _matches;
+  return m1.distance < m2.distance;
+}
+
+void filterMatchesByDistance(std::vector<Match>& matches, float percentile = 0.1f)
+{
+  std::sort(matches.begin(), matches.end(), greaterMatchPredicate);
+
+  // matches.resize does not compile due to absence of Match default constructor
+  vector<Match> filtered;
+  for(size_t i = 0; i < (size_t)floor(matches.size()*percentile); i++)
+  {
+    filtered.push_back(matches[i]);
+  }
+
+  matches = filtered;
+}
+
+int PoseEstimator2d::estimate(const fc::Frame& frame1, const fc::Frame& frame2, const std::vector<Match>& _matches)
+{
+  vector<Match> matches = _matches;
+  filterMatchesByDistance(matches, 0.5f);
 
   std::cout << "called PoseEstimator2d::estimate for frames " << frame1.frameId << " and " << frame2.frameId
         << std::endl;
@@ -161,8 +182,12 @@ int PoseEstimator2d::estimate(const fc::Frame& frame1, const fc::Frame& frame2, 
 
 #if 0
   Mat display;
-  //        features_2d::drawMatches(frame1.img, frame1.kpts, frame2.img, frame2.kpts, matches, display);
-  pe::drawMatches(frame1.img, frame1.kpts, frame2.kpts, matches, display);
+  vector<int> sample_indices;
+  sample(matches.size(), 50, sample_indices);
+  vector<Match> sample_matches;
+  vectorSubset(matches, sample_indices, sample_matches);
+  features_2d::drawMatches(frame1.img, frame1.kpts, frame2.img, frame2.kpts, sample_matches, display);
+  //pe::drawMatches(frame1.img, frame1.kpts, frame2.kpts, matches, display);
   namedWindow("1", 1);
   imshow("1", display);
   waitKey(0);
@@ -181,13 +206,16 @@ int PoseEstimator2d::estimate(const fc::Frame& frame1, const fc::Frame& frame2, 
     return 0;
   }
 
-  const int min_good_pts = 100;
+  const int minGoodPts = 30;
+  const float inlierPoseReprojError = 1.0f;
+  const float inlierReprojError = 1.0f;
+  const float maxInlierDist = 100.0f;
 
   // extract all good pts for PnP solver
   vector<Point2f> imagePoints;
   vector<Point3f> objectPoints;
   extractPnPData(frame1, frame2, matches, imagePoints, objectPoints);
-  if (imagePoints.size() == 0)
+  if(!initialized_)
   {
     // too few correspondences with valid 3d points, run structure from motion
     //std::cout << "The number of 3d points " << imagePoints.size() << ", running SFM" << std::endl;
@@ -200,12 +228,13 @@ int PoseEstimator2d::estimate(const fc::Frame& frame1, const fc::Frame& frame2, 
     tvec = tvec/norm(tvec);
 
     usedMethod = SFM;
-}
-  else
+  }
+  else if(imagePoints.size() > minGoodPts)
   {
     std::cout << "Running PnP" << std::endl;
 //    std::cout << "The number of 3d points " << imagePoints.size() << ", running PnP" << std::endl;
-    solvePnPRansac(objectPoints, imagePoints, intrinsics, Mat::zeros(5, 1, CV_32F), rvec, tvec, false, 1000);
+    const int minIterCount = 10000;
+    solvePnPRansac(objectPoints, imagePoints, intrinsics, Mat::zeros(5, 1, CV_32F), rvec, tvec, false, minIterCount, inlierPoseReprojError, minGoodPts);
     Mat _rvec, _tvec;
     rvec.convertTo(_rvec, CV_32F);
     tvec.convertTo(_tvec, CV_32F);
@@ -214,7 +243,10 @@ int PoseEstimator2d::estimate(const fc::Frame& frame1, const fc::Frame& frame2, 
 
     usedMethod = PnP;
   }
-
+  else
+  {
+    return 0;
+  }
 
   std::cout << "finished pose estimation" << std::endl;
 
@@ -228,11 +260,9 @@ int PoseEstimator2d::estimate(const fc::Frame& frame1, const fc::Frame& frame2, 
 
   // compute inliers for pose validation
   vector<bool> valid_pose = valid;
-  const float inlierPoseReprojError = 1.0f;
   filterInliers(cloud, full_image_points1, full_image_points2, R, tvec, intrinsics, inlierPoseReprojError, valid_pose);
 
   // compute inliers for 3d point cloud
-  const float inlierReprojError = 1.0f;
   filterInliers(cloud, full_image_points1, full_image_points2, R, tvec, intrinsics, inlierReprojError, valid);
 
   float avgDist = 0;
@@ -242,7 +272,10 @@ int PoseEstimator2d::estimate(const fc::Frame& frame1, const fc::Frame& frame2, 
   {
     if(!valid_pose[i]) continue;
     const float infDist = 500.0f*norm(tvec);
+
     float dist2 = cloud[i].dot(cloud[i]);
+    if(cvIsNaN(dist2)) continue;
+
     if(dist2 > infDist*infDist)
     {
       count1++;
@@ -264,7 +297,7 @@ int PoseEstimator2d::estimate(const fc::Frame& frame1, const fc::Frame& frame2, 
 //  std::cout << "The number of close points: " << count2 << std::endl;
 
 #if 1
-  if(getMethod() == SFM && avgDist > maxAvgDist)
+  if(getMethod() == SFM && !testMode && avgDist > maxAvgDist)
   {
     printf("pe::estimate: average point cloud z %f is higher than maximum acceptable %f\n", avgDist, maxAvgDist);
     return 0;
@@ -297,22 +330,29 @@ int PoseEstimator2d::estimate(const fc::Frame& frame1, const fc::Frame& frame2, 
   double minz = 1e10, maxz = 0;
   vector<Match> _inliers;
 
-  const float maxInlierDist = 100.0f;
   float z1sum = 0, z2sum = 0, z1sum2 = 0, z2sum2 = 0;
+  int countFiltered = 0;
   for (size_t i = 0; i < matches.size(); i++)
   {
     if (!valid[i])
       continue;
 
+    if(cvIsNaN(cloud[i].x) || cvIsNaN(cloud[i].y) || cvIsNaN(cloud[i].z))
+      continue;
+
+
     minz = MIN(minz, cloud[i].z);
     maxz = MAX(maxz, cloud[i].z);
 
 #if 1
-    const float maxDist = 70.0f;
+    const float maxDist = 100.0f;
     const float minDist = 10.0f;
     float dist = norm(cloud[i])/norm(tvec);
-    if(dist < minDist || dist > maxDist || cloud[i].z < 0)
+    if(!testMode && dist < minDist || dist > maxDist || cloud[i].z < 0)
+    {
+      countFiltered++;
       continue;
+    }
 #endif
 
     inliers.push_back(matches[i]);
@@ -352,6 +392,13 @@ int PoseEstimator2d::estimate(const fc::Frame& frame1, const fc::Frame& frame2, 
     z2sum += _frame2.pts[i2](2);
     z2sum2 += _frame2.pts[i2](2)*_frame2.pts[i2](2);
   }
+
+  if(goodCount < minGoodPts)
+  {
+    printf("Returning a small amount of good points: %d, minGoodPts = %d\n", goodCount, minGoodPts);
+    return 0;
+  }
+
   printf("minz = %f, maxz = %f\n", minz, maxz);
   printf("Frame1: mean z = %f, std z = %f\n", z1sum/goodCount, sqrt(z1sum2/goodCount - z1sum*z1sum/(goodCount*goodCount)));
   printf("Frame2: mean z = %f, std z = %f\n", z2sum/goodCount, sqrt(z2sum2/goodCount - z2sum*z2sum/(goodCount*goodCount)));
@@ -359,21 +406,26 @@ int PoseEstimator2d::estimate(const fc::Frame& frame1, const fc::Frame& frame2, 
   std::cout << "Input number of matches " << (int)full_image_points1.size() << ", inliers " << (int)inliers.size()
       << std::endl;
   std::cout << "goodCount " << goodCount << std::endl;
+  std::cout << "filtered inliers: " << countFiltered << std::endl;
   std::cout << "_inliers.size() = " << _inliers.size() << std::endl;
 
 #if 1
   if(!frame1.img.empty())
   {
-#if 0
+#if 1
     Mat display1, display2;
     vector<Match> match_samples;
     vector<int> match_indices;
-    sample(matches.size(), 50, match_indices);
+    sample(matches.size(), 100, match_indices);
     vectorSubset(matches, match_indices, match_samples);
-    features_2d::drawMatches(frame1.img, frame1.kpts, frame2.img, frame2.kpts, match_samples, display1);
+    drawMatches(frame1.img, frame1.kpts, frame2.img, frame2.kpts, match_samples, display1);
     //pe::drawMatches(frame1.img, frame1.kpts, frame2.kpts, inliers, display1);
     namedWindow("1", 1);
     imshow("1", display1);
+
+    char buf1[1024];
+    sprintf(buf1, "matches%04d.jpg", frame1.frameId);
+    imwrite(buf1, display1);
 
 #if 0
     features_2d::drawMatches(frame1.img, frame1.kpts, frame2.img, frame2.kpts, _inliers, display2);
@@ -388,10 +440,14 @@ int PoseEstimator2d::estimate(const fc::Frame& frame1, const fc::Frame& frame2, 
     vector<int> inlier_indices;
     sample(inliers.size(), 50, inlier_indices);
     vectorSubset(inliers, inlier_indices, inlier_sample);
-#if 0
-    cv::drawMatches(frame1.img, frame1.kpts, frame2.img, frame2.kpts, inlier_sample, img_matches);
+#if 1
+    drawMatches(frame1.img, frame1.kpts, frame2.img, frame2.kpts, inlier_sample, img_matches);
     namedWindow("matches", 1);
     imshow("matches", img_matches);
+
+    char buf[1024];
+    sprintf(buf, "img%04d.jpg", frame1.frameId);
+    imwrite(buf, img_matches);
 #endif
 
 #if 0
@@ -409,7 +465,8 @@ int PoseEstimator2d::estimate(const fc::Frame& frame1, const fc::Frame& frame2, 
 //  waitKey(0);
 #endif
 
-  return count;//(int)inliers.size();
+  initialized_ = true;
+  return goodCount;//(int)inliers.size();
 
 };
 
@@ -424,11 +481,12 @@ void PoseEstimator2d::setPose(const cv::Mat& rvec, const cv::Mat& tvec)
   cv2eigen(R, rot);
   cv2eigen(tvec_inv, trans);
 
-  dumpFltMat("trans in SetPose", tvec);
+  dumpFltMat("tvec in SetPose", tvec);
+  dumpFltMat("rvec in SetPose", rvec);
 
-  std::cout << "---------------------" << std::endl;
-  std::cout << "translation: " << trans << std::endl;
-  std::cout << "---------------------" << std::endl;
+//  std::cout << "---------------------" << std::endl;
+//  std::cout << "translation: " << trans << std::endl;
+//  std::cout << "---------------------" << std::endl;
 };
 
 };

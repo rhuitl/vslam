@@ -10,6 +10,8 @@
 
 #include "posest/planarSFM.h"
 #include <iostream>
+#include <numeric>
+#include <functional>
 #include <stdio.h>
 #include <posest/test/simulated.h>
 
@@ -56,6 +58,16 @@ void generatePlanarObject(vector<Point3f>& points, Point3f N, float d)
         Point3f p_plane = crossProduct(p, N);
         points[i] = p_plane + N0;
     }
+}
+
+void generatePlanarObject(vector<Point3f>& points, Point3f v1, Point3f v2, Vec2f limits1, Vec2f limits2, Point3f t)
+{
+  for(size_t i = 0; i < points.size(); i++)
+  {
+    float scale1 = float(rand())/RAND_MAX*(limits1[1] - limits1[0]) + limits1[0];
+    float scale2 = float(rand())/RAND_MAX*(limits2[1] - limits2[0]) + limits2[0];
+    points[i] = v1*scale1 + v2*scale2 + t;
+  }
 }
 
 // generate points in a cube
@@ -209,6 +221,154 @@ void generateProjections(const Mat& intrinsics, const Mat& rvec, const Mat& tvec
   for(size_t i = 0; i < imagePoints.size(); i++)
   {
     keypoints.push_back(KeyPoint(imagePoints[i], 1.0f));
+  }
+}
+
+void applyRT(const Mat& R, const Mat& T, const vector<Point3f>& points, vector<Point3f>& pointsRT)
+{
+  Point3f t = T.at<Point3f>(0, 0);
+  pointsRT.resize(points.size());
+  for(size_t i = 0; i < points.size(); i++)
+  {
+    Point3f p = mult(R, points[i]);
+    p = p + t;
+    pointsRT[i] = p;
+
+//    printf("%f %f %f %f %f %f\n", points[i].x, points[i].y, points[i].z, pointsRT[i].x, pointsRT[i].y, pointsRT[i].z);
+  }
+}
+
+void calcVisible(const Mat& intrinsics, const Mat& R, const Mat& T,
+        const vector<Point3f>& objectPoints, const vector<cv::KeyPoint>& imagePoints, vector<int>& visible)
+{
+  visible.resize(imagePoints.size());
+  vector<Point3f> cloudRT;
+  applyRT(R, T, objectPoints, cloudRT);
+
+  float cx = intrinsics.at<float>(0, 2);
+  float cy = intrinsics.at<float>(1, 2);
+
+  for(size_t i = 0; i < visible.size(); i++)
+  {
+    Point2f p = imagePoints[i].pt;
+    if(cloudRT[i].z < 0 || p.x < 0 || p.y < 0 || p.x > 2*cx || p.y > 2*cy)
+    {
+      visible[i] = 0;
+    }
+    else
+    {
+      visible[i] = 1;
+    }
+
+//    printf("point %f %f %f, projection %f %f, visible %d\n",
+//           objectPoints[i].x, objectPoints[i].y, objectPoints[i].z, p.x, p.y, visible[i]);
+  }
+}
+
+void generateCube(std::vector<cv::Point3f>& cloud)
+{
+  const int facetCount = 10000;
+  std::vector<cv::Point3f> facet;
+  facet.resize(facetCount);
+
+  Vec2f limits(-1, 1);
+  pe::generatePlanarObject(facet, Point3f(1, 0, 0), Point3f(0, 0, 1), limits, limits, Point3f(0, 1, 0));
+  cloud.insert(cloud.end(), facet.begin(), facet.end());
+  pe::generatePlanarObject(facet, Point3f(1, 0, 0), Point3f(0, 0, 1), limits, limits, Point3f(0, -1, 0));
+  cloud.insert(cloud.end(), facet.begin(), facet.end());
+  pe::generatePlanarObject(facet, Point3f(1, 0, 0), Point3f(0, 1, 0), limits, limits, Point3f(0, 0, 1));
+  cloud.insert(cloud.end(), facet.begin(), facet.end());
+  pe::generatePlanarObject(facet, Point3f(1, 0, 0), Point3f(0, 1, 0), limits, limits, Point3f(0, 0, -1));
+  cloud.insert(cloud.end(), facet.begin(), facet.end());
+
+  printf("Generated %d points\n", (int)cloud.size());
+}
+
+void generateRing(std::vector<cv::Point3f>& cloud, cv::Point3f center)
+{
+  const int pointsCount = 10000;
+  const float minRadius = 0.8;
+  const float maxRadius = 1.1;
+  for(int i = 0; i < 10000; i++)
+  {
+    float radius = float(rand())/RAND_MAX*(maxRadius - minRadius) + minRadius;
+    float angle = float(rand())/RAND_MAX*2*CV_PI;
+    float x = rand()%5 == 0 ? 0.05 : 0.0f;
+
+    cv::Point3f p(x, radius*cos(angle), radius*sin(angle));
+    cloud.push_back(p + center);
+  }
+}
+
+
+CircleCameraSimulator::CircleCameraSimulator(const cv::Mat& intrinsics, const std::vector<cv::Point3f>& cloud) :
+    intrinsics_(intrinsics), cloud_(cloud), radius_(0.9f)
+{
+  initRT();
+}
+
+void CircleCameraSimulator::initRT()
+{
+  rvec_ = Mat::zeros(3, 1, CV_32F);
+  tvec_ = Mat::zeros(3, 1, CV_32F);
+
+//  tvec_ = -0.5f;
+  tvec_.at<float>(0, 0) = 0.1;
+  tvec_.at<float>(1, 0) = -radius_;
+  angle_ = 0.0f;
+}
+
+void CircleCameraSimulator::updateRT()
+{
+  Mat oldTvec = tvec_.clone();
+  Mat oldRvec = rvec_.clone();
+
+  angle_ -= 0.1f;
+  rvec_.at<float>(0, 0) = angle_;
+//  tvec_.at<float>(2, 0) += 0.1;
+
+  Mat drvec, dtvec;
+  calcRelativeRT(oldRvec, oldTvec, rvec_, tvec_, drvec, dtvec);
+  dumpFltMat("Ground truth relative rvec", drvec);
+  dumpFltMat("Ground truth relative tvec", dtvec);
+}
+
+void CircleCameraSimulator::getNextFrame(std::vector<cv::KeyPoint>& imagePoints, std::vector<Match>& matches)
+{
+  updateRT();
+
+  std::vector<cv::KeyPoint> _imagePoints;
+  generateProjections(intrinsics_, rvec_, tvec_, cloud_, _imagePoints);
+
+  Mat R;
+  Rodrigues(rvec_, R);
+  std::vector<int> visible;
+  calcVisible(intrinsics_, R, tvec_, cloud_, _imagePoints, visible);
+
+  printf("%d points visible\n", std::accumulate(visible.begin(), visible.end(), 0));
+  filterVector(_imagePoints, visible, imagePoints);
+
+  if(visible_.size() > 0)
+  {
+    calcMatches(visible, matches);
+  }
+  visible_ = visible;
+}
+
+void CircleCameraSimulator::calcMatches(const std::vector<int>& newVisible, std::vector<Match>& matches)
+{
+  assert(visible_.size() == newVisible.size());
+
+  int index1 = 0, index2 = 0;
+  for(size_t i = 0; i < newVisible.size(); i++)
+  {
+    if(visible_[i] && newVisible[i])
+    {
+      matches.push_back(Match(index1, index2, 0.0));
+    }
+
+    if(visible_[i]) index1++;
+    if(newVisible[i]) index2++;
   }
 }
 

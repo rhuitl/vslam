@@ -52,9 +52,9 @@ public:
     PoseEstimator(NRansac, false, 0, 0, 0)
   {
     usedMethod = SFM;
-  }
-  
-  ~PoseEstimator2d() {}
+    initialized_ = false;
+  };
+  ~PoseEstimator2d() {};
 
   virtual int estimate(const fc::Frame& frame1, const fc::Frame& frame2);
 
@@ -63,6 +63,8 @@ public:
 
 protected:
   void setPose(const cv::Mat& rvec, const cv::Mat& tvec);
+
+  bool initialized_;
 
 };
 };

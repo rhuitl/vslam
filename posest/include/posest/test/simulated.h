@@ -38,7 +38,7 @@
 #include <vector>
 #include <opencv2/core/core.hpp>
 #include <opencv2/features2d/features2d.hpp>
-#include <posest/pe.h>
+#include <frame_common/frame.h>
 
 namespace pe
 {
@@ -52,6 +52,43 @@ void generate3DPointCloud(std::vector<cv::Point3f>& points, cv::Point3f pmin = c
 
 void addLinkNoise(std::vector<Match>& indices, double ratio = 0.05);
 
-}
+void calcVisible(const cv::Mat& intrinsics, const cv::Mat& R, const cv::Mat& T,
+        const std::vector<cv::Point3f>& objectPoints, const std::vector<cv::Point2f>& imagePoints, std::vector<bool>& visible);
+
+void generateCube(std::vector<cv::Point3f>& cloud);
+void generateRing(std::vector<cv::Point3f>& cloud, cv::Point3f center = cv::Point3f(0, 0, 0));
+
+class CameraSimulator
+{
+public:
+//  CameraSimulator(const cv::Mat& intrinsics) {};
+//  ~CameraSimulator() {};
+
+  virtual void getNextFrame(std::vector<cv::KeyPoint>& imagePoints, std::vector<Match>& matches) = 0;
+};
+
+class CircleCameraSimulator : public CameraSimulator
+{
+public:
+  CircleCameraSimulator(const cv::Mat& intrinsics, const std::vector<cv::Point3f>& cloud);
+  ~CircleCameraSimulator() {};
+
+  void getNextFrame(std::vector<cv::KeyPoint>& imagePoints, std::vector<Match>& matches);
+  void calcMatches(const std::vector<int>& newVisible, std::vector<Match>& matches);
+
+  virtual void initRT();
+  virtual void updateRT();
+
+protected:
+  cv::Mat intrinsics_;
+  std::vector<cv::Point3f> cloud_;
+  std::vector<int> visible_;
+  cv::Mat rvec_, tvec_;
+  float radius_;
+  float angle_;
+};
+
+};
+
 
 #endif /* PE_SIMULATED_H_ */

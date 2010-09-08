@@ -328,6 +328,7 @@ int main(int argc, char** argv)
   // set up structures
   cout << "Setting up frame processing..." << flush;
   FrameProc fp(15);//18);             // can be slow, setting up Calonder tree
+  fp.setFrameDetector(cv::Ptr<cv::FeatureDetector>(new cv::SurfFeatureDetector(200)));
   cout << "done" << endl;
   vector<Frame, Eigen::aligned_allocator<Frame> > frames; // stereo image frames in system
 
@@ -391,10 +392,11 @@ int main(int argc, char** argv)
           exit(0);
         }
 
-      const int init_min_frame_count = 10;
+      const int init_min_frame_count = 5;
 
       // loop over each stereo pair, adding it to the system
-      for (int ii=0; ii<nlim; iter++, ii++)
+      bool ret = false;
+      for (int ii=0; ii<nlim; iter++, ii += 1)
         {
           if(ii > 0 && ii < init_min_frame_count)
           {
@@ -423,7 +425,7 @@ int main(int argc, char** argv)
 
           // VO
           cout << "calling vo::addFrame" << endl;
-          bool ret = vo.addFrame(f1);
+          ret = vo.addFrame(f1);
 
           // grow full SBA
           if (ret)
@@ -455,7 +457,7 @@ int main(int argc, char** argv)
             }
           }
 
-          if (frames.size() > 1 && vo.pose_estimator_->inliers.size() < 40)
+          if (frames.size() > 1 && vo.pose_estimator_->inliers.size() < mininls)
             cout << endl << "******** Bad image match: " << fn << endl << endl;
 
 //          cv::waitKey();
@@ -477,7 +479,7 @@ int main(int argc, char** argv)
               if (n > 4 && n%nnsba == 0)
                 {
                   cout << "Running large SBA" << endl;
-                  sba.doSBA(3,1.0e-4,1);
+//                  sba.doSBA(3,1.0e-4,1);
                 }
 #endif
             }

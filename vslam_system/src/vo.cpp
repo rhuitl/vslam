@@ -111,6 +111,7 @@ namespace vslam
         }
         else
         {
+          if(inl < mininls) return false;
           if((pose_estimator_->getMethod() == pe::PoseEstimator::PnP && dist < mindist) && inl > mininls)
           {
             cout << "dist = " << dist << " maxdist = " << mindist << " inl = " << inl
@@ -187,7 +188,7 @@ namespace vslam
 
     cout << "[Stereo VO] Inliers: " << inl << "  Nodes: " << sba.nodes.size() << "   Points: " << sba.tracks.size() << endl;
     sba.verbose = 0;
-    sba.doSBA(2,1.0e-5,0);          // dense version
+//    sba.doSBA(2,1.0e-5,0);          // dense version
 
     return true;
   } // end addFrame
@@ -410,6 +411,7 @@ namespace vslam
 
         if (matched0[i0]) continue;
         if (matched1[i1]) continue;
+        if (!f0.goodPts[i0] || !f1.goodPts[i1]) continue;
         matched0[i0] = true;
         matched1[i1] = true;
 

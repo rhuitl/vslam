@@ -1,21 +1,13 @@
 #include "posest/pnp_ransac.h"
 #include <iostream>
+#include "tbb/parallel_for.h"
+#include "tbb/blocked_range.h"
+#include "tbb/task_scheduler_init.h"
+#include "tbb/mutex.h"
 
 using namespace std;
 using namespace cv;
-
-void generateVar(vector<char>& mask, RNG& rng)
-{
-  size_t size = mask.size();
-  for (size_t i = 0; i < size; i++)
-  {
-    int i1 = rng.uniform(0, size);
-    int i2 = rng.uniform(0, size);
-    char curr = mask[i1];
-    mask[i1] = mask[i2];
-    mask[i2] = curr;
-  }
-}
+using namespace tbb;
 
 void project3dPoints(const vector<Point3f>& points, const Mat& rvec, const Mat& tvec, vector<Point3f>& modif_points)
 {
@@ -34,8 +26,22 @@ void project3dPoints(const vector<Point3f>& points, const Mat& rvec, const Mat& 
   }
 }
 
-void pnpTask(const vector<char>& used_points_mask, const Mat& camera_matrix, const Mat& dist_coeffs, const vector<
-    Point3f>& object_points, const vector<Point2f>& image_points, vector<int>& inliers, float max_dist, cv::Mat& rvec, cv::Mat& tvec)
+void generateVar(vector<char>& mask, RNG& rng)
+{
+  size_t size = mask.size();
+  for (size_t i = 0; i < size; i++)
+  {
+	int i1 = rng.uniform(0, size);
+	int i2 = rng.uniform(0, size);
+	char curr = mask[i1];
+	mask[i1] = mask[i2];
+	mask[i2] = curr;
+  }
+}
+
+void pnpTask(const vector<char>& used_points_mask, const Mat& camera_matrix, const Mat& dist_coeffs,
+		const vector<Point3f>& object_points, const vector<Point2f>& image_points, vector<int>& inliers,
+		float max_dist, cv::Mat& rvec, cv::Mat& tvec, tbb::mutex& Mutex)
 {
   vector<Point3f> model_object_points;
   vector<Point2f> model_image_points;
@@ -77,13 +83,57 @@ void pnpTask(const vector<char>& used_points_mask, const Mat& camera_matrix, con
 
   if (inliers_indexes.size() > inliers.size())
   {
+    mutex::scoped_lock lock;
+	lock.acquire(Mutex);
     inliers.clear();
     inliers.resize(inliers_indexes.size());
     memcpy(&inliers[0], &inliers_indexes[0], sizeof(int) * inliers_indexes.size());
     rvecl.copyTo(rvec);
     tvecl.copyTo(tvec);
+	lock.release();
   }
 }
+void Iterate(const vector<Point3f>& object_points, const vector<Point2f>& image_points,
+		const Mat& camera_matrix, const Mat& dist_coeffs, Mat& rvecl, Mat& tvecl, const float max_dist, const int min_inlier_num,
+		vector<int>* inliers, RNG& rng, tbb::mutex& Mutex)
+{
+	vector<char> used_points_mask(object_points.size(), 0);
+	memset(&used_points_mask[0], 1, MIN_POINTS_COUNT );
+	generateVar(used_points_mask, rng);
+	pnpTask(used_points_mask, camera_matrix, dist_coeffs, object_points, image_points, *inliers, max_dist, rvecl, tvecl, Mutex);
+	if ((int)inliers->size() > min_inlier_num)
+		task::self().cancel_group_execution();
+}
+
+class Iterator
+{
+	const vector<Point3f>* object_points;
+	const vector<Point2f>* image_points;
+	const Mat* camera_matrix;
+	const Mat* dist_coeffs;
+	Mat* rvecl;
+	Mat* tvecl;
+	const float max_dist;
+	const int min_inlier_num;
+	vector<int>* inliers;
+	RNG* rng;
+	static mutex ResultsMutex;
+public:
+    void operator()( const blocked_range<size_t>& r ) const {
+        for( size_t i=r.begin(); i!=r.end(); ++i )
+        {
+        	Iterate(*object_points, *image_points, *camera_matrix, *dist_coeffs, *rvecl, *tvecl, max_dist, min_inlier_num, inliers, *rng, ResultsMutex);
+        }
+    }
+    Iterator(const vector<Point3f>* tobject_points, const vector<Point2f>* timage_points,
+            const Mat* tcamera_matrix, const Mat* tdist_coeffs, Mat* trvecl, Mat* ttvecl, float tmax_dist, int tmin_inlier_num,
+            vector<int>* tinliers, RNG* trng):
+            	object_points(tobject_points), image_points(timage_points),
+            	camera_matrix(tcamera_matrix), dist_coeffs(tdist_coeffs), rvecl(trvecl), tvecl(ttvecl),
+            	max_dist(tmax_dist), min_inlier_num(tmin_inlier_num), inliers(tinliers), rng(trng)
+    {}
+};
+mutex Iterator::ResultsMutex;
 
 bool solvePnPRansac(const vector<Point3f>& object_points, const vector<Point2f>& image_points,
                     const Mat& camera_matrix, const Mat& dist_coeffs, Mat& rvec, Mat& tvec, bool use_extrinsic_guess, //don't used now, introduces for compatibility with solvePnP interface
@@ -106,17 +156,11 @@ bool solvePnPRansac(const vector<Point3f>& object_points, const vector<Point2f>&
     inliers = &local_inliers;
   }
 
-  vector<char> used_points_mask(object_points.size(), 0);
-  memset(&used_points_mask[0], 1, MIN_POINTS_COUNT );
   RNG rng;
   Mat rvecl(3, 1, CV_64FC1), tvecl(3, 1, CV_64FC1);
-  for (int i = 0; i < num_iterations; i++)
-  {
-    generateVar(used_points_mask, rng);
-    pnpTask(used_points_mask, camera_matrix, dist_coeffs, object_points, image_points, *inliers, max_dist, rvecl, tvecl);
-    if ((int)(*inliers).size() > min_inlier_num)
-      break;
-  }
+
+  task_scheduler_init TBBinit;
+  parallel_for(blocked_range<size_t>(0,num_iterations), Iterator(&object_points, &image_points, &camera_matrix, &dist_coeffs, &rvecl, &tvecl, max_dist, min_inlier_num, inliers, &rng));
 
   if ((int)(*inliers).size() >= MIN_POINTS_COUNT)
   {

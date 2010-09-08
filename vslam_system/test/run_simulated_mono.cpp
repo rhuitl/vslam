@@ -122,8 +122,8 @@ drawgraph(SysSBA &sba, SysSPA &spa, ros::Publisher &cam_pub, ros::Publisher &pt_
   cstmark.color.b = 0.0f;
   cstmark.color.a = 1.0f;
   cstmark.scale.x = 0.03;
-  cstmark.scale.y = 0.1;
-  cstmark.scale.z = 0.1;
+  cstmark.scale.y = 0.03;
+  cstmark.scale.z = 0.03;
   cstmark.type = visualization_msgs::Marker::LINE_LIST;
 
 
@@ -257,7 +257,7 @@ drawgraph(SysSBA &sba, SysSPA &spa, ros::Publisher &cam_pub, ros::Publisher &pt_
 //  max distance, angle between keyframes
 //  min inliers between keyframes
 
-double maxdist = 0.05;           // meters
+double maxdist = 0.1;           // meters
 double maxang  = 10.0;          // degrees
 int mininls    = 100;          // depends on number of points, no?
 int ndi = 0;                    // current keyframe index
@@ -273,6 +273,7 @@ void generateData(std::vector<cv::Point3f>& cloud)
   cloud = planarPoints;
 //  cloud.insert(cloud.end(), pointCloud.begin(), pointCloud.end());
 }
+
 
 static void camParams2Mat(const fc::CamParams& params, cv::Mat& intrinsics)
 {
@@ -342,31 +343,36 @@ int main(int argc, char** argv)
   int iter = 0;
 
   // generate point cloud
-  std::vector<cv::Point3f> cloud;
+/*  std::vector<cv::Point3f> cloud;
   generateData(cloud);
 
   cv::Mat rvec = cv::Mat::zeros(3, 1, CV_32F);
   cv::Mat tvec = cv::Mat::zeros(3, 1, CV_32F);
-  tvec.at<float>(0, 0) = -0.5f;
+  tvec.at<float>(0, 0) = -0.5f;*/
 
   vo.pose_estimator_->setTestMode(true);
-
-  std::vector<pe::Match> matches;
+/*
+  std::vector<f2d::Match> matches;
   for(size_t i = 0; i < cloud.size(); i++)
   {
-    matches.push_back(pe::Match(i, i));
+    matches.push_back(f2d::Match(i, i, 0.0));
   }
 //  vo.pe.setTestMatches(matches); // the same matches will be used for the whole test sequence
+*/
 
   bool init = true;
-  for(float zcam = -1; zcam < 1; zcam += 0.1)
+  std::vector<cv::Point3f> cloud;
+  pe::generateRing(cloud);
+  pe::CircleCameraSimulator simulator(intrinsics, cloud);
+//  for(float zcam = -1; zcam < 1; zcam += 0.1)
+  for(int i = 0; i < 100; i++)
   {
-    std::cout << std::endl << "***********************************************" << std::endl;
-    std::cout << "Current camera position: z = " << zcam << std::endl << std::endl;
+//    std::cout << std::endl << "***********************************************" << std::endl;
+//    std::cout << "Current camera position: z = " << zcam << std::endl << std::endl;
 
     // generate rvec and tvec
-    tvec.at<float>(2, 0) = -zcam;
-    rvec.at<float>(0, 0) = rvec.at<float>(0, 0) + 0.1f;
+//    tvec.at<float>(2, 0) = -zcam;
+//    rvec.at<float>(0, 0) = rvec.at<float>(0, 0) + 0.1f;
 
     // create a new frame
     double t0 = mstime();
@@ -374,12 +380,16 @@ int main(int argc, char** argv)
     f1.setCamParams(camp); // this sets the projection and reprojection matrices
 
     // set matches
-    std::vector<pe::Match> testMatches = matches;
+//    std::vector<f2d::Match> testMatches = matches;
 //    pe::addLinkNoise(testMatches, 0.3);
+    std::vector<pe::Match> testMatches;
+    std::vector<cv::KeyPoint> keypoints;
+    simulator.getNextFrame(f1.kpts, testMatches);
+
     vo.pose_estimator_->setTestMatches(testMatches);
 
     // generate keypoints
-    pe::generateProjections(intrinsics, rvec, tvec, cloud, f1.kpts);
+//    pe::generateProjections(intrinsics, rvec, tvec, cloud, f1.kpts);
 
     f1.pts.resize(f1.kpts.size());
     f1.goodPts.assign(f1.kpts.size(), false);
@@ -388,6 +398,7 @@ int main(int argc, char** argv)
     f1.img = cv::Mat();   // remove the images
     f1.imgRight = cv::Mat();
 
+/*
     if(frames.size() > 0)
     {
       std::vector<cv::Point2f> points1, points2;
@@ -412,7 +423,7 @@ int main(int argc, char** argv)
       }
       printf("run_simulated_mono: after reprojectPoints %d, mean z = %f\n", count, zsum/count);
     }
-
+*/
     // VO
     cout << "calling vo::addFrame" << endl;
     bool ret = vo.addFrame(f1);
@@ -464,7 +475,7 @@ int main(int argc, char** argv)
         if (n > 4 && n%nnsba == 0)
           {
             cout << "Running large SBA" << endl;
-            sba.doSBA(3,1.0e-4,1);
+//            sba.doSBA(3,1.0e-4,1);
           }
 #endif
       }
