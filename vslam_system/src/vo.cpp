@@ -411,7 +411,9 @@ namespace vslam
 
         if (matched0[i0]) continue;
         if (matched1[i1]) continue;
-        if (!f0.goodPts[i0] || !f1.goodPts[i1]) continue;
+
+        if (f0.goodPts[i0] == 0) continue;
+
         matched0[i0] = true;
         matched1[i1] = true;
 
