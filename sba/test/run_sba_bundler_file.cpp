@@ -127,131 +127,12 @@ int main(int argc, char **argv)
 
   fin = argv[1];
 
-  vector< Vector3d, Eigen::aligned_allocator<Vector3d> > camps;	// cam params <f d1 d2>
-  vector< Matrix3d, Eigen::aligned_allocator<Matrix3d> > camRs;	// cam rotation matrix
-  vector< Vector3d, Eigen::aligned_allocator<Vector3d> > camts;	// cam translation
-  vector< Vector3d, Eigen::aligned_allocator<Vector3d> > ptps;	// point position
-  vector< Vector3i, Eigen::aligned_allocator<Vector3i> > ptcs;	// point color
-  vector< vector< Vector4d, Eigen::aligned_allocator<Vector4d> > > ptts; // point tracks - each vector is <camera_index kp_idex u v>
-
-  int ret = sba::ParseBundlerFile(fin, camps, camRs, camts, ptps, ptcs, ptts);
-  if (ret < 0)
-    return -1;
-  int ncams = camps.size();
-  int npts  = ptps.size();
-  int nprjs = 0;
-  for (int i=0; i<npts; i++)
-    nprjs += (int)ptts[i].size();
-  cout << "Points: " << npts << "  Tracks: " << ptts.size() 
-       << "  Projections: " << nprjs << endl;
-
   // construct an SBA system
   SysSBA sys;
-  Node::initDr();
 
-  // set up nodes/frames
-  cout << "Setting up nodes..." << flush;
-  for (int i=0; i<ncams; i++)
-    {
-      // camera params
-      Vector3d &camp = camps[i];
-      CamParams cpars = {camp[0],camp[0],0,0,0}; // set focal length, no offset
-
-      //
-      // NOTE: Bundler camera coords are rotated 180 deg around the X axis of
-      //  the camera, so Z points opposite the camera viewing ray (OpenGL).
-      // Note quite sure, but I think this gives the camera pose as
-      //  [-R' -R'*t]
-
-      // rotation matrix
-      Matrix3d m180x;		// rotate 180 deg around X axis, to convert Bundler frames to SBA frames
-      m180x << 1, 0, 0, 0, -1, 0, 0, 0, -1;
-      Matrix3d camR = m180x * camRs[i]; // rotation matrix
-      Quaternion<double> frq(camR.transpose());	// camera frame rotation, from Bundler docs
-      if (frq.w() < 0.0)	// w negative, change to positive
-	{
-	  frq.x() = -frq.x();
-	  frq.y() = -frq.y();
-	  frq.z() = -frq.z();
-	  frq.w() = -frq.w();
-	}
-
-      // translation
-      Vector3d &camt = camts[i];
-      Vector4d frt;
-      frt.head<3>() = -camRs[i].transpose() * camt; // camera frame translation, from Bundler docs
-      frt[3] = 1.0;
-
-      Node nd;
-      nd.qrot = frq.coeffs();	
-      nd.normRot();
-      //      cout << "Quaternion: " << nd.qrot.transpose() << endl;
-      nd.trans = frt;
-      //      cout << "Translation: " << nd.trans.transpose() << endl << endl;
-      nd.setTransform();	// set up world2node transform
-      nd.setKcam(cpars);	// set up node2image projection
-      nd.setDr(true);		// set rotational derivatives
-      sys.nodes.push_back(nd);
-    }
-  cout << "done" << endl;
-
-  // set up points
-  cout << "Setting up points..." << flush;
-  for (int i=0; i<npts; i++)
-    {
-      // point
-      Vector3d &ptp = ptps[i];
-      Point pt;
-      pt.head<3>() = ptp;
-      pt[3] = 1.0;
-      sys.addPoint(pt);
-    }
-  cout << "done" << endl;
-
-
-  sys.useLocalAngles = true;    // use local angles
-  sys.nFixed = 1;
-
-  // set up projections
-  int ntot = 0;
-  cout << "Setting up projections..." << flush;
-  for (int i=0; i<npts; i++)
-    {
-      // track
-      vector<Vector4d, Eigen::aligned_allocator<Vector4d> > &ptt = ptts[i];
-      int nprjs = ptt.size();
-      for (int j=0; j<nprjs; j++)
-	{
-	  // projection
-	  Vector4d &prj = ptt[j];
-	  int cami = (int)prj[0];
-	  Vector2d pt = prj.segment<2>(2);
-	  pt[1] = -pt[1];	// NOTE: Bundler image Y is reversed
-	  if (cami >= ncams)
-	    cout << "*** Cam index exceeds bounds: " << cami << endl;
-	  sys.addMonoProj(cami,i,pt); // camera indices aren't ordered
-	  ntot++;
-
-#if 0
-	  if (ntot==1000000)
-	    {
-	      Node &nd = sys.nodes[cami];
-	      Point &npt = sys.points[i];
-	      cout << pt.transpose() << endl;
-	      Vector3d pti = nd.w2i * npt;
-	      pti = pti / pti[2];
-	      cout << pti.transpose() << endl;
-	      cout << nd.trans.transpose() << endl;
-	      cout << nd.qrot.transpose() << endl;
-	    }
-#endif
-
-	  //	  if ((ntot % 100000) == 0)
-	  //	    cout << ntot << endl;
-	}
-    }
-  cout << "done" << endl;
-
+  // set up system
+  sba::readBundlerFile(fin,sys);
+  
 
   if (minpts > 0)
     {
@@ -260,17 +141,23 @@ int main(int argc, char **argv)
       cout << "Split " << nrem << " / " << sys.tracks.size() << " tracks" << endl; 
     }
 
+  int nprjs = 1;
+
+  cout << "Calculating cost" << endl;
   double cost = sys.calcCost();
   cout << "Initial squared cost: " << cost << ",  which is " << sqrt(cost/nprjs) << " rms pixels per projection"  << endl;
 
   sys.nFixed = 1;
   sys.printStats();
-  sys.csp.useCholmod = true;
+  sys.csp.useCholmod = false;
 
 
 #if 1
-  sba::writeLourakisFile((char *)"bra-340", sys);
-  cout << endl << "Wrote SBA system in Lourakis format" << endl << endl;
+  //  sba::writeLourakisFile((char *)"bra-340", sys);
+  //  cout << endl << "Wrote SBA system in Lourakis format" << endl << endl;
+  cout << "starting file write" << endl;
+  sba::writeGraphFile((char *)"output.g2o", sys);
+  cout << endl << "Wrote SBA system in g2o format" << endl << endl;
 #endif
 
 #if 0
@@ -318,39 +205,6 @@ int main(int argc, char **argv)
 
   //  sys.doSBA(10,1e-4,SBA_SPARSE_CHOLESKY);
   sys.doSBA(10,1e-4,SBA_BLOCK_JACOBIAN_PCG,1e-8,200);
-
-  cout << endl << "Switch to full system" << endl;
-  sys.connMat.resize(0);
-
-
-  // reset projections here
-  // just use old points
-  sys.tracks.resize(npts);
-
-  // set up projections
-  sys.tracks.resize(0);
-  cout << "Setting up projections..." << flush;
-  for (int i=0; i<npts; i++)
-    {
-      // track
-      vector<Vector4d, Eigen::aligned_allocator<Vector4d> > &ptt = ptts[i];
-      int nprjs = ptt.size();
-      for (int j=0; j<nprjs; j++)
-	{
-	  // projection
-	  Vector4d &prj = ptt[j];
-	  int cami = (int)prj[0];
-	  Vector2d pt = prj.segment<2>(2);
-	  pt[1] = -pt[1];	// NOTE: Bundler image Y is reversed
-	  if (cami >= ncams)
-	    cout << "*** Cam index exceeds bounds: " << cami << endl;
-	  sys.addMonoProj(cami,i,pt); // camera indices aren't ordered
-	  ntot++;
-	}
-    }
-  cout << "done" << endl;
-
-
   sys.doSBA(20,1e-3,1);
 
   cout << "Bad projs (> 10 pix): " << sys.countBad(10.0) 
