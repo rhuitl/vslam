@@ -86,8 +86,9 @@ namespace sba
   /**
    * \brief Writes out the current SBA system as an ascii graph file
    * suitable to be read in by the Freiburg HChol system.
+   * <mono> is true if only monocular projections are desired
    */
-  int writeGraphFile(const char *filename, SysSBA& sba);
+  int writeGraphFile(const char *filename, SysSBA& sba, bool mono=false);
 
 
 }; // namespace SBA

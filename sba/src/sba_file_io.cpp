@@ -776,10 +776,11 @@ int  sba::ParseGraphFile(const char *fin,	// input file
 
 /**
  * \brief Writes out the current SBA system as an ascii graph file
- * suitable to be read in by the Freiburg HChol system.
+ * suitable to be read in by the Freiburg HChol system.  
+ * <mono> is true if only monocular projections are desired
  */
 
-int sba::writeGraphFile(const char *filename, SysSBA& sba)
+int sba::writeGraphFile(const char *filename, SysSBA& sba, bool mono)
 {
     ofstream outfile(filename, ios_base::trunc);
     if (outfile == NULL)
@@ -835,7 +836,7 @@ int sba::writeGraphFile(const char *filename, SysSBA& sba)
         {
 	  // TODO: output real covariance, if available
           Proj &prj = itr->second;
-	  if (prj.stereo)
+	  if (prj.stereo && !mono)
 	    {
 	      outfile << "EDGE_PROJECT_P2SC "; // stereo edge
 	      outfile << ncams+i << ' ' << prj.ndi << ' ' << prj.kp(0) << ' ' 
