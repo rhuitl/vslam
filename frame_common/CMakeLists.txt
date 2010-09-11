@@ -4,7 +4,7 @@ rosbuild_init(frame_common)
 
 rosbuild_add_boost_directories()
 
-add_definitions(-Wall -O3 -mfpmath=sse -mmmx -msse -msse2 -msse3)
+add_definitions(-Wall -O3 -mfpmath=sse -mmmx -msse -msse2 -msse3 -fopenmp)
 
 find_package(PythonLibs)
 include_directories(${PYTHON_INCLUDE_PATH})

@@ -202,6 +202,8 @@ namespace frame_common
     frame.goodPts.resize(nkpts);
     frame.pts.resize(nkpts);
     frame.disps.resize(nkpts);
+
+    #pragma omp parallel for shared(st, frame)
     for (int i=0; i<nkpts; i++)
       {
 	      double disp = st->lookup_disparity(frame.kpts[i].pt.x,frame.kpts[i].pt.y);
@@ -220,7 +222,7 @@ namespace frame_common
     delete st;
   }
   
-    void PointcloudProc::setPointcloud(Frame &frame, const pcl::PointCloud<pcl::PointXYZRGB>& input_cloud)
+    void PointcloudProc::setPointcloud(Frame &frame, const pcl::PointCloud<pcl::PointXYZRGB>& input_cloud) const
     {
       reduceCloud(input_cloud, frame.pointcloud);
       
@@ -238,6 +240,7 @@ namespace frame_common
       frame.pl_normals.resize(ptcloudsize);
       frame.pl_ipts.resize(ptcloudsize);
       
+      #pragma omp parallel for shared( frame )
       for (unsigned int i=0; i < frame.pointcloud.points.size(); i++)
       {
         PointXYZRGBNormal &pt = frame.pointcloud.points[i];
@@ -251,7 +254,7 @@ namespace frame_common
     
     void PointcloudProc::match(const Frame& frame0, const Frame& frame1, 
           const Eigen::Vector3d& trans, const Eigen::Quaterniond& rot, 
-          std::vector<pe::Match>& matches)
+          std::vector<pe::Match>& matches) const
     {
       PointCloud<PointXYZRGBNormal> transformed_cloud;
       
@@ -285,8 +288,10 @@ namespace frame_common
       // Convert matches into the correct format.
       matches.clear();
       // Starting at i=1 as a hack to not let through (0,0,0) matches (why is this in the ptcloud?))
+      
+      #pragma omp parallel for shared( transformed_cloud, frame1, f0_indices, f1_indices, matches )
       for (unsigned int i=1; i < f0_indices.size(); i++)
-      {           
+      {
         const PointXYZRGBNormal &pt0 = transformed_cloud.points[f0_indices[i]];
         const PointXYZRGBNormal &pt1 = frame1.pointcloud.points[f1_indices[i]];
         
@@ -306,6 +311,7 @@ namespace frame_common
         printf("[Proj difference] %f %f %f\n", diff(0), diff(1), diff(2)); */
         
         if ((norm0 - norm1).norm() < 0.5 && dist < 0.2)
+          #pragma omp critical
           matches.push_back(pe::Match(f0_indices[i], f1_indices[i], dist));
       }
       
@@ -314,7 +320,7 @@ namespace frame_common
     
     void PointcloudProc::getMatchingIndices(const PointCloud<PointXYZRGBNormal>& input, 
               const PointCloud<PointXYZRGBNormal>& output, 
-              std::vector<int>& input_indices, std::vector<int>& output_indices)
+              std::vector<int>& input_indices, std::vector<int>& output_indices) const
     {
       // TODO: Don't calculate the KDTree each time.
       KdTreeANN<PointXYZRGBNormal> input_tree, output_tree;
@@ -324,6 +330,7 @@ namespace frame_common
       
       // Iterate over the output tree looking for all the input points and finding
       // nearest neighbors.
+      #pragma omp parallel for shared( input, output, input_tree, output_tree, input_indices, output_indices )
       for (unsigned int i = 0; i < input.points.size(); i++)
       {
         PointXYZRGBNormal input_pt = input.points[i];
@@ -339,6 +346,7 @@ namespace frame_common
         input_tree.nearestKSearch(output_pt, 1, output_indexvect, output_distvect);
         
         // If they match, add them to the match vectors.
+        #pragma omp critical
         if (output_indexvect[0] == (int)i)
         {
           input_indices.push_back(i);
@@ -348,7 +356,7 @@ namespace frame_common
     }
     
     // Subsample cloud for faster matching and processing, while filling in normals.
-    void PointcloudProc::reduceCloud(const PointCloud<PointXYZRGB>& input, PointCloud<PointXYZRGBNormal>& output)
+    void PointcloudProc::reduceCloud(const PointCloud<PointXYZRGB>& input, PointCloud<PointXYZRGBNormal>& output) const
     {
       PointCloud<PointXYZRGB> cloud_nan_filtered, cloud_box_filtered, cloud_voxel_reduced;
       PointCloud<Normal> normals;
@@ -395,7 +403,7 @@ namespace frame_common
       normalfilter.filter(output);
     }
     
-    Eigen::Vector3d PointcloudProc::projectPoint(Eigen::Vector4d& point, CamParams cam)
+    Eigen::Vector3d PointcloudProc::projectPoint(Eigen::Vector4d& point, CamParams cam) const
     {
       Eigen::Vector3d keypoint;
       

@@ -84,9 +84,9 @@ namespace pe
     if (nmatch < 3) return 0;   // can't do it...
 
     int bestinl = 0;
-    int nneg = 0, ntot = 0;
 
     // RANSAC loop
+    #pragma omp parallel for shared( f0, f1, bestinl )
     for (int i=0; i<numRansac; i++) 
       {
         // find a candidate
@@ -142,10 +142,10 @@ namespace pe
         Matrix3d V = svd.matrixV();
         Matrix3d R = V * svd.matrixU().transpose();          
         double det = R.determinant();
-        ntot++;
+        //ntot++;
         if (det < 0.0)
           {
-            nneg++;
+            //nneg++;
             V.col(2) = V.col(2)*-1.0;
             R = V * svd.matrixU().transpose();
           }
@@ -188,6 +188,7 @@ namespace pe
               //              inl++;
           }
         
+        #pragma omp critical
         if (inl > bestinl) 
           {
             bestinl = inl;

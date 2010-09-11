@@ -105,7 +105,7 @@ namespace frame_common
     delete [] rgrad;
   }
 
-  double SparseStereo::lookup_disparity(int x, int y)
+  double SparseStereo::lookup_disparity(int x, int y) const
   {
     uint8_t* refpat, *rim_as_arr, *lim_as_arr;
     int w = lim.cols;
@@ -197,7 +197,7 @@ namespace frame_common
   }
 
   // should look in a small area around x,y
-  double DenseStereo::lookup_disparity(int x, int y)
+  double DenseStereo::lookup_disparity(int x, int y) const
   {
     int w = lim.cols;
     int h = lim.rows;

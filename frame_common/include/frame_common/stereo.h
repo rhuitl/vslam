@@ -44,7 +44,7 @@ namespace frame_common
   class FrameStereo
   {
   public:
-    virtual double lookup_disparity(int x, int y) = 0;
+    virtual double lookup_disparity(int x, int y) const = 0;
     virtual ~FrameStereo() { }
   };
 
@@ -64,7 +64,7 @@ namespace frame_common
     SparseStereo(const cv::Mat& leftImg, const cv::Mat& rightImg, 
 		 bool use_grad_image = true, uint max_disparity=64);
     ~SparseStereo();
-    double lookup_disparity(int x, int y);
+    double lookup_disparity(int x, int y) const;
   };
 
   class DenseStereo : public FrameStereo
@@ -80,7 +80,7 @@ namespace frame_common
     DenseStereo(const cv::Mat& leftImg, const cv::Mat& rightImg, 
 		int nd = 0, double frac = 0.0);
     ~DenseStereo();
-    double lookup_disparity(int x, int y);
+    double lookup_disparity(int x, int y) const;
 
     static int textureThresh;
     static int uniqueThresh;

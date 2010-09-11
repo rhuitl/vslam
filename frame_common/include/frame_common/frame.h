@@ -191,27 +191,27 @@ namespace frame_common
       
       /// \brief Add a pointcloud to the frame, doing all the necessary 
       /// pre-processing (downsampling, computing normals, and filering based on curvature).
-      void setPointcloud(Frame &frame, const pcl::PointCloud<pcl::PointXYZRGB>& input_cloud);
+      void setPointcloud(Frame &frame, const pcl::PointCloud<pcl::PointXYZRGB>& input_cloud) const;
       
       /// \brief Match points with previous frame, given an initial pose estimate.
       void match(const Frame& frame0, const Frame& frame1, 
                   const Eigen::Vector3d& trans, const Eigen::Quaterniond& rot, 
-                  std::vector<pe::Match>& matches);
+                  std::vector<pe::Match>& matches) const;
       
     private:
       /// \brief Subsample cloud for faster matching and processing, while
       /// filling in normals.
       void reduceCloud(const pcl::PointCloud<pcl::PointXYZRGB>& input, 
-                        pcl::PointCloud<pcl::PointXYZRGBNormal>& output);
+                        pcl::PointCloud<pcl::PointXYZRGBNormal>& output) const;
 
       /// \brief Project a 3D point into the image frame.
-      Eigen::Vector3d projectPoint(Eigen::Vector4d& point, CamParams cam);
+      Eigen::Vector3d projectPoint(Eigen::Vector4d& point, CamParams cam) const;
       
       /// \brief Find matches between two pointclouds using nearest neighbor
       /// KDtree search.
       void getMatchingIndices(const pcl::PointCloud<pcl::PointXYZRGBNormal>& input, 
           const pcl::PointCloud<pcl::PointXYZRGBNormal>& output, 
-          std::vector<int>& input_indices, std::vector<int>& output_indices);
+          std::vector<int>& input_indices, std::vector<int>& output_indices) const;
   };
 
   /// \brief Draw tracks from visual odometry on image over all given frames.
