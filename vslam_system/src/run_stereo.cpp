@@ -315,11 +315,11 @@ int main(int argc, char** argv)
   typedef cv::CalonderDescriptorExtractor<float> Calonder;
   vslam.frame_processor_.setFrameDescriptor(new Calonder(argv[7]));
   
-#if 0
-  SysSPA spa;                   // SPA system
-  int spaFrameId = -1;          // current frame of SPA system
-  int ndi0 = 0;                 // current node of SPA system
-#endif
+  // parameters
+  vslam.setKeyDist(0.4);	// meters
+  vslam.setKeyAngle(0.2);	// radians
+  vslam.setKeyInliers(300);
+
   
   // set up markers for visualization
   ros::init(argc, argv, "VisBundler");
@@ -389,72 +389,6 @@ int main(int argc, char** argv)
           // Add stereo pair to the system
           bool is_keyframe = vslam.addFrame(camp, image1, image1r);
 
-#if 0
-          // grow SPA
-          int kfn = 10;          // how many frames between keyframes
-          int wfn = 29;         // how many frames back in SBA window
-          if (spaFrameId < 0)   // first frame
-            {
-              spaFrameId = f1.frameId;
-              ndi0 = 0;
-              Node nd0 = sba.nodes[0];
-              nd0.setTransform(); // set up world2node transform
-              nd0.setDr(true);
-              spa.nodes.push_back(nd0);
-            }
-          else if (ret && (f1.frameId >= kfn+wfn+spaFrameId))
-            {
-              Matrix<double,6,6> prec;
-              Vector4d trans;
-              Quaterniond qr;
-              int fi1 = vo.findTransform(spaFrameId,kfn,trans,qr,prec);
-              if (fi1 < 0)
-                {
-                  cout << endl << "Something bad happened in node indexing!" << endl << endl;
-                  exit(0);
-                }
-              // add node
-              Node nd1;
-              // rotation
-              Matrix<double,3,4> f2w;
-              Node &nd0 = spa.nodes.back(); // previous node
-              Quaterniond fq0;
-              fq0.coeffs() = nd0.qrot;
-              Quaterniond fq = fq0*qr;      // RW rotation
-              fq.normalize();
-              nd1.qrot = fq.coeffs();
-              nd1.normRot();
-              // translation
-              transformF2W(f2w,nd0.trans,fq0);
-              nd1.trans.head(3) = f2w*trans;
-              nd1.trans(3) = 1.0;
-              nd1.setTransform(); // set up world2node transform
-              nd1.setDr(true);
-              spa.nodes.push_back(nd1);
-
-              // add constraint
-              ConP2 con;
-              con.ndr = ndi0;
-              con.nd1 = ndi0+1;
-              con.tmean = trans.head(3);
-              // NOTE: the definition of qpmean is somewhat odd, should 
-              // revise SPA code
-              con.qpmean = qr.inverse();
-              con.qpmean.normalize();
-              con.prec = prec;
-              spa.p2cons.push_back(con);
-
-              // update system
-              cout << endl << "!!!! UPDATING SPA !!!!" << endl << endl;
-              spa.doSPA(5,1.0e-4,true);
-              cout << endl;
-
-              // update vars
-              ndi0++;
-              spaFrameId = fi1;
-            }
-#endif
-
           if (is_keyframe)
             {
               /// @todo Depending on broken encapsulation of VslamSystem here
@@ -465,7 +399,7 @@ int main(int argc, char** argv)
               cout << "drawing with " << n << " nodes and " << np << " points..." << endl << endl;
 #if 1
               if (n%2 == 0)
-                drawgraph(vslam.sba_, cam_pub, pt_pub, 1/*, spa, cst_pub, link_pub*/); // every nth point
+                drawgraph(vslam.sba_, cam_pub, pt_pub, 1); // every nth point
 #endif
 
               // write file out
