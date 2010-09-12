@@ -188,7 +188,7 @@ namespace vslam
 
     cout << "[Stereo VO] Inliers: " << inl << "  Nodes: " << sba.nodes.size() << "   Points: " << sba.tracks.size() << endl;
     sba.verbose = 0;
-//    sba.doSBA(2,1.0e-5,0);          // dense version
+    sba.doSBA(2,1.0e-5,0);          // dense version
 
     return true;
   } // end addFrame
