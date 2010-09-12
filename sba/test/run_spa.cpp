@@ -184,6 +184,7 @@ int main(int argc, char **argv)
   SysSPA spa;
   spa.verbose=false;
   //  spa.useCholmod(true);
+  spa.csp.useCholmod = true;
 
   // add first node
   Node nd;
@@ -210,7 +211,7 @@ int main(int argc, char **argv)
   //cout << nd.trans.transpose() << endl << endl;
 
   // add in nodes
-  for (int i=0; i<nnodes-1; i++)
+  for (int i=0; i<nnodes-1; i+=doiters)
     {
       for (int j=0; j<doiters; j++)
         if (i+j+1 < nnodes)
@@ -221,8 +222,8 @@ int main(int argc, char **argv)
       spa.nFixed = 1;           // one fixed frame
 
       t0 = utime();
-           spa.doSPA(1,1.0e-4,SBA_SPARSE_CHOLESKY);
-      //	   spa.doSPA(1,1.0e-4,SBA_BLOCK_JACOBIAN_PCG,1.0e-8,10);
+      spa.doSPA(1,1.0e-4,SBA_SPARSE_CHOLESKY);
+      //      spa.doSPA(1,1.0e-4,SBA_BLOCK_JACOBIAN_PCG,1.0e-8,10);
       t1 = utime();
       cumtime += t1 - t0;
 
@@ -237,42 +238,7 @@ int main(int argc, char **argv)
 
     }
 
-  // add in constraints
-  for (int i=0; i<(int)ctrans.size(); i++)
-    {
-      ConP2 con;
-      con.ndr = cind[i].x();
-      con.nd1 = cind[i].y();
-
-      if (con.ndr >= nnodes || con.nd1 >= nnodes)
-        continue;
-
-      con.tmean = ctrans[i];
-      Quaternion<double> qr;
-      qr.coeffs() = cqrot[i];
-      qr.normalize();
-      con.qpmean = qr.inverse(); // inverse of the rotation measurement
-      con.prec = cvar[i];       // ??? should this be inverted ???
-
-      // need a boost for noise-offset system
-      //con.prec.block<3,3>(3,3) *= 10.0;
-
-      spa.p2cons.push_back(con);
-    }
-
-  cout << "[ReadSPAFile] Using " << (int)spa.nodes.size() << " nodes and " 
-       << (int)spa.p2cons.size() << " constraints" << endl;
-
-  spa.csp.useCholmod = true;
-  long long t0, t1;
-  t0 = utime();
-  spa.nFixed = 1;               // one fixed frame
-  int niters = spa.doSPA(doiters,1.0e-4,true);
-  t1 = utime();
-  printf("[TestSPA] Compute took %0.2f ms/iter\n", 0.001*(double)(t1-t0)/(double)doiters);
-  printf("[TestSPA] Accepted iterations: %d\n", niters);
-
-  printf("[TestSPA] Distance cost: %0.2f\n", spa.calcCost(true));
+  printf("[TestSPA] Compute took %0.2f ms/node, total squared cost %0.2f ms\n", 0.001*(double)cumtime/(double)nnodes, cumtime*0.001);
 
   //ofstream ofs("sphere-ground.txt");
   //for (int i=0; i<(int)ntrans.size(); i++)
