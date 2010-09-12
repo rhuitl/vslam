@@ -276,9 +276,9 @@ drawgraph(SysSBA &sba, SysSPA &spa, ros::Publisher &cam_pub, ros::Publisher &pt_
 //  max distance, angle between keyframes
 //  min inliers between keyframes
 
-double maxdist = 1.5;//0.05;           // meters
+double maxdist = 0.5;//0.05;           // meters
 double maxang  = 10.0;          // degrees
-int mininls    = 100;          // depends on number of points, no?
+int mininls    = 30;          // depends on number of points, no?
 int ndi = 0;                    // current keyframe index
 
 int main(int argc, char** argv)
