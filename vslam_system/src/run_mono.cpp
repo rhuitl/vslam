@@ -396,7 +396,7 @@ int main(int argc, char** argv)
 
       // loop over each stereo pair, adding it to the system
       bool ret = false;
-      for (int ii=0; ii<nlim; iter++, ii += 1)
+      for (int ii=0; ii<nlim; iter++, ii += ret ? 5 : 1)
         {
           if(ii > 0 && ii < init_min_frame_count)
           {
@@ -479,7 +479,7 @@ int main(int argc, char** argv)
               if (n > 4 && n%nnsba == 0)
                 {
                   cout << "Running large SBA" << endl;
-//                  sba.doSBA(3,1.0e-4,1);
+//                  sba.doSBA(3,1.0e-4,0);
                 }
 #endif
             }
