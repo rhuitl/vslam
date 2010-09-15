@@ -58,7 +58,7 @@ namespace vslam
     wsize = ws;                 // total window size
     wfixed = wf;                // size of fixed portion
     mindist = mind;             // meters
-    minang  = mina;             // degrees
+    minang  = mina;             // radians
     mininls = mini;             // inliers
 
     // set up structures
@@ -279,6 +279,7 @@ namespace vslam
 
     // set up point indices to NULL
     f1.ipts.assign(f1.kpts.size(), -1);
+    f1.pl_ipts.assign(f1.pl_pts.size(), -1);
 
     // add a frame ??? already passed in correct frame...
     //    f1 = frames.back();         // most recent frame in VO

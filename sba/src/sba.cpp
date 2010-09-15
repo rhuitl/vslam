@@ -187,6 +187,14 @@ namespace sba
     forward_proj.plane_node_index = ci0;
 #endif
     
+ // Peter: to avoid removeFrame() removing pi1 because it only has a single projection (according to projections of pi1)
+   // Note that if we do point to plane projections both directions this should not be done
+   Vector3d proj_fake;
+   proj_fake = tracks[pi0].projections[ci0].kp;
+   addStereoProj(ci0, pi1, proj_fake);
+   Proj &fake_proj = tracks[pi1].projections[ci0];
+   fake_proj.isValid = false;
+    
 #if 0
     // Backward: point 1 into camera 0. 
     Vector3d proj_backward;
@@ -201,8 +209,6 @@ namespace sba
     backward_proj.plane_point_index = pi0;
     backward_proj.plane_node_index = ci1;
 #endif
-
-    updateNormals();
   }
 
   // Update the normals for point-plane matches.
@@ -1312,6 +1318,7 @@ void SysSBA::setupSys(double sLambda)
     double lamdec = 0.5;        // how much to decrement lambda if we succeed
     int iter = 0;               // iterations
     sqMinDelta = 1e-8 * 1e-8;
+    updateNormals();
     double cost = calcCost();
 
     if (verbose > 0)
