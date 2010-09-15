@@ -6,12 +6,11 @@
   <url>http://ros.org/wiki/vslam</url>
   <depend stack="common_msgs" /> <!-- nav_msgs, geometry_msgs -->
   <depend stack="driver_common" /> <!-- dynamic_reconfigure -->
-  <depend stack="geometry" /> <!-- tf, eigen -->
+  <depend stack="geometry" /> <!-- tf -->
   <depend stack="image_common" /> <!-- image_transport -->
   <depend stack="point_cloud_perception" /> <!-- eigen3, pcl, pcl_ros -->
   <depend stack="ros" /> <!-- std_msgs, roscpp, message_filters -->
   <depend stack="vision_opencv" /> <!-- opencv2, image_geometry, cv_bridge -->
-  <depend stack="visual_feature_detectors" /> <!-- features_2d -->
   <depend stack="visualization_common" /> <!-- visualization_msgs -->
 
 </stack>
