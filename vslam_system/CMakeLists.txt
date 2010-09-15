@@ -22,8 +22,7 @@ gencfg()
 #####################################################################
 # download data
 
-rosbuild_download_data(http://pr.willowgarage.com/data/vocabulary_tree/holidays.tree data/holidays.tree bf1d267dfc0b3b1953e4e82c8b2d2b7e)
-rosbuild_download_data(http://pr.willowgarage.com/data/vocabulary_tree/holidays.weights data/holidays.weights 9705a970c83999258a57bacea105fea7)
+rosbuild_download_data(http://pr.willowgarage.com/data/calonder_descriptor/current.rtc data/calonder.rtc c2a1d9cb567f2a89d672c59a856549a8)
 
 #####################################################################
 # libraries
