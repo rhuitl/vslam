@@ -43,7 +43,7 @@ using namespace std;
 // Bring in gtest
 #include <gtest/gtest.h>
 
-using namespace Eigen;
+using namespace Eigen3;
 using namespace sba;
 using namespace frame_common;
 
@@ -56,7 +56,7 @@ double tol = 1e-5;
 #define EXPECT_EQ_ABS(a,b,t) { if (fabs((a)-(b)) > (t)) EXPECT_DOUBLE_EQ(a,b); }
 
 
-static Eigen::Matrix<double,3,3> n2prec, n2vprec, diagprec;
+static Eigen3::Matrix<double,3,3> n2prec, n2vprec, diagprec;
 
 
 void initPrecs()
@@ -122,7 +122,7 @@ TEST(TestJacobians, TestJac2dP2)
   nd2.setTransform();		// set up world2node transform
   nd2.setDr();                  // local angles
 
-  std::vector<Node2d, Eigen::aligned_allocator<Node2d> > nodes;
+  std::vector<Node2d, Eigen3::aligned_allocator<Node2d> > nodes;
   nodes.push_back(nd1);
   nodes.push_back(nd2);
 
@@ -264,7 +264,7 @@ TEST(TestSPA2d, TestSimple2nodes)
 {
   SysSPA2d spa;
 
-  vector<Matrix<double,3,1>,Eigen::aligned_allocator<Matrix<double,3,1> > > cps;
+  vector<Matrix<double,3,1>,Eigen3::aligned_allocator<Matrix<double,3,1> > > cps;
   double kfang = 5.0;
 
   spa2d_spiral_setup(spa, cps,
@@ -296,7 +296,7 @@ TEST(TestSPA2d, TestSimple3nodes)
 {
   SysSPA2d spa;
 
-  vector<Matrix<double,3,1>,Eigen::aligned_allocator<Matrix<double,3,1> > > cps;
+  vector<Matrix<double,3,1>,Eigen3::aligned_allocator<Matrix<double,3,1> > > cps;
   double kfang = 5.0;
 
   spa2d_spiral_setup(spa, cps,
@@ -334,7 +334,7 @@ TEST(TestSPA2d, TestSimple10_i90)
 {
   SysSPA2d spa;
 
-  vector<Matrix<double,3,1>,Eigen::aligned_allocator<Matrix<double,3,1> > > cps;
+  vector<Matrix<double,3,1>,Eigen3::aligned_allocator<Matrix<double,3,1> > > cps;
   double kfang = 5.0;
   double kfrad = kfang*M_PI/180.0;
 
@@ -380,7 +380,7 @@ TEST(TestSPA2d, TestSimple10_i0)
 {
   SysSPA2d spa;
 
-  vector<Matrix<double,3,1>,Eigen::aligned_allocator<Matrix<double,3,1> > > cps;
+  vector<Matrix<double,3,1>,Eigen3::aligned_allocator<Matrix<double,3,1> > > cps;
   double kfang = 5.0;
   double kfrad = kfang*M_PI/180.0;
 
@@ -424,7 +424,7 @@ TEST(TestSPA2d, TestSimple400nodesSparse)
 {
   SysSPA2d spa;
 
-  vector<Matrix<double,3,1>,Eigen::aligned_allocator<Matrix<double,3,1> > > cps;
+  vector<Matrix<double,3,1>,Eigen3::aligned_allocator<Matrix<double,3,1> > > cps;
   double kfang = 5.0;
 
   spa2d_spiral_setup(spa, cps,
@@ -489,7 +489,7 @@ TEST(TestSPA2d, TestSimple400nodes)
 {
   SysSPA2d spa;
 
-  vector<Matrix<double,3,1>,Eigen::aligned_allocator<Matrix<double,3,1> > > cps;
+  vector<Matrix<double,3,1>,Eigen3::aligned_allocator<Matrix<double,3,1> > > cps;
   double kfang = 5.0;
 
   spa2d_spiral_setup(spa, cps,

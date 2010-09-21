@@ -38,7 +38,7 @@
 
 #include "sba/sba.h"
 
-using namespace Eigen;
+using namespace Eigen3;
 using namespace std;
 
 //#define DEBUG
@@ -80,8 +80,8 @@ namespace sba
   
   // Adds a node to the system. 
   // \return the index of the node added.
-  int SysSBA::addNode(Eigen::Matrix<double,4,1> trans, 
-                      Eigen::Quaternion<double> qrot,
+  int SysSBA::addNode(Eigen3::Matrix<double,4,1> trans, 
+                      Eigen3::Quaternion<double> qrot,
                       const fc::CamParams &cp,
                       bool isFixed)
   {
@@ -112,7 +112,7 @@ namespace sba
   // <ci> is camera/node index, <pi> point index, <q> is image coordinates.
   // Stereo is whether the point is stereo or not (true is stereo, false is 
   // monocular).
-  bool SysSBA::addProj(int ci, int pi, Eigen::Vector3d &q, bool stereo)
+  bool SysSBA::addProj(int ci, int pi, Eigen3::Vector3d &q, bool stereo)
   {
     // NOTE: should check bounds on ci, pi, and prjs
     // get track
@@ -131,7 +131,7 @@ namespace sba
   // <ci> is camera/node index, <pi> point index, <q> is image coordinates.
   // This function explicitly sets up a monocular projection. If creating 
   // projections from existing projections, use addProj().
-  bool SysSBA::addMonoProj(int ci, int pi, Eigen::Vector2d &q)
+  bool SysSBA::addMonoProj(int ci, int pi, Eigen3::Vector2d &q)
   {
     if (tracks[pi].projections.count(ci) > 0)
     {
@@ -146,7 +146,7 @@ namespace sba
   // Add a projection between point and camera, in setting up the system;
   // <ci> is camera/node index, <pi> point index, <q> is image coordinates.
   // This function explicitly sets up a stereo projection.
-  bool SysSBA::addStereoProj(int ci, int pi, Eigen::Vector3d &q)
+  bool SysSBA::addStereoProj(int ci, int pi, Eigen3::Vector3d &q)
   {
     if (tracks[pi].projections.count(ci) > 0)
     {
@@ -159,14 +159,14 @@ namespace sba
   }
   
   // Sets the covariance matrix of a projection.
-  void SysSBA::setProjCovariance(int ci, int pi, Eigen::Matrix3d &covar)
+  void SysSBA::setProjCovariance(int ci, int pi, Eigen3::Matrix3d &covar)
   {
     // TODO Check if the projection exists instead.
     tracks[pi].projections[ci].setCovariance(covar);
   }
   
   // Add a point-plane match, forward and backward.
-  void SysSBA::addPointPlaneMatch(int ci0, int pi0, Eigen::Vector3d normal0, int ci1, int pi1, Eigen::Vector3d normal1)
+  void SysSBA::addPointPlaneMatch(int ci0, int pi0, Eigen3::Vector3d normal0, int ci1, int pi1, Eigen3::Vector3d normal1)
   {
     Point pt0 = tracks[pi0].point;
     Point pt1 = tracks[pi1].point;
@@ -463,7 +463,7 @@ namespace sba
   void SysSBA::printStats()
   {
     int ncams = nodes.size();
-    vector<map<int,int>, Eigen::aligned_allocator<map<int,int> > > conns; // connections between cameras - key is camera, val is count
+    vector<map<int,int>, Eigen3::aligned_allocator<map<int,int> > > conns; // connections between cameras - key is camera, val is count
     conns.resize(ncams);
     VectorXi dcnt(ncams);
     dcnt.setZero(ncams);
@@ -868,9 +868,9 @@ namespace sba
     sort(rem.begin(),rem.end()); // sort into ascending order
     cout << "Finished finding " << rem.size() << " tracks" << endl;
 
-    std::vector<Point, Eigen::aligned_allocator<Point> > pts;
-    std::vector< std::vector<MonoProj, Eigen::aligned_allocator<MonoProj> >, 
-      Eigen::aligned_allocator<std::vector<MonoProj, Eigen::aligned_allocator<MonoProj> > > > trs;
+    std::vector<Point, Eigen3::aligned_allocator<Point> > pts;
+    std::vector< std::vector<MonoProj, Eigen3::aligned_allocator<MonoProj> >, 
+      Eigen3::aligned_allocator<std::vector<MonoProj, Eigen3::aligned_allocator<MonoProj> > > > trs;
 
     // delete elements into new vectors
     int n = 0;                  // index into rem()
@@ -883,7 +883,7 @@ namespace sba
             continue;
           }
         pts.push_back(points[i]);
-        vector<MonoProj, Eigen::aligned_allocator<MonoProj> > &prjs = tracks[i];
+        vector<MonoProj, Eigen3::aligned_allocator<MonoProj> > &prjs = tracks[i];
         /*for (int j=0; j<(int)prjs.size(); j++)
           prjs[j].pti = ii; */
         trs.push_back(tracks[i]);
@@ -973,7 +973,7 @@ namespace sba
     
     std::sort(remtrs.begin(),remtrs.end()); // sort into ascending order
 
-    std::vector<Track, Eigen::aligned_allocator<Track> > trs;
+    std::vector<Track, Eigen3::aligned_allocator<Track> > trs;
 
     // delete elements into new vectors
     int n = 0;                  // index into rem()
@@ -985,7 +985,7 @@ namespace sba
             n++;
             continue;
           }
-        // vector<MonoProj, Eigen::aligned_allocator<MonoProj> > &prjs = tracks[i];
+        // vector<MonoProj, Eigen3::aligned_allocator<MonoProj> > &prjs = tracks[i];
         /*for (int j=0; j<(int)prjs.size(); j++)
           prjs[j].pti = ii; */
         trs.push_back(tracks[i]);
@@ -1422,7 +1422,7 @@ void SysSBA::setupSys(double sLambda)
 
         // update the cameras
         int ci = 0;
-        for(vector<Node, Eigen::aligned_allocator<Node> >::iterator itr = nodes.begin(); itr != nodes.end(); itr++)
+        for(vector<Node, Eigen3::aligned_allocator<Node> >::iterator itr = nodes.begin(); itr != nodes.end(); itr++)
           {
             Node &nd = *itr;
             if (nd.isFixed) continue; // not to be updated
@@ -1457,7 +1457,7 @@ void SysSBA::setupSys(double sLambda)
         // update the points (step 7)
         // loop over tracks
         int pi = 0;             // point index
-        for(vector<Track, Eigen::aligned_allocator<Track> >::iterator itr = tracks.begin();
+        for(vector<Track, Eigen3::aligned_allocator<Track> >::iterator itr = tracks.begin();
             itr != tracks.end(); itr++, pi++)
           {
             ProjMap &prjs = itr->projections;

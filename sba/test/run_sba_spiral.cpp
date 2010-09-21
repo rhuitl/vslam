@@ -37,7 +37,7 @@
 
 #include "sba/sba.h"
 #include "sba/sba_setup.h"
-using namespace Eigen;
+using namespace Eigen3;
 using namespace sba;
 
 #include <iostream>
@@ -85,7 +85,7 @@ int main(int argc, char **argv)
     {
       // define a camera and bundle system
       SysSBA sba;
-      vector<Matrix<double,6,1>,Eigen::aligned_allocator<Matrix<double,6,1> > > cps;
+      vector<Matrix<double,6,1>,Eigen3::aligned_allocator<Matrix<double,6,1> > > cps;
       cps.clear();
 
       double kfang = 5.0;

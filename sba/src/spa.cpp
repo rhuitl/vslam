@@ -51,9 +51,9 @@
 
 #include <stdio.h>
 #include "sba/sba.h"
-#include <Eigen/Cholesky>
+#include <Eigen3/Cholesky>
 
-using namespace Eigen;
+using namespace Eigen3;
 using namespace std;
 
 #include <iostream>
@@ -116,7 +116,7 @@ namespace sba
          << "  Number of scale constraints: " << nscs << endl;
     
     cout << "Reading in camera data..." << flush;
-    std::vector<Node,Eigen::aligned_allocator<Node> > &nodes = spa.nodes;
+    std::vector<Node,Eigen3::aligned_allocator<Node> > &nodes = spa.nodes;
     Node nd;
 
     for (int i=0; i<ncams; i++)
@@ -144,7 +144,7 @@ namespace sba
 
     // read in p2p constraints
     cout << "Reading in constraint data..." << flush;
-    std::vector<ConP2,Eigen::aligned_allocator<ConP2> > &cons = spa.p2cons;
+    std::vector<ConP2,Eigen3::aligned_allocator<ConP2> > &cons = spa.p2cons;
     ConP2 con;
 
     for (int i=0; i<np2s; i++)
@@ -189,7 +189,7 @@ namespace sba
 
     // read in scale constraints
     cout << "Reading in scale constraint data..." << flush;
-    std::vector<ConScale,Eigen::aligned_allocator<ConScale> > &scons = spa.scons;
+    std::vector<ConScale,Eigen3::aligned_allocator<ConScale> > &scons = spa.scons;
     ConScale scon;
 
     for (int i=0; i<nscs; i++)
@@ -221,7 +221,7 @@ namespace sba
   // set up Jacobians
   // see Konolige RSS 2010 submission for details
 
-  void ConP2::setJacobians(std::vector<Node,Eigen::aligned_allocator<Node> > &nodes)
+  void ConP2::setJacobians(std::vector<Node,Eigen3::aligned_allocator<Node> > &nodes)
   {
     // node references
     Node &nr = nodes[ndr];
@@ -232,7 +232,7 @@ namespace sba
     Quaternion<double> &q1 = n1.qrot;
 
     // first get the second frame in first frame coords
-    Eigen::Matrix<double,3,1> pc = nr.w2n * t1;
+    Eigen3::Matrix<double,3,1> pc = nr.w2n * t1;
 
     // Jacobians wrt first frame parameters
 
@@ -243,11 +243,11 @@ namespace sba
 
     // translational part of 0p1 wrt rotational vars of p0
     // dR'/dq * [pw - t]
-    Eigen::Matrix<double,3,1> pwt;
+    Eigen3::Matrix<double,3,1> pwt;
     pwt = (t1-tr).head(3);   // transform translations
 
     // dx
-    Eigen::Matrix<double,3,1> dp = nr.dRdx * pwt; // dR'/dq * [pw - t]
+    Eigen3::Matrix<double,3,1> dp = nr.dRdx * pwt; // dR'/dq * [pw - t]
     J0.block<3,1>(0,3) = dp;
     // dy
     dp = nr.dRdy * pwt; // dR'/dq * [pw - t]
@@ -263,7 +263,7 @@ namespace sba
     // from 0q1 = qpmean * s0' * q0' * q1
 
     // dqdx
-    Eigen::Quaternion<double> qr0, qr1, qrn, qrd;
+    Eigen3::Quaternion<double> qr0, qr1, qrn, qrd;
     qr1.coeffs() = q1.coeffs();
     qrn.coeffs() = Vector4d(-qpmean.w(),-qpmean.z(),qpmean.y(),qpmean.x());  // qpmean * ds0'/dx
     qr0.coeffs() = Vector4d(-qr.x(),-qr.y(),-qr.z(),qr.w());
@@ -320,7 +320,7 @@ namespace sba
     // rotational part of 0p1 wrt rotational vars of p0
     // from 0q1 = q0'*s1*q1
 
-    Eigen::Quaternion<double> qrc;
+    Eigen3::Quaternion<double> qrc;
     qrc.coeffs() = Vector4d(-qr.x(),-qr.y(),-qr.z(),qr.w());
     qrc = qpmean*qrc*qr1;       // mean' * qr0' * qr1
     qrc.normalize();
@@ -380,7 +380,7 @@ namespace sba
   // set up Jacobians
   // see Konolige RSS 2010 submission for details
 
-  void ConScale::setJacobians(std::vector<Node,Eigen::aligned_allocator<Node> > &nodes)
+  void ConScale::setJacobians(std::vector<Node,Eigen3::aligned_allocator<Node> > &nodes)
   {
     // node references
     Node &n0 = nodes[nd0];
@@ -388,7 +388,7 @@ namespace sba
     Node &n1 = nodes[nd1];
     Matrix<double,4,1> &t1 = n1.trans;
 
-    Eigen::Matrix<double,3,1> td = (t1-t0).head(3);
+    Eigen3::Matrix<double,3,1> td = (t1-t0).head(3);
 
     // Jacobians wrt first frame parameters
     //  (ti - tj)^2 - a*kij
@@ -408,7 +408,7 @@ namespace sba
   // This hasn't been tested, and is probably wrong.
   //
 
-  void ConP3P::setJacobians(std::vector<Node,Eigen::aligned_allocator<Node> > nodes)
+  void ConP3P::setJacobians(std::vector<Node,Eigen3::aligned_allocator<Node> > nodes)
   {
     // node references
     Node nr = nodes[ndr];
@@ -922,11 +922,6 @@ namespace sba
     int ncons = p2cons.size();
 
     // check for fixed frames
-    if (nFixed <= 0)
-      {
-        cout << "[doSBA] No fixed frames" << endl;
-        return 0;
-      }
     for (int i=0; i<ncams; i++)
       {
         Node &nd = nodes[i];
@@ -949,7 +944,7 @@ namespace sba
 
     int good_iter = 0;
     for (; iter<niter; iter++)  // loop at most <niter> times
-      {
+    {
         // set up and solve linear system
         // NOTE: shouldn't need to redo all calcs in setupSys if we 
         //   got here from a bad update
@@ -961,8 +956,6 @@ namespace sba
         else
           setupSys(lambda);     // set up linear system
 
-        //        cout << "[SPA] Solving...";
-        t1 = utime();
 	// use appropriate linear solver
 	if (useCSparse == SBA_BLOCK_JACOBIAN_PCG)
 	  {
@@ -974,15 +967,13 @@ namespace sba
 	      }
 	  }
         else if (useCSparse > 0)
-          {
+        {
             bool ok = csp.doChol();
             if (!ok)
               cout << "[DoSPA] Sparse Cholesky failed!" << endl;
-          }
+        }
         else
           A.ldlt().solveInPlace(B); // Cholesky decomposition and solution
-        t2 = utime();
-        //        cout << "solved" << endl;
 
         // get correct result vector
         VectorXd &BB = useCSparse ? csp.B : B;
@@ -991,15 +982,14 @@ namespace sba
         // this is a pretty crummy convergence measure...
         double sqDiff = BB.squaredNorm();
         if (sqDiff < sqMinDelta) // converged, done...
-          {
-            // cout << "Converged with delta: " << sqrt(sqDiff) << endl;
-            break;
-          }
+        {
+          break;
+        }
 
         // update the frames
         int ci = 0;
         for(int i=0; i < ncams; i++)
-          {
+        {
             Node &nd = nodes[i];
             if (nd.isFixed) continue; // not to be updated
             nd.oldtrans = nd.trans; // save in case we don't improve the cost
@@ -1009,10 +999,6 @@ namespace sba
             Quaternion<double> qr;
             qr.vec() = BB.segment<3>(ci+3); 
             qr.w() = sqrt(1.0 - qr.vec().squaredNorm());
-
-            //        cout << endl << "A: " << endl << A << endl;
-            //        cout << endl << "B: " << endl << B.transpose() << endl;
-            //        cout << endl << "UPDATE: " << qr.coeffs().transpose() << endl;
 
             Quaternion<double> qrn,qrx;
             qrn = nd.qrot;
@@ -1026,17 +1012,17 @@ namespace sba
             nd.setTransform();  // set up projection matrix for cost calculation
             nd.setDr(true);     // set rotational derivatives
             ci += 6;            // advance B index
-          }
+        }
 
         // update the scales
         ci = 6*nFree;       // head of scale vars
         if (nscales > 0)        // could be empty
           for(int i=0; i < nscales; i++)
-            {
+          {
               oldscales[i] = scales[i];
               scales[i] += B(ci);
               ci++;
-            }
+          }
 
 
         // new cost
@@ -1046,27 +1032,27 @@ namespace sba
         
         // check if we did good
         if (newcost < cost) // && iter != 0) // NOTE: iter==0 case is for checking
-          {
+        {
             cost = newcost;
             lambda *= lamdec;   // decrease lambda
             //      laminc = 2.0;       // reset bad lambda factor; not sure if this is a good idea...
             good_iter++;
-          }
+        }
         else
-          {
+        {
             lambda *= laminc;   // increase lambda
             laminc *= 2.0;      // increase the increment
 
             // reset nodes
             for(int i=0; i<ncams; i++)
-              {
+            {
                 Node &nd = nodes[i];
                 if (nd.isFixed) continue; // not to be updated
                 nd.trans = nd.oldtrans;
                 nd.qrot = nd.oldqrot;
                 nd.setTransform(); // set up projection matrix for cost calculation
                 nd.setDr(true);
-              }
+            }
 
             // reset scales
             if (nscales > 0)    // could be empty
@@ -1077,18 +1063,7 @@ namespace sba
             cost = calcCost();  // need to reset errors
             // cout << iter << " Downdated cost: " << cost << endl;
             // NOTE: shouldn't need to redo all calcs in setupSys
-          }
-
-        t3 = utime();
-        if (iter == 0)
-          {
-            /*
-            printf("[SPA] Setup: %0.2f ms  Solve: %0.2f ms  Update: %0.2f ms\n",
-                   0.001*(double)(t1-t0),
-                   0.001*(double)(t2-t1),
-                   0.001*(double)(t3-t2));
-            */
-          }
+        }
       }
 
     // return number of iterations performed
@@ -1123,7 +1098,7 @@ namespace sba
       }
     else
       {
-        Eigen::IOFormat pfmt(16);
+        Eigen3::IOFormat pfmt(16);
 
         int nrows = A.rows();
         int ncols = A.cols();

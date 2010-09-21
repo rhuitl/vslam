@@ -45,10 +45,10 @@
 
 #include <stdio.h>
 #include <iostream>
-#include <Eigen/Core>
-#include <Eigen/Geometry>
-#include <Eigen/LU>
-#include <Eigen/StdVector>
+#include <Eigen3/Core>
+#include <Eigen3/Geometry>
+#include <Eigen3/LU>
+#include <Eigen3/StdVector>
 
 // CSparse header
 extern "C" {
@@ -73,7 +73,7 @@ extern "C" {
 // block jacobian PCG
 #include "bpcg/bpcg.h"
 
-using namespace Eigen;
+using namespace Eigen3;
 using namespace std;
 
 namespace sba

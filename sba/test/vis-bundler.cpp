@@ -50,7 +50,7 @@
 #include <sys/time.h>
 
 using namespace std;
-using namespace Eigen;
+using namespace Eigen3;
 using namespace sba;
 using namespace frame_common;
 
@@ -167,12 +167,12 @@ int main(int argc, char **argv)
 
   fin = argv[1];
 
-  vector< Vector3d, Eigen::aligned_allocator<Vector3d> > camps;	// cam params <f d1 d2>
-  vector< Matrix3d, Eigen::aligned_allocator<Matrix3d> > camRs;	// cam rotation matrix
-  vector< Vector3d, Eigen::aligned_allocator<Vector3d> > camts;	// cam translation
-  vector< Vector3d, Eigen::aligned_allocator<Vector3d> > ptps;	// point position
-  vector< Vector3i, Eigen::aligned_allocator<Vector3i> > ptcs;	// point color
-  vector< vector< Vector4d, Eigen::aligned_allocator<Vector4d> > > ptts; // point tracks - each vector is <camera_index kp_idex u v>
+  vector< Vector3d, Eigen3::aligned_allocator<Vector3d> > camps;	// cam params <f d1 d2>
+  vector< Matrix3d, Eigen3::aligned_allocator<Matrix3d> > camRs;	// cam rotation matrix
+  vector< Vector3d, Eigen3::aligned_allocator<Vector3d> > camts;	// cam translation
+  vector< Vector3d, Eigen3::aligned_allocator<Vector3d> > ptps;	// point position
+  vector< Vector3i, Eigen3::aligned_allocator<Vector3i> > ptcs;	// point color
+  vector< vector< Vector4d, Eigen3::aligned_allocator<Vector4d> > > ptts; // point tracks - each vector is <camera_index kp_idex u v>
 
   int ret = ParseBundlerFile(fin, camps, camRs, camts, ptps, ptcs, ptts);
   if (ret < 0)
@@ -265,7 +265,7 @@ int main(int argc, char **argv)
   for (int i=0; i<npts; i++)
     {
       // track
-      vector<Vector4d, Eigen::aligned_allocator<Vector4d> > &ptt = ptts[i];
+      vector<Vector4d, Eigen3::aligned_allocator<Vector4d> > &ptt = ptts[i];
       int nprjs = ptt.size();
       for (int j=0; j<nprjs; j++)
 	{
@@ -371,7 +371,7 @@ int main(int argc, char **argv)
   for (int i=0; i<npts; i++)
     {
       // track
-      vector<Vector4d, Eigen::aligned_allocator<Vector4d> > &ptt = ptts[i];
+      vector<Vector4d, Eigen3::aligned_allocator<Vector4d> > &ptt = ptts[i];
       int nprjs = ptt.size();
       for (int j=0; j<nprjs; j++)
 	    {

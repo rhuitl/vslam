@@ -8,11 +8,11 @@
 
 
 #if 1
-#include <Eigen/Core>
-#include <Eigen/Geometry>
-#include <Eigen/LU>
-#include <Eigen/Cholesky>
-using namespace Eigen;
+#include <Eigen3/Core>
+#include <Eigen3/Geometry>
+#include <Eigen3/LU>
+#include <Eigen3/Cholesky>
+using namespace Eigen3;
 #endif
 
 // some LAPACK Cholesky routines

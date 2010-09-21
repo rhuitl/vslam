@@ -45,7 +45,7 @@
 #include <sys/time.h>
 
 using namespace std;
-using namespace Eigen;
+using namespace Eigen3;
 using namespace sba;
 using namespace frame_common;
 

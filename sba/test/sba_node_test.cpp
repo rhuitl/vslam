@@ -36,7 +36,7 @@ void setupSBA(SysSBA &sys)
     double plane_distance = 5; // Distance of the plane from the cameras (z)
 
     // Vector containing the true point positions.
-    vector<Point, Eigen::aligned_allocator<Point> > points;
+    vector<Point, Eigen3::aligned_allocator<Point> > points;
 
     for (int ix = 0; ix < npts_x ; ix++)
     {
@@ -135,8 +135,8 @@ void setupSBA(SysSBA &sys)
         
 }
 
-void publishNode(unsigned int index, Eigen::Matrix<double,4,1> trans, 
-                Eigen::Quaternion<double> fq,
+void publishNode(unsigned int index, Eigen3::Matrix<double,4,1> trans, 
+                Eigen3::Quaternion<double> fq,
                 const frame_common::CamParams &cp,
                 bool isFixed, sba::CameraNode &msg)
 { 
@@ -167,7 +167,7 @@ void publishPoint(unsigned int index, sba::Point pt, sba::WorldPoint &msg)
     msg.w = pt.w();
 }
 
-void publishProjection(int ci, int pi, Eigen::Vector3d &q, 
+void publishProjection(int ci, int pi, Eigen3::Vector3d &q, 
                        bool stereo, sba::Projection &msg)
 {
     msg.camindex = ci;

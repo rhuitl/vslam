@@ -43,9 +43,9 @@
 #include "sba/read_spa.h"
 #include "sba/sba.h"
 #include "sba/spa2d.h"
-#include <Eigen/Cholesky>
+#include <Eigen3/Cholesky>
 
-using namespace Eigen;
+using namespace Eigen3;
 using namespace std;
 using namespace sba;
 
@@ -70,17 +70,17 @@ static long long utime()
 void 
 addnode(SysSPA2d &spa, int n, 
 	// node translation
-	std::vector< Eigen::Vector2d, Eigen::aligned_allocator<Eigen::Vector2d> > ntrans,
+	std::vector< Eigen3::Vector2d, Eigen3::aligned_allocator<Eigen3::Vector2d> > ntrans,
 	// node rotation
 	std::vector< double > arots,
 	// constraint indices
-	std::vector< Eigen::Vector2i, Eigen::aligned_allocator<Eigen::Vector2i> > cind,
+	std::vector< Eigen3::Vector2i, Eigen3::aligned_allocator<Eigen3::Vector2i> > cind,
 	// constraint local translation 
-	std::vector< Eigen::Vector2d, Eigen::aligned_allocator<Eigen::Vector2d> > ctrans,
+	std::vector< Eigen3::Vector2d, Eigen3::aligned_allocator<Eigen3::Vector2d> > ctrans,
 	// constraint local rotation as quaternion
 	std::vector< double > carot,
 	// constraint precision
-	std::vector< Eigen::Matrix<double,3,3>, Eigen::aligned_allocator<Eigen::Matrix<double,3,3> > > cvar)
+	std::vector< Eigen3::Matrix<double,3,3>, Eigen3::aligned_allocator<Eigen3::Matrix<double,3,3> > > cvar)
 
 {
   Node2d nd1;
@@ -146,19 +146,19 @@ int main(int argc, char **argv)
   fin = argv[1];
 
   // node translation
-  std::vector< Eigen::Vector2d, Eigen::aligned_allocator<Eigen::Vector2d> > ntrans;
+  std::vector< Eigen3::Vector2d, Eigen3::aligned_allocator<Eigen3::Vector2d> > ntrans;
   // node rotation
   std::vector< double > arots;
   // constraint indices
-  std::vector< Eigen::Vector2i, Eigen::aligned_allocator<Eigen::Vector2i> > cind;
+  std::vector< Eigen3::Vector2i, Eigen3::aligned_allocator<Eigen3::Vector2i> > cind;
   // constraint local translation 
-  std::vector< Eigen::Vector2d, Eigen::aligned_allocator<Eigen::Vector2d> > ctrans;
+  std::vector< Eigen3::Vector2d, Eigen3::aligned_allocator<Eigen3::Vector2d> > ctrans;
   // constraint local rotation as quaternion
   std::vector< double > carot;
   // constraint precision
-  std::vector< Eigen::Matrix<double,3,3>, Eigen::aligned_allocator<Eigen::Matrix<double,3,3> > > cvar;
+  std::vector< Eigen3::Matrix<double,3,3>, Eigen3::aligned_allocator<Eigen3::Matrix<double,3,3> > > cvar;
   // scans
-  std::vector< std::vector< Eigen::Vector2d, Eigen::aligned_allocator<Eigen::Vector2d> > > scans;
+  std::vector< std::vector< Eigen3::Vector2d, Eigen3::aligned_allocator<Eigen3::Vector2d> > > scans;
 
   ReadSPA2dFile(fin,ntrans,arots,cind,ctrans,carot,cvar,scans);
 

@@ -1,11 +1,11 @@
-#include <Eigen/Core>
-#include <Eigen/Geometry>
-#include <Eigen/LU>
-#include <Eigen/StdVector>
+#include <Eigen3/Core>
+#include <Eigen3/Geometry>
+#include <Eigen3/LU>
+#include <Eigen3/StdVector>
 
 #include <stdio.h>
 
-using namespace Eigen;
+using namespace Eigen3;
 
 int main()
 {

@@ -49,7 +49,7 @@
 #include <sys/time.h>
 
 using namespace std;
-using namespace Eigen;
+using namespace Eigen3;
 using namespace sba;
 using namespace frame_common;
 
@@ -152,7 +152,7 @@ drawgraph(SysSPA &spa, ros::Publisher &cam_pub, ros::Publisher &link_pub)
 // setup of precision matrices
 //
 
-static Eigen::Matrix<double,6,6> n2prec, n2vprec, n2aprec, n2bprec, diagprec;
+static Eigen3::Matrix<double,6,6> n2prec, n2vprec, n2aprec, n2bprec, diagprec;
 
 
 void initPrecs()
@@ -276,7 +276,7 @@ int main(int argc, char **argv)
   Node::initDr();               // set up fixed jacobians
   initPrecs();
 
-  vector<Matrix<double,6,1>,Eigen::aligned_allocator<Matrix<double,6,1> > > cps;
+  vector<Matrix<double,6,1>,Eigen3::aligned_allocator<Matrix<double,6,1> > > cps;
   double kfang = 5.0;
   double kfrad = kfang*M_PI/180.0;
 

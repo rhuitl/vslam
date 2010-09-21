@@ -112,8 +112,8 @@ void drawGraph(const SysSBA &sba, const ros::Publisher &camera_pub,
 	          Point pt0 = sba.tracks[i].point;
 	          Vector3d plane_point = prj.plane_point;
 	          Vector3d plane_normal = prj.plane_normal;
-            Eigen::Vector3d w = pt0.head<3>()-plane_point;
-            Eigen::Vector3d projpt = plane_point+(w.dot(plane_normal))*plane_normal;
+            Eigen3::Vector3d w = pt0.head<3>()-plane_point;
+            Eigen3::Vector3d projpt = plane_point+(w.dot(plane_normal))*plane_normal;
 	          Vector3d pt1 = pt0.head<3>()+0.1*plane_normal;
 	          //Vector3d pt1 = projpt;
 	          

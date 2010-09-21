@@ -45,13 +45,13 @@
 
 #include <stdio.h>
 #include <iostream>
-#include <Eigen/Core>
-#include <Eigen/Geometry>
-#include <Eigen/LU>
+#include <Eigen3/Core>
+#include <Eigen3/Geometry>
+#include <Eigen3/LU>
 #ifndef EIGEN_USE_NEW_STDVECTOR
 #define EIGEN_USE_NEW_STDVECTOR
 #endif
-#include <Eigen/StdVector>
+#include <Eigen3/StdVector>
 #include <vector>
 
 // sparse Cholesky
@@ -100,7 +100,7 @@ namespace sba
     int nodeId;
 
     /// 6DOF pose as a unit quaternion and translation vector
-    Eigen::Matrix<double,3,1> trans;    // homogeneous coordinates, last element is 1.0
+    Eigen3::Matrix<double,3,1> trans;    // homogeneous coordinates, last element is 1.0
     double arot;                // angle in radians, normalized to [-pi,+pi]
     /// Normalize to [-pi,+pi]
     inline void normArot()
@@ -110,17 +110,17 @@ namespace sba
     }
 
     /// Resultant transform from world to node coordinates;
-    Eigen::Matrix<double,2,3> w2n;
+    Eigen3::Matrix<double,2,3> w2n;
     void setTransform();
 
     /// Covariance matrix, 3x3.  Variables are [trans,rot], with the
     /// rotational part being the x parameter of the unit
     /// quaternion
-    //    Eigen::Matrix<double,3,3> covar;
+    //    Eigen3::Matrix<double,3,3> covar;
 
     /// Derivatives of the rotation matrix transpose wrt quaternion xyz, used for
     /// calculating Jacobian wrt pose of a projection.
-    Eigen::Matrix2d dRdx;
+    Eigen3::Matrix2d dRdx;
 
     void setDr();               // set local angle derivatives
 
@@ -129,7 +129,7 @@ namespace sba
 
     /// 3DOF pose as a unit quaternion and translation vector, saving
     /// for LM step
-    Eigen::Matrix<double,3,1> oldtrans; // homogeneous coordinates, last element is 1.0
+    Eigen3::Matrix<double,3,1> oldtrans; // homogeneous coordinates, last element is 1.0
     double oldarot;             // angle
   };
 
@@ -150,12 +150,12 @@ namespace sba
     int nd1;
 
     /// Mean vector, quaternion (inverse) and precision matrix for this constraint
-    Eigen::Vector2d tmean;
+    Eigen3::Vector2d tmean;
     double amean;
-    Eigen::Matrix<double,3,3> prec;
+    Eigen3::Matrix<double,3,3> prec;
 
     /// error
-    Eigen::Matrix<double,3,1> err;
+    Eigen3::Matrix<double,3,1> err;
     /// calculates projection error and stores it in <err>
     inline double calcErr(const Node2d &nd0, const Node2d &nd1);
 
@@ -164,7 +164,7 @@ namespace sba
 
 
     /// jacobian with respect to frames; uses dR'/dq from Node2d calculation
-    Eigen::Matrix<double,3,3> J0,J0t,J1,J1t;
+    Eigen3::Matrix<double,3,3> J0,J0t,J1,J1t;
 
     /// scaling factor for quaternion derivatives relative to translational ones;
     /// not sure if this is needed, it's close to 1.0
@@ -179,7 +179,7 @@ namespace sba
     /// d(px/pz)/du = [ pz dpx/du - px dpz/du ] / pz^2,
     /// works for all variables
     ///
-    void setJacobians(std::vector<Node2d,Eigen::aligned_allocator<Node2d> > &nodes);
+    void setJacobians(std::vector<Node2d,Eigen3::aligned_allocator<Node2d> > &nodes);
 
     /// valid or not (could be out of bounds)
     bool isValid;
@@ -208,18 +208,18 @@ namespace sba
       bool addConstraint2d(int nd0, int nd1, Vector3d &mean, Matrix3d &prec);
 
       /// set of nodes (camera frames) for SPA system, indexed by position;
-      std::vector<Node2d,Eigen::aligned_allocator<Node2d> > nodes;
-      std::vector<Node2d,Eigen::aligned_allocator<Node2d> > getNodes()
+      std::vector<Node2d,Eigen3::aligned_allocator<Node2d> > nodes;
+      std::vector<Node2d,Eigen3::aligned_allocator<Node2d> > getNodes()
         { return nodes; }
 
       /// set of point scans, corresponding to nodes
-      std::vector< std::vector< Eigen::Vector2d, Eigen::aligned_allocator<Eigen::Vector2d> > > scans;
+      std::vector< std::vector< Eigen3::Vector2d, Eigen3::aligned_allocator<Eigen3::Vector2d> > > scans;
 
       /// Number of fixed nodes
       int nFixed;               
 
       /// Set of P2 constraints
-      std::vector<Con2dP2,Eigen::aligned_allocator<Con2dP2> >  p2cons;
+      std::vector<Con2dP2,Eigen3::aligned_allocator<Con2dP2> >  p2cons;
 
       /// calculate the error in the system;
       ///   if <tcost> is true, just the distance error without weighting
@@ -257,8 +257,8 @@ namespace sba
       double sqMinDelta;
 
       /// linear system matrix and vector
-      Eigen::MatrixXd A;
-      Eigen::VectorXd B;
+      Eigen3::MatrixXd A;
+      Eigen3::VectorXd B;
 
       /// sparse matrix object
       CSparse2d csp;

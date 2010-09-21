@@ -54,7 +54,7 @@ class SBAFileIOTest : public :: testing::Test
     SysSBA sys;
     
     // Vector containing the true point positions.
-    vector<Point, Eigen::aligned_allocator<Point> > points;
+    vector<Point, Eigen3::aligned_allocator<Point> > points;
     
     void SetUp();
     
