@@ -125,8 +125,8 @@ namespace pe
     MethodType getMethod() const {return usedMethod;};
 
     // transform
-    Eigen::Matrix3d rot; ///< Rotation matrix of camera between the frames.
-    Eigen::Vector3d trans; ///< Translation of the camera between the frames.
+    Eigen3::Matrix3d rot; ///< Rotation matrix of camera between the frames.
+    Eigen3::Vector3d trans; ///< Translation of the camera between the frames.
 
   protected:
     void matchFrames(const fc::Frame& f0, const fc::Frame& f1, std::vector<int>& fwd_matches);
