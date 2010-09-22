@@ -60,6 +60,7 @@ namespace vslam
     mindist = mind;             // meters
     minang  = mina;             // radians
     mininls = mini;             // inliers
+    doPointPlane = true;        // true if point-plane matches are included
 
     // set up structures
     sba.useCholmod(true);
@@ -172,13 +173,6 @@ namespace vslam
     // add connections to previous frame
     addProjections(f0, f1, frames, sba, pose_estimator_->inliers, f2w_frame0, ndi-1, ndi, &ipts);
     
-    // Do pointcloud matching and add the projections to the system.
-    if (pointcloud_proc_)
-    {
-      pointcloud_proc_->match(f0, f1, pose_estimator_->trans, Quaterniond(pose_estimator_->rot), pointcloud_matches_);
-      addPointCloudProjections(f0, f1, sba, pointcloud_matches_, f2w_frame0, f2w_frame1, ndi-1, ndi, &ipts);
-    }
-    
     // do SBA, setting up fixed frames
     int nfree = wsize-wfixed;
     if (nframes <= nfree)
@@ -190,6 +184,15 @@ namespace vslam
     sba.verbose = 0;
     sba.doSBA(2,1.0e-5,0);          // dense version
 
+    // Do pointcloud matching and add the projections to the system.
+    // Rot,trans is wrong, should be from updated SBA values
+    if (pointcloud_proc_ && doPointPlane)
+    {
+      pointcloud_proc_->match(f0, f1, pose_estimator_->trans, Quaterniond(pose_estimator_->rot), pointcloud_matches_);
+      addPointCloudProjections(f0, f1, sba, pointcloud_matches_, f2w_frame0, f2w_frame1, ndi-1, ndi, &ipts);
+      sba.doSBA(2,1.0e-5,0);          // dense version
+    }
+    
     return true;
   } // end addFrame
 
@@ -281,6 +284,9 @@ namespace vslam
     f1.ipts.assign(f1.kpts.size(), -1);
     f1.pl_ipts.assign(f1.pl_pts.size(), -1);
 
+    // ADD THIS LINE SO THAT PL_PTS ARE CREATED CORRECTLY IN LARGE SBA:
+    f1.pl_ipts.assign(f1.pl_pts.size(), -1);
+
     // add a frame ??? already passed in correct frame...
     //    f1 = frames.back();         // most recent frame in VO
 
@@ -341,7 +347,8 @@ namespace vslam
     /// should reconstruct inliers from most recent two frames
     Frame &f0 = *(eframes.end()-2);
     addProjections(f0, f1, eframes, esba, pose_estimator_->inliers, f2w_frame0, ndi-1, ndi, NULL);
-    addPointCloudProjections(f0, f1, esba, pointcloud_matches_, f2w_frame0, f2w_frame1, ndi-1, ndi, NULL);
+    if (doPointPlane)
+      addPointCloudProjections(f0, f1, esba, pointcloud_matches_, f2w_frame0, f2w_frame1, ndi-1, ndi, NULL);
   }
 
 
@@ -491,11 +498,11 @@ namespace vslam
                       int ndi0, int ndi1, std::vector<int>* ipts)
   {
     // add points and projections
-    double covariance = 0.1;
-	  Matrix3d covar;
+    double covariance = 0.8;
+    Matrix3d covar;
     covar <<  covariance, 0, 0,
-              0, covariance, 0, 
-  	          0, 0, covariance;
+      0, covariance, 0, 
+      0, 0, covariance;
 
     for (int i=0; i<(int)inliers.size(); i++)
       {
@@ -543,8 +550,8 @@ namespace vslam
         sba.addPointPlaneMatch(ndi0, f0.pl_ipts[i0], normal0, ndi1, f1.pl_ipts[i1], normal1);
         
         // Add covariance for just whichever projections we have.
-	      sba.setProjCovariance(ndi1, f0.pl_ipts[i0], covar);
-	      sba.setProjCovariance(ndi0, f1.pl_ipts[i1], covar);
+        sba.setProjCovariance(ndi1, f0.pl_ipts[i0], covar);
+        sba.setProjCovariance(ndi0, f1.pl_ipts[i1], covar);
       }
   }
   

@@ -24,6 +24,9 @@ class VslamSystem
     
     /// Pointer to pointcloud processor.
     boost::shared_ptr<frame_common::PointcloudProc> pointcloud_processor_;
+    /// Pointcloud matches.
+    std::vector<pe::Match> pointcloud_matches_;
+    bool doPointPlane;         // true if we want to process point clouds
 
   public:
     /// \brief Constructor for VslamSystem.
@@ -79,6 +82,7 @@ class VslamSystem
     void setVOPolish(bool n) { vo_.pose_estimator_->polish = n; }; ///< Set whether to polish pose estimate for visual odometry using SBA.
     void setPRWindow(int x, int y) { pose_estimator_.wx = x; pose_estimator_.wy = y; }; ///< Set the window size for place recognition matching.
     void setVOWindow(int x, int y) { vo_.pose_estimator_->wx = x; vo_.pose_estimator_->wy = y; }; ///< Set the window size for place recognition matching.
+    void setHuber(double x) { sba_.huber = x; vo_.sba.huber = x; }
     
     
     

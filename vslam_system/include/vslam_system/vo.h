@@ -116,6 +116,7 @@ namespace vslam
     
     /// Pointer to pointcloud processor.
     boost::shared_ptr<frame_common::PointcloudProc> pointcloud_proc_;
+    bool doPointPlane;
     
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW // needed for 16B alignment
   

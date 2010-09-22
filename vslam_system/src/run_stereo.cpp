@@ -319,7 +319,7 @@ int main(int argc, char** argv)
   vslam.setKeyDist(0.4);	// meters
   vslam.setKeyAngle(0.2);	// radians
   vslam.setKeyInliers(300);
-
+  vslam.setHuber(2.0);          // Huber cost function cutoff
   
   // set up markers for visualization
   ros::init(argc, argv, "VisBundler");
@@ -403,13 +403,16 @@ int main(int argc, char** argv)
 #endif
 
               // write file out
-              if (0 && n > 10 && n%500 == 0)
+              if (n > 10 && n%500 == 0)
                 {
                   char fn[1024];
-                  sprintf(fn,"newcollege%d", n);
-                  sba::writeLourakisFile(fn, vslam.sba_);
-                  vslam.sba_.doSBA(1,1.0e-4,0);
-                  sba::writeSparseA(fn, vslam.sba_);
+                  sprintf(fn,"newcollege%d.g2o", n);
+                  sba::writeGraphFile(fn,vslam.sba_);
+                  sprintf(fn,"newcollege%dm.g2o", n);
+                  sba::writeGraphFile(fn,vslam.sba_,true);
+                  //                  sba::writeLourakisFile(fn, vslam.sba_);
+                  //                  vslam.sba_.doSBA(1,1.0e-4,0);
+                  //                  sba::writeSparseA(fn, vslam.sba_);
                 }
 
 #if 1

@@ -102,7 +102,10 @@ public:
     vslam_system_.vo_.mininls = 0; ///< Minimum number of inliers.
     vslam_system_.vo_.pose_estimator_->wx = 400;
     vslam_system_.vo_.pose_estimator_->wy = 200;
-    vslam_system_.nSkip = 0; 
+    vslam_system_.nSkip = 1; 
+    vslam_system_.prInliers = 100;
+    vslam_system_.setPRRansacIt(1000);
+    vslam_system_.doPointPlane = true;
     
   }
 
@@ -152,9 +155,7 @@ public:
 
     if (vslam_system_.addFrame(cam_params, left, right, ptcloud)) 
     {
-      /// @todo Not rely on broken encapsulation of VslamSystem here
       int size = vslam_system_.sba_.nodes.size();
-      sba::drawGraph(vslam_system_.sba_, cam_marker_pub_, point_marker_pub_);
 
       if (vo_tracks_pub_.getNumSubscribers() > 0) {
         frame_common::drawVOtracks(left, vslam_system_.vo_.frames, vo_display_);
@@ -168,9 +169,12 @@ public:
       if (size > 1 && size % LARGE_SBA_INTERVAL == 0)
       {
         ROS_INFO("Running large SBA on %d nodes", size);
-        vslam_system_.refine(3);
+        vslam_system_.refine(10);
       }
       
+      /// @todo Not rely on broken encapsulation of VslamSystem here
+      sba::drawGraph(vslam_system_.sba_, cam_marker_pub_, point_marker_pub_);
+
       if (pointcloud_pub_.getNumSubscribers() > 0)
         publishPointclouds(vslam_system_.sba_, pointcloud_pub_);
         
@@ -260,13 +264,22 @@ void publishPointclouds(SysSBA& sba, ros::Publisher& pub)
       unsigned char r, g, b;
       
       if (!pointplane)
-      { r = 255; g = 255; b = 255; }
+        //      { r = 255; g = 255; b = 255; }
+      { r = 0; g = 0; b = 100; }
+      else if (lastframe == 0)
+      { r = 100; g = 100; b = 255; }
       else if (lastframe == 1)
       { r = 255; g = 0; b = 0; }
       else if (lastframe == 2)
       { r = 0; g = 255; b = 0; }
       else if (lastframe == 3)
       { r = 0; g = 0; b = 255; }
+      else if (lastframe == 4)
+      { r = 255; g = 0; b = 255; }
+      else if (lastframe == 5)
+      { r = 0; g = 255; b = 255; }
+      else if (lastframe == 6)
+      { r = 255; g = 255; b = 0; }
       else
       { r = 150; g = 150; b = 150; }
       

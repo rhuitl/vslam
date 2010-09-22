@@ -57,8 +57,9 @@ VslamSystem::VslamSystem(const std::string& vocab_tree_file, const std::string& 
   // pose_estimator_.windowed = false; // Commented out because this was breaking PR
   
   prInliers = 200;
-  numPRs = 0;
+  numPRs = 0;                   // count of PR successes
   nSkip = 20;
+  doPointPlane = true;
 }
 
 bool VslamSystem::addFrame(const frame_common::CamParams& camera_parameters,
@@ -99,7 +100,7 @@ bool VslamSystem::addFrame(const frame_common::CamParams& camera_parameters,
   next_frame.img = cv::Mat();   // remove the images
   next_frame.imgRight = cv::Mat();
   
-  if (pointcloud_processor_)
+  if (pointcloud_processor_ && doPointPlane)
   {
     pointcloud_processor_->setPointcloud(next_frame, ptcloud);
     printf("[Pointcloud] set a pointcloud! %d\n", (int)next_frame.pointcloud.points.size());
@@ -125,6 +126,7 @@ bool VslamSystem::addFrame(const frame_common::CamParams& camera_parameters,
 void VslamSystem::addKeyframe(frame_common::Frame& next_frame)
 {
     frames_.push_back(next_frame);
+    vo_.doPointPlane = doPointPlane;
     vo_.transferLatestFrame(frames_, sba_);
 
     // Modify the transferred frame
@@ -150,10 +152,13 @@ void VslamSystem::addKeyframe(frame_common::Frame& next_frame)
 
       // Geometric check for place recognizer
       int inliers = pose_estimator_.estimate(matched_frame, transferred_frame);
-      //      printf("\tMatch %d: %d inliers, frame index %d\n", i, inliers, matched_frame.frameId);
+      printf("\tMatch %d: %d inliers, frame index %d\n", i, inliers, matched_frame.frameId);
       if (inliers > prInliers) 
 	    {
 	      numPRs++;
+
+	      printf("\t[PlaceRec] Adding PR link between frames %d and %d\n", transferred_frame.frameId, 
+		     matched_frame.frameId);
 
 	      // More code copied from vo.cpp
 	      Matrix<double,3,4> frame_to_world;
@@ -164,8 +169,19 @@ void VslamSystem::addKeyframe(frame_common::Frame& next_frame)
             
 	      addProjections(matched_frame, transferred_frame, frames_, sba_, pose_estimator_.inliers,
 			     frame_to_world, matched_frame.frameId, transferred_frame.frameId);
-	      printf("\t[PlaceRec] Adding PR link between frames %d and %d\n", transferred_frame.frameId, 
-		     matched_frame.frameId);
+
+              // add in point cloud matches, if they exist
+              if (0 && pointcloud_processor_ && doPointPlane)
+                {
+                  printf("\t[PlaceRec] Adding in point cloud projections\n");
+                  Matrix<double,3,4> f2w_transferred;
+                  Node &transferred_node = sba_.nodes[transferred_frame.frameId];
+                  transformF2W(f2w_transferred,transferred_node.trans,transferred_node.qrot);
+                  pointcloud_processor_->match(matched_frame, transferred_frame, pose_estimator_.trans, Quaterniond(pose_estimator_.rot), pointcloud_matches_);
+                  addPointCloudProjections(matched_frame, transferred_frame, sba_, pointcloud_matches_, 
+                                           frame_to_world, f2w_transferred, matched_frame.frameId, transferred_frame.frameId);
+                }
+
 	      double cst = sba_.calcRMSCost();
 	      cout << endl << "*** RMS Cost: " << cst << endl << endl;
 	      //        sba_.printStats();
@@ -176,7 +192,7 @@ void VslamSystem::addKeyframe(frame_common::Frame& next_frame)
 	          if (n < 100) n = 50;
 	          else n = n - 50;
 	          sba_.nFixed = n;
-	          sba_.doSBA(3,1.0e-4,1);
+	          sba_.doSBA(3,1.0e-4,SBA_BLOCK_JACOBIAN_PCG);
 	          sba_.nFixed = 1;
 	        }
 	    }
@@ -186,11 +202,12 @@ void VslamSystem::addKeyframe(frame_common::Frame& next_frame)
 void VslamSystem::refine(int initial_runs)
 {
   /// @todo Make these arguments parameters?
-  sba_.doSBA(initial_runs, 1.0e-4, 1);
+  //  sba_.doSBA(initial_runs, 1.0e-4, SBA_BLOCK_JACOBIAN_PCG);
+  sba_.doSBA(initial_runs, 1.0e-4, SBA_SPARSE_CHOLESKY);
   if (sba_.calcRMSCost() > 4.0)
-    sba_.doSBA(10, 1.0e-4, 1);  // do more
+    sba_.doSBA(10, 1.0e-4, SBA_SPARSE_CHOLESKY);  // do more
   if (sba_.calcRMSCost() > 4.0)
-    sba_.doSBA(10, 1.0e-4, 1);  // do more
+    sba_.doSBA(10, 1.0e-4, SBA_SPARSE_CHOLESKY);  // do more
 }
 
 } // namespace vslam

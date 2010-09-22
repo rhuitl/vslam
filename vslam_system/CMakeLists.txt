@@ -30,8 +30,7 @@ rosbuild_add_library(vo src/vo.cpp src/place_recognizer.cpp src/vslam.cpp src/vs
 
 rosbuild_add_library(vo_ptcloud src/vo_ptcloud.cpp src/place_recognizer.cpp src/vslam_ptcloud.cpp)
 
-# various compile flags.  -O3 doesn't seem to help; -DNDEBUG seemst to hurt(???)
-#rosbuild_add_compile_flags(vo -O3 -DNDEBUG -Wno-missing-field-initializers -msse3)
+rosbuild_add_compile_flags(vo -O3 -DNDEBUG -Wno-missing-field-initializers -msse3)
 #rosbuild_add_compile_flags(vo -g -O0 -DDEBUG=1 -Wno-missing-field-initializers -msse3)
 
 #####################################################################
