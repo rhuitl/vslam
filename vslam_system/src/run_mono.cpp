@@ -59,7 +59,7 @@
 using namespace std;
 using namespace sba;
 using namespace frame_common;
-using namespace Eigen;
+using namespace Eigen3;
 using namespace vslam;
 
 // visual output of matches
@@ -330,7 +330,7 @@ int main(int argc, char** argv)
   FrameProc fp(15);//18);             // can be slow, setting up Calonder tree
   fp.setFrameDetector(cv::Ptr<cv::FeatureDetector>(new cv::SurfFeatureDetector(200)));
   cout << "done" << endl;
-  vector<Frame, Eigen::aligned_allocator<Frame> > frames; // stereo image frames in system
+  vector<Frame, Eigen3::aligned_allocator<Frame> > frames; // stereo image frames in system
 
   SysSBA sba;			// SBA system
   sba.useCholmod(false);

@@ -88,7 +88,7 @@ namespace vslam
     void removeFrame();
 
     /// transfers frames to external system
-    void transferLatestFrame(std::vector<fc::FrameExtended, Eigen::aligned_allocator<fc::FrameExtended> > &frames,
+    void transferLatestFrame(std::vector<fc::FrameExtended, Eigen3::aligned_allocator<fc::FrameExtended> > &frames,
                              sba::SysSBA &sba);
 
     /// gets the transform between frames
@@ -98,7 +98,7 @@ namespace vslam
     int findNode(int frameId);
 
     /// previous frames
-    std::vector<fc::FrameExtended, Eigen::aligned_allocator<fc::FrameExtended> > frames;
+    std::vector<fc::FrameExtended, Eigen3::aligned_allocator<fc::FrameExtended> > frames;
 
     /// pose estimator
     boost::shared_ptr<pe::PoseEstimator> pose_estimator_;
@@ -111,7 +111,7 @@ namespace vslam
   // <ndi0> and <ndi1> are the corresponding node indices in the sba system
   // ipts is an optional global point vector
   void addProjections(fc::FrameExtended &f0, fc::FrameExtended &f1, 
-                      std::vector<fc::FrameExtended, Eigen::aligned_allocator<fc::FrameExtended> > &frames,
+                      std::vector<fc::FrameExtended, Eigen3::aligned_allocator<fc::FrameExtended> > &frames,
                       sba::SysSBA &sba, const std::vector<pe::Match> &inliers,
                       const Matrix<double,3,4>& f2w, int ndi0, int ndi1, std::vector<int>* ipts = NULL);
                       

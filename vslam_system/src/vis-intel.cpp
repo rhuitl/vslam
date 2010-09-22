@@ -51,7 +51,7 @@
 #include <sys/time.h>
 
 using namespace std;
-using namespace Eigen;
+using namespace Eigen3;
 using namespace sba;
 using namespace frame_common;
 
@@ -209,17 +209,17 @@ int main(int argc, char **argv)
 
 
   // node translation
-  std::vector< Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d> > ntrans;
+  std::vector< Eigen3::Vector3d, Eigen3::aligned_allocator<Eigen3::Vector3d> > ntrans;
   // node rotation
-  std::vector< Eigen::Vector4d, Eigen::aligned_allocator<Eigen::Vector4d> > nqrot;
+  std::vector< Eigen3::Vector4d, Eigen3::aligned_allocator<Eigen3::Vector4d> > nqrot;
   // constraint indices
-  std::vector< Eigen::Vector2i, Eigen::aligned_allocator<Eigen::Vector2i> > cind;
+  std::vector< Eigen3::Vector2i, Eigen3::aligned_allocator<Eigen3::Vector2i> > cind;
   // constraint local translation 
-  std::vector< Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d> > ctrans;
+  std::vector< Eigen3::Vector3d, Eigen3::aligned_allocator<Eigen3::Vector3d> > ctrans;
   // constraint local rotation as quaternion
-  std::vector< Eigen::Vector4d, Eigen::aligned_allocator<Eigen::Vector4d> > cqrot;
+  std::vector< Eigen3::Vector4d, Eigen3::aligned_allocator<Eigen3::Vector4d> > cqrot;
   // constraint covariance
-  std::vector< Eigen::Matrix<double,6,6>, Eigen::aligned_allocator<Eigen::Matrix<double,6,6> > > cvar;
+  std::vector< Eigen3::Matrix<double,6,6>, Eigen3::aligned_allocator<Eigen3::Matrix<double,6,6> > > cvar;
   // tracks
   std::vector<struct tinfo> tracks;
 

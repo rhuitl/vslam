@@ -59,7 +59,7 @@
 using namespace std;
 using namespace sba;
 using namespace frame_common;
-using namespace Eigen;
+using namespace Eigen3;
 
 // visual output of matches
 #define VISMATCH

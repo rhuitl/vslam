@@ -14,7 +14,7 @@ class VslamSystem
 public: /// @todo Leave these protected
   frame_common::FrameProc frame_processor_;
   /// stereo image frames in system
-  std::vector<frame_common::FrameExtended, Eigen::aligned_allocator<frame_common::FrameExtended> > frames_;
+  std::vector<frame_common::FrameExtended, Eigen3::aligned_allocator<frame_common::FrameExtended> > frames_;
   sba::SysSBA sba_;			/// SBA system
   vslam::voSt vo_; /// VO processor
 

@@ -144,8 +144,8 @@ public:
       // Publish odometry data to tf.
       ros::Time stamp = l_cam_info->header.stamp;
       std::string image_frame = l_cam_info->header.frame_id;
-      Eigen::Vector4d trans = -vslam_system_.sba_.nodes.back().trans;
-      Eigen::Quaterniond rot = vslam_system_.sba_.nodes.back().qrot.conjugate();
+      Eigen3::Vector4d trans = -vslam_system_.sba_.nodes.back().trans;
+      Eigen3::Quaterniond rot = vslam_system_.sba_.nodes.back().qrot.conjugate();
       
       trans.head<3>() = rot.toRotationMatrix()*trans.head<3>(); 
       

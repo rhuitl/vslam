@@ -23,7 +23,7 @@
 #include <pcl/point_cloud.h>
 
 void publishRegisteredPointclouds(sba::SysSBA& sba, 
-    std::vector<frame_common::Frame, Eigen::aligned_allocator<frame_common::Frame> >& frames, 
+    std::vector<frame_common::Frame, Eigen3::aligned_allocator<frame_common::Frame> >& frames, 
     ros::Publisher& pub);
 
 class StereoVslamNode
@@ -161,8 +161,8 @@ public:
       {
         ros::Time stamp = l_cam_info->header.stamp;
         std::string image_frame = l_cam_info->header.frame_id;
-        Eigen::Vector4d trans = -vslam_system_.sba_.nodes.back().trans;
-        Eigen::Quaterniond rot = vslam_system_.sba_.nodes.back().qrot.conjugate();
+        Eigen3::Vector4d trans = -vslam_system_.sba_.nodes.back().trans;
+        Eigen3::Quaterniond rot = vslam_system_.sba_.nodes.back().qrot.conjugate();
         
         trans.head<3>() = rot.toRotationMatrix()*trans.head<3>(); 
         
@@ -225,7 +225,7 @@ public:
 };
 
 void publishRegisteredPointclouds(sba::SysSBA& sba, 
-    std::vector<frame_common::Frame, Eigen::aligned_allocator<frame_common::Frame> >& frames, 
+    std::vector<frame_common::Frame, Eigen3::aligned_allocator<frame_common::Frame> >& frames, 
     ros::Publisher& pub)
 {
   pcl::PointCloud<pcl::PointXYZRGB> cloud;
@@ -244,15 +244,15 @@ void publishRegisteredPointclouds(sba::SysSBA& sba,
   {
     if (sba.nodes.size() < i)
       break;
-    Eigen::Matrix3d rotmat = sba.nodes[i].qrot.toRotationMatrix();
-    Eigen::Vector3d trans = sba.nodes[i].trans.head<3>();
+    Eigen3::Matrix3d rotmat = sba.nodes[i].qrot.toRotationMatrix();
+    Eigen3::Vector3d trans = sba.nodes[i].trans.head<3>();
     
     for (size_t j=0; j < frames[i].pts.size(); j++)
     {
       // If too close or too far away, just ignore.
       if (frames[i].pts[j].z() > 30.0 || frames[i].pts[j].z() < 0.1)
         continue;
-      Eigen::Vector3d point(frames[i].pts[j].x(), frames[i].pts[j].y(), frames[i].pts[j].z());
+      Eigen3::Vector3d point(frames[i].pts[j].x(), frames[i].pts[j].y(), frames[i].pts[j].z());
       point = rotmat*point + trans;
       
       cloud.points[k].x = point(2);

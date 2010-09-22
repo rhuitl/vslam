@@ -42,7 +42,7 @@
 
 using namespace std;
 using namespace frame_common;
-using namespace Eigen;
+using namespace Eigen3;
 using namespace sba;
 
 namespace vslam
@@ -269,7 +269,7 @@ namespace vslam
 
   
   // transfer most recent frame to an external SBA system
-  void voSt::transferLatestFrame(std::vector<fc::Frame, Eigen::aligned_allocator<fc::Frame> > &eframes,
+  void voSt::transferLatestFrame(std::vector<fc::Frame, Eigen3::aligned_allocator<fc::Frame> > &eframes,
                                  SysSBA &esba)
   {
     bool init = esba.nodes.size() == 0;
@@ -392,7 +392,7 @@ namespace vslam
 
   // add connections between frames, based on keypoint matches
   void addProjections(fc::Frame &f0, fc::Frame &f1, 
-                      std::vector<fc::Frame, Eigen::aligned_allocator<fc::Frame> > &frames,
+                      std::vector<fc::Frame, Eigen3::aligned_allocator<fc::Frame> > &frames,
                       SysSBA &sba, const std::vector<pe::Match> &inliers,
                       const Matrix<double,3,4>& f2w, int ndi0, int ndi1, std::vector<int>* ipts)
   {
