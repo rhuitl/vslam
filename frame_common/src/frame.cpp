@@ -35,7 +35,7 @@
 
 #include <frame_common/frame.h>
 
-using namespace Eigen;
+using namespace Eigen3;
 using namespace std;
 using namespace pcl;
 
@@ -89,7 +89,7 @@ namespace frame_common
 
 
   // return x,y,d from X,Y,Z
-  Eigen::Vector3d Frame::cam2pix(const Eigen::Vector3d &cam_coord) const
+  Eigen3::Vector3d Frame::cam2pix(const Eigen3::Vector3d &cam_coord) const
   {
     double xl = cam.fx * cam_coord[0] + cam.cx * cam_coord[2];
     double y = cam.fy * cam_coord[1] + cam.cy * cam_coord[2];
@@ -97,17 +97,17 @@ namespace frame_common
     double xd = cam.fx * cam.tx;
     double rw = 1.0/w;
     double y_rw = y * rw;
-    return Eigen::Vector3d(xl*rw, y_rw, xd*rw);
+    return Eigen3::Vector3d(xl*rw, y_rw, xd*rw);
   }
 
   // return X,Y,Z from x,y,d
-  Eigen::Vector3d Frame::pix2cam(const Eigen::Vector3d &pix_coord) const
+  Eigen3::Vector3d Frame::pix2cam(const Eigen3::Vector3d &pix_coord) const
   {
     double x = pix_coord[0] - cam.cx;
     double y = pix_coord[1] - cam.cy;
     double z = cam.fx;
     double w = pix_coord[2]/cam.tx;
-    return Eigen::Vector3d(x/w, y/w, z/w);
+    return Eigen3::Vector3d(x/w, y/w, z/w);
   }
 
 
@@ -245,15 +245,15 @@ namespace frame_common
       {
         PointXYZRGBNormal &pt = frame.pointcloud.points[i];
         
-        frame.pl_pts[i] = Eigen::Vector4d(pt.x, pt.y, pt.z, 1.0);
-        frame.pl_normals[i] = Eigen::Vector4d(pt.normal[0], pt.normal[1], pt.normal[2], 1.0);
+        frame.pl_pts[i] = Eigen3::Vector4d(pt.x, pt.y, pt.z, 1.0);
+        frame.pl_normals[i] = Eigen3::Vector4d(pt.normal[0], pt.normal[1], pt.normal[2], 1.0);
         frame.pl_kpts[i] = projectPoint(frame.pl_pts[i], frame.cam);
         frame.pl_ipts[i] = -1;
       }
     }
     
     void PointcloudProc::match(const Frame& frame0, const Frame& frame1, 
-          const Eigen::Vector3d& trans, const Eigen::Quaterniond& rot, 
+          const Eigen3::Vector3d& trans, const Eigen3::Quaterniond& rot, 
           std::vector<pe::Match>& matches) const
     {
       PointCloud<PointXYZRGBNormal> transformed_cloud;
@@ -369,8 +369,8 @@ namespace frame_common
       indices.clear();
       
       // Filter out everything outside a [200x200x200] box.
-      Eigen::Vector4f min_pt(-100, -100, -100, -100);
-      Eigen::Vector4f max_pt(100, 100, 100, 100);
+      Eigen3::Vector4f min_pt(-100, -100, -100, -100);
+      Eigen3::Vector4f max_pt(100, 100, 100, 100);
       getPointsInBox(cloud_nan_filtered, min_pt, max_pt, indices);
       
       ExtractIndices<PointXYZRGB> boxfilter;
@@ -403,9 +403,9 @@ namespace frame_common
       normalfilter.filter(output);
     }
     
-    Eigen::Vector3d PointcloudProc::projectPoint(Eigen::Vector4d& point, CamParams cam) const
+    Eigen3::Vector3d PointcloudProc::projectPoint(Eigen3::Vector4d& point, CamParams cam) const
     {
-      Eigen::Vector3d keypoint;
+      Eigen3::Vector3d keypoint;
       
       keypoint(0) = (cam.fx*point.x()) / point.z() + cam.cx;
       keypoint(1) = (cam.fy*point.y()) / point.z() + cam.cy;

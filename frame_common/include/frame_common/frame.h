@@ -45,8 +45,8 @@
 
 #include <stdio.h>
 #include <iostream>
-#include <Eigen/Core>
-#include <Eigen/StdVector>
+#include <Eigen3/Core>
+#include <Eigen3/StdVector>
 #include <vector>
 #include <boost/shared_ptr.hpp>
 #include <frame_common/stereo.h>
@@ -89,7 +89,7 @@ namespace frame_common
     bool isStereo;              ///< True if the frame contains a stereo image pair.
     cv::Mat img;                ///< Image itself, if needed; can be empty.
     CamParams cam;              ///< Camera parameters.
-    Eigen::Matrix3d iproj;      ///< Camera projection matrix.
+    Eigen3::Matrix3d iproj;      ///< Camera projection matrix.
 
     // feature section: keypoints and corresponding descriptors
     std::vector<cv::KeyPoint> kpts; /// Keypoints detected in the image.
@@ -97,17 +97,17 @@ namespace frame_common
 
     // stereo
     cv::Mat imgRight;             ///< Right image (if stereo pair), can be empty.
-    Eigen::Matrix4d disp_to_cart; ///< Transformation from disparity to cartesian.
-    Eigen::Matrix4d cart_to_disp; ///< Transformation from cartesian to disparity.
+    Eigen3::Matrix4d disp_to_cart; ///< Transformation from disparity to cartesian.
+    Eigen3::Matrix4d cart_to_disp; ///< Transformation from cartesian to disparity.
     void setCamParams(const CamParams &c); ///< Set the camera parameters of the frame.
 
     // these are for stereo; do we need monocular ones?
-    Eigen::Vector3d cam2pix(const Eigen::Vector3d &cam_coord) const;
-    Eigen::Vector3d pix2cam(const Eigen::Vector3d &pix_coord) const;
-    Eigen::Vector3d pix2cam(const cv::KeyPoint &pix_coord, double disp) const;
+    Eigen3::Vector3d cam2pix(const Eigen3::Vector3d &cam_coord) const;
+    Eigen3::Vector3d pix2cam(const Eigen3::Vector3d &pix_coord) const;
+    Eigen3::Vector3d pix2cam(const cv::KeyPoint &pix_coord, double disp) const;
 
     /// \brief 3d points, linked to keypoints and SBA points for point-to-point matches.
-    std::vector<Eigen::Vector4d, Eigen::aligned_allocator<Eigen::Vector4d> > pts;
+    std::vector<Eigen3::Vector4d, Eigen3::aligned_allocator<Eigen3::Vector4d> > pts;
     std::vector<char> goodPts;  ///< whether the points are good or not
     std::vector<double> disps;  ///< disparities
     std::vector<int> ipts;      ///< index into SBA system points; -1 if not present
@@ -120,11 +120,11 @@ namespace frame_common
     pcl::PointCloud<pcl::PointXYZRGB> dense_pointcloud;
     
     /// Keypoints for pointcloud points as u, v, u-d.
-    std::vector<Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d> > pl_kpts;
+    std::vector<Eigen3::Vector3d, Eigen3::aligned_allocator<Eigen3::Vector3d> > pl_kpts;
     /// Points for point-plane matches.
-    std::vector<Eigen::Vector4d, Eigen::aligned_allocator<Eigen::Vector4d> > pl_pts;
+    std::vector<Eigen3::Vector4d, Eigen3::aligned_allocator<Eigen3::Vector4d> > pl_pts;
     /// Normals for point-plane matches.
-    std::vector<Eigen::Vector4d, Eigen::aligned_allocator<Eigen::Vector4d> > pl_normals;
+    std::vector<Eigen3::Vector4d, Eigen3::aligned_allocator<Eigen3::Vector4d> > pl_normals;
     std::vector<int> pl_ipts;  ///< Index into SBA system points; -1 if not present.
      
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW // needed for 16B alignment
@@ -195,7 +195,7 @@ namespace frame_common
       
       /// \brief Match points with previous frame, given an initial pose estimate.
       void match(const Frame& frame0, const Frame& frame1, 
-                  const Eigen::Vector3d& trans, const Eigen::Quaterniond& rot, 
+                  const Eigen3::Vector3d& trans, const Eigen3::Quaterniond& rot, 
                   std::vector<pe::Match>& matches) const;
       
     private:
@@ -205,7 +205,7 @@ namespace frame_common
                         pcl::PointCloud<pcl::PointXYZRGBNormal>& output) const;
 
       /// \brief Project a 3D point into the image frame.
-      Eigen::Vector3d projectPoint(Eigen::Vector4d& point, CamParams cam) const;
+      Eigen3::Vector3d projectPoint(Eigen3::Vector4d& point, CamParams cam) const;
       
       /// \brief Find matches between two pointclouds using nearest neighbor
       /// KDtree search.
@@ -219,7 +219,7 @@ namespace frame_common
   /// \param frames  Frames containing tracks to draw.
   /// \param display Output image.
   void drawVOtracks(const cv::Mat &image,
-                    const std::vector<Frame, Eigen::aligned_allocator<Frame> > &frames,
+                    const std::vector<Frame, Eigen3::aligned_allocator<Frame> > &frames,
                     cv::Mat &display);
 
 } // end of namespace frame_common

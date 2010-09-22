@@ -62,7 +62,7 @@ namespace frame_common {
   }
 
   void drawVOtracks(const cv::Mat &image,
-                    const vector<Frame, Eigen::aligned_allocator<Frame> > &frames, 
+                    const vector<Frame, Eigen3::aligned_allocator<Frame> > &frames, 
                     cv::Mat &display)
   {
     // Set up image display
@@ -115,7 +115,7 @@ namespace frame_common {
   }
   
   void drawVOtracks(const cv::Mat &image,
-                    const vector<FrameExtended, Eigen::aligned_allocator<FrameExtended> > &frames, 
+                    const vector<FrameExtended, Eigen3::aligned_allocator<FrameExtended> > &frames, 
                     cv::Mat &display)
   {
     // Set up image display
