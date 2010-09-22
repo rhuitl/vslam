@@ -2,7 +2,7 @@
 #define VOCABULARY_TREE_DISTANCE_H
 
 #include <stdint.h>
-#include <Eigen/Core>
+#include <Eigen3/Core>
 
 namespace vt {
 namespace distance {
@@ -48,11 +48,11 @@ struct L2
 /// @todo Version for raw data pointers that knows the size of the feature
 /// @todo Specialization for cv::Vec. Doesn't have size() so default won't work.
 
-/// Specialization for Eigen::Matrix types.
+/// Specialization for Eigen3::Matrix types.
 template<typename Scalar, int Rows, int Cols, int Options, int MaxRows, int MaxCols>
-struct L2< Eigen::Matrix<Scalar, Rows, Cols, Options, MaxRows, MaxCols> >
+struct L2< Eigen3::Matrix<Scalar, Rows, Cols, Options, MaxRows, MaxCols> >
 {
-  typedef Eigen::Matrix<Scalar, Rows, Cols, Options, MaxRows, MaxCols> feature_type;
+  typedef Eigen3::Matrix<Scalar, Rows, Cols, Options, MaxRows, MaxCols> feature_type;
   typedef Scalar value_type;
   typedef typename Accumulator<Scalar>::type result_type;
 

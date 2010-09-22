@@ -1,5 +1,5 @@
 #include <vocabulary_tree/simple_kmeans.h>
-#include <Eigen/Core>
+#include <Eigen3/Core>
 #include <vector>
 #include <cstdio>
 
@@ -8,8 +8,8 @@ int main(int argc, char** argv)
   static const size_t K = 3;
   
   typedef double Scalar;
-  typedef Eigen::Matrix<Scalar, 1, K> Feature;
-  typedef std::vector<Feature, Eigen::aligned_allocator<Feature> > FeatureVector;
+  typedef Eigen3::Matrix<Scalar, 1, K> Feature;
+  typedef std::vector<Feature, Eigen3::aligned_allocator<Feature> > FeatureVector;
   FeatureVector features(1000*K);
   FeatureVector centers;
   std::vector<unsigned int> membership;

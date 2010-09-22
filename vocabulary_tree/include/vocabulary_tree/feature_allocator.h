@@ -1,8 +1,8 @@
 #ifndef VOCABULARY_TREE_FEATURE_ALLOCATOR_H
 #define VOCABULARY_TREE_FEATURE_ALLOCATOR_H
 
-#include <Eigen/Core>
-#include <Eigen/StdVector>
+#include <Eigen3/Core>
+#include <Eigen3/StdVector>
 
 namespace vt {
 
@@ -13,11 +13,11 @@ struct DefaultAllocator
   typedef std::allocator<Feature> type;
 };
 
-// Specialization for Eigen::Matrix types.
+// Specialization for Eigen3::Matrix types.
 template<typename Scalar, int Rows, int Cols, int Options, int MaxRows, int MaxCols>
-struct DefaultAllocator< Eigen::Matrix<Scalar, Rows, Cols, Options, MaxRows, MaxCols> >
+struct DefaultAllocator< Eigen3::Matrix<Scalar, Rows, Cols, Options, MaxRows, MaxCols> >
 {
-  typedef Eigen::aligned_allocator<Eigen::Matrix<Scalar, Rows, Cols, Options, MaxRows, MaxCols> > type;
+  typedef Eigen3::aligned_allocator<Eigen3::Matrix<Scalar, Rows, Cols, Options, MaxRows, MaxCols> > type;
 };
 
 } //namespace vt

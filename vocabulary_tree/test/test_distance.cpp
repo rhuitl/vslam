@@ -6,13 +6,13 @@
 int main(int argc, char** argv)
 {
   {
-    typedef Eigen::Vector4i Feature;
+    typedef Eigen3::Vector4i Feature;
     Feature a(0, 0, 0, 0), b(1, 1, 1, 1);
     vt::distance::L2<Feature> distance;
     printf("Distance = %d\n", distance(a, b));
   }
   {
-    typedef Eigen::Vector4f Feature;
+    typedef Eigen3::Vector4f Feature;
     Feature a(0, 0, 0, 0), b(1.6, 2.24, 5.3, -0.512);
     vt::distance::L2<Feature> distance;
     printf("Distance = %f\n", distance(a, b));

@@ -1,5 +1,5 @@
 #include <vocabulary_tree/simple_kmeans.h>
-#include <Eigen/Core>
+#include <Eigen3/Core>
 #include <vector>
 #include <cstdio>
 #include <fstream>
@@ -7,8 +7,8 @@
 int main(int argc, char** argv)
 {
   static const size_t K = 5;
-  typedef Eigen::Vector2f Feature;
-  typedef std::vector<Feature, Eigen::aligned_allocator<Feature> > FeatureVector;
+  typedef Eigen3::Vector2f Feature;
+  typedef std::vector<Feature, Eigen3::aligned_allocator<Feature> > FeatureVector;
   
   FeatureVector features;
   FeatureVector centers;

@@ -7,8 +7,8 @@
 static const uint32_t K = 5;
 static const uint32_t LEVELS = 3;
 
-typedef Eigen::Vector2f Feature;
-typedef std::vector<Feature, Eigen::aligned_allocator<Feature> > FeatureVector;
+typedef Eigen3::Vector2f Feature;
+typedef std::vector<Feature, Eigen3::aligned_allocator<Feature> > FeatureVector;
 
 int main(int argc, char** argv)
 {

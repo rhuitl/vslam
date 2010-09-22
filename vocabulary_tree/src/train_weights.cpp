@@ -15,7 +15,7 @@ int main(int argc, char** argv)
   }
 
   // Load vocabulary tree
-  typedef Eigen::Matrix<float, 1, DIMENSION> Feature;
+  typedef Eigen3::Matrix<float, 1, DIMENSION> Feature;
   vt::VocabularyTree<Feature> tree(argv[1]);
 
   // Get number of descriptors
@@ -35,7 +35,7 @@ int main(int argc, char** argv)
   printf("Data length = %d\n", length);
 
   // Read in descriptors
-  typedef std::vector<Feature, Eigen::aligned_allocator<Feature> > FeatureVector;
+  typedef std::vector<Feature, Eigen3::aligned_allocator<Feature> > FeatureVector;
   FeatureVector features(num_sigs);
   sig_is.read((char*)&features[0], length);
   printf("Done reading in descriptors\n");

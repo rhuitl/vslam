@@ -2,7 +2,7 @@
 
 int main(int argc, char** argv)
 {
-  typedef Eigen::Vector4f Feature;
+  typedef Eigen3::Vector4f Feature;
 
   vt::MutableVocabularyTree<Feature> vtree;
   vtree.setSize(2, 2);
