@@ -94,38 +94,38 @@ void drawGraph(const SysSBA &sba, const ros::Publisher &camera_pub,
     }
 
   // draw point-plane projections
-  /*int num_tracks = sba.tracks.size();
+  int num_tracks = sba.tracks.size();
   int ii = camera_marker.points.size();
-  camera_marker.scale.x = 0.005;
-  camera_marker.scale.y = 0.005;
-  camera_marker.scale.z = 0.005;
+  camera_marker.scale.x = 0.001;
+  camera_marker.scale.y = 0.001;
+  camera_marker.scale.z = 0.001;
 
   for (int i=0; i < num_tracks; i++)
     {
       const ProjMap &prjs = sba.tracks[i].projections;
       for (ProjMap::const_iterator itr = prjs.begin(); itr != prjs.end(); itr++)
-	    {
-	      const Proj &prj = (*itr).second;
-	      if (prj.pointPlane)	// have a ptp projection
-	        {
-	          camera_marker.points.resize(ii+2);
-	          Point pt0 = sba.tracks[i].point;
-	          Vector3d plane_point = prj.plane_point;
-	          Vector3d plane_normal = prj.plane_normal;
-            Eigen3::Vector3d w = pt0.head<3>()-plane_point;
-            Eigen3::Vector3d projpt = plane_point+(w.dot(plane_normal))*plane_normal;
-	          Vector3d pt1 = pt0.head<3>()+0.1*plane_normal;
-	          //Vector3d pt1 = projpt;
+        {
+          const Proj &prj = (*itr).second;
+          if (prj.pointPlane)	// have a ptp projection
+            {
+              camera_marker.points.resize(ii+2);
+              Point pt0 = sba.tracks[i].point;
+              Vector3d plane_point = prj.plane_point;
+              Vector3d plane_normal = prj.plane_normal;
+              Eigen3::Vector3d w = pt0.head<3>()-plane_point;
+              Eigen3::Vector3d projpt = plane_point+(w.dot(plane_normal))*plane_normal;
+              Vector3d pt1 = pt0.head<3>()+0.1*plane_normal;
+              //Vector3d pt1 = projpt;
 	          
-	          camera_marker.points[ii].x = pt0.z();
-	          camera_marker.points[ii].y = -pt0.x();
-	          camera_marker.points[ii++].z = -pt0.y();
-	          camera_marker.points[ii].x = pt1.z();
-	          camera_marker.points[ii].y = -pt1.x();
-	          camera_marker.points[ii++].z = -pt1.y();
-	        }
-	    } 
-    }*/
+              camera_marker.points[ii].x = pt0.z();
+              camera_marker.points[ii].y = -pt0.x();
+              camera_marker.points[ii++].z = -pt0.y();
+              camera_marker.points[ii].x = pt1.z();
+              camera_marker.points[ii].y = -pt1.x();
+              camera_marker.points[ii++].z = -pt1.y();
+            }
+        } 
+    }
 
   camera_pub.publish(camera_marker);
   point_pub.publish(point_marker);

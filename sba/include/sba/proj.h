@@ -87,7 +87,7 @@ namespace sba
       bool stereo;
       
       /// Calculates re-projection error and stores it in #err.
-      double calcErr(const Node &nd, const Point &pt);
+     double calcErr(const Node &nd, const Point &pt, double huber = 0.0);
       
       /// \brief Get the correct squared norm of the error, depending on 
       /// whether the projection is monocular or stereo.
@@ -173,10 +173,10 @@ namespace sba
       void setJacobiansStereo_(const Node &nd, const Point &pt, JacobProds *jpp);
       
       /// Calculate error function for stereo.
-      double calcErrMono_(const Node &nd, const Point &pt);
+      double calcErrMono_(const Node &nd, const Point &pt, double huber);
       
       /// Calculate error function for stereo.
-      double calcErrStereo_(const Node &nd, const Point &pt);
+      double calcErrStereo_(const Node &nd, const Point &pt, double huber);
   };
     
   class Track

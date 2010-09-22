@@ -149,6 +149,7 @@ int main(int argc, char **argv)
   sys.nFixed = 1;
   sys.printStats();
   sys.csp.useCholmod = true;
+  sys.huber = 0.0;
 
 
 #if 0
@@ -203,7 +204,8 @@ int main(int argc, char **argv)
 
   //  sys.doSBA(10,1e-4,SBA_SPARSE_CHOLESKY);
   sys.doSBA(10,1e-4,SBA_BLOCK_JACOBIAN_PCG,1e-8,200);
-  sys.doSBA(20,1e-3,1);
+
+  cout << endl;
 
   cout << "Bad projs (> 10 pix): " << sys.countBad(10.0) 
        << "  Cost without: " << sqrt(sys.calcCost(10.0)/nprjs) << endl;
@@ -212,13 +214,13 @@ int main(int argc, char **argv)
   cout << "Bad projs (>  2 pix): " << sys.countBad( 2.0)
        << "  Cost without: " << sqrt(sys.calcCost( 2.0)/nprjs) << endl << endl;
 
-  sys.removeBad(10.0);
-  cout << "Removed projs with >10px error" << endl;
-
-  sys.doSBA(10,1e-3,true);
+  sys.doSBA(10,1e-3,SBA_SPARSE_CHOLESKY);
   cout << "Bad projs (> 10 pix): " << sys.countBad(10.0) << endl;
   cout << "Bad projs (>  5 pix): " << sys.countBad( 5.0) << endl;
   cout << "Bad projs (>  2 pix): " << sys.countBad( 2.0) << endl << endl;
+
+  //  sys.removeBad(4.0);
+  //  cout << "Removed projs with >4px error" << endl;
 
   sys.doSBA(10);
   cout << "Bad projs (> 10 pix): " << sys.countBad(10.0) << endl;

@@ -83,7 +83,7 @@ namespace sba
 
       /// \brief Default constructor.
         SysSBA() { nFixed = 1; useLocalAngles = true; Node::initDr(); 
-          verbose = 1; }
+          verbose = 1; huber = 0.0; }
 
       /// \brief Set of nodes (camera frames) for SBA system, indexed by node number.
       std::vector<Node, Eigen3::aligned_allocator<Node> > nodes;
@@ -109,6 +109,9 @@ namespace sba
       /// \return Total error of the system, in pixels^2.
       double calcCost(double dist);
       
+      /// \brief Huber parameter; greater than 0.0 for Huber weighting of cost
+      double huber;
+
       /// \brief Calculates total RMS cost of the system, not counting 
       /// projections with errors higher than <dist>.
       /// \param dist RMS distance, in pixels, above which projections are

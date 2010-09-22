@@ -146,9 +146,9 @@ void setupSBA(SysSBA &sys)
       
       // set normal
       if (i == 0)
-	        inormal0 = rot.toRotationMatrix().transpose() * inormal0;
+        inormal0 = rot.toRotationMatrix().transpose() * inormal0;
       else
-	        inormal1 = rot.toRotationMatrix().transpose() * inormal1;
+        inormal1 = rot.toRotationMatrix().transpose() * inormal1;
     }
         
     double pointnoise = 1.0;
@@ -219,26 +219,29 @@ void setupSBA(SysSBA &sys)
       // projection to SBA.
       if (proj.x() > 0 && proj.x() < maxx && proj.y() > 0 && proj.y() < maxy)
         {
-	        // add point cloud shape-holding projections to each node
+          // add point cloud shape-holding projections to each node
           sys.addStereoProj(0, k, proj);
           sys.addStereoProj(1, k+nn, projp);
 
-	        // add point-plane matches
-	        sys.addPointPlaneMatch(0, k, inormal0, 1, k+nn, inormal1);
-	        Matrix3d covar;
-	        double cv = 0.05;
-                covar << cv, 0, 0,
-	                 0, cv, 0, 
-                	   0, 0, cv;
-	        sys.setProjCovariance(0, k+nn, covar);
-	        sys.setProjCovariance(1, k, covar);
+          // add point-plane matches
+          sys.addPointPlaneMatch(0, k, inormal0, 1, k+nn, inormal1);
+          //          sys.addStereoProj(0, k+nn, projp);
+          //          sys.addStereoProj(1, k, proj);
+
+          Matrix3d covar;
+          double cv = 0.05;
+          covar << cv, 0, 0,
+            0, cv, 0, 
+            0, 0, cv;
+          sys.setProjCovariance(0, k+nn, covar);
+          sys.setProjCovariance(1, k, covar);
 
         }
       else
-	      {
-	        cout << "ERROR! point not in view of nodes" << endl;
-	        //return;
-	      }
+        {
+          cout << "ERROR! point not in view of nodes" << endl;
+          //return;
+        }
     }
 
     // Add noise to node position.
@@ -320,6 +323,8 @@ void processSBA(ros::NodeHandle node)
     // Publish markers
     drawGraph(sys, cam_marker_pub, point_marker_pub, 1, sys.tracks.size()/2);
     ros::spinOnce();
+
+
     //ROS_INFO("Sleeping for 2 seconds to publish post-SBA markers.");
     ros::Duration(0.5).sleep();
 
@@ -336,13 +341,11 @@ void processSBA(ros::NodeHandle node)
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "sba_system_setup");
-    
-    ros::NodeHandle node;
-    
-    processSBA(node);
-    ros::spinOnce();
+  ros::init(argc, argv, "sba_system_setup");
+  ros::NodeHandle node;
+  processSBA(node);
+  ros::spinOnce();
 
-    return 0;
+  return 0;
 }
 

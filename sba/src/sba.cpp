@@ -187,6 +187,7 @@ namespace sba
     forward_proj.plane_node_index = ci0;
 #endif
     
+#if 0
  // Peter: to avoid removeFrame() removing pi1 because it only has a single projection (according to projections of pi1)
    // Note that if we do point to plane projections both directions this should not be done
    Vector3d proj_fake;
@@ -194,6 +195,7 @@ namespace sba
    addStereoProj(ci0, pi1, proj_fake);
    Proj &fake_proj = tracks[pi1].projections[ci0];
    fake_proj.isValid = false;
+#endif
     
 #if 0
     // Backward: point 1 into camera 0. 
@@ -266,7 +268,7 @@ namespace sba
           {
             Proj &prj = itr->second;      
             if (!prj.isValid) continue;
-            double err = prj.calcErr(nodes[prj.ndi],tracks[i].point);
+            double err = prj.calcErr(nodes[prj.ndi],tracks[i].point,huber);
             cost += err;
           }
       }
@@ -316,7 +318,7 @@ namespace sba
           {
             Proj &prj = itr->second;      
             if (!prj.isValid) continue;
-            double err = prj.calcErr(nodes[prj.ndi],tracks[i].point);
+            double err = prj.calcErr(nodes[prj.ndi],tracks[i].point,huber);
             if (err < dist)
             {
               cost += err;
@@ -344,7 +346,7 @@ namespace sba
           {
             Proj &prj = itr->second;      
             if (!prj.isValid) continue;
-            prj.calcErr(nodes[prj.ndi],tracks[i].point);
+            prj.calcErr(nodes[prj.ndi],tracks[i].point,huber);
             cost += prj.getErrNorm();
             nprjs++;
           }
@@ -386,6 +388,11 @@ namespace sba
   int SysSBA::countBad(double dist)
   {
     dist = dist*dist;           // square it
+#ifdef HUBER
+    // convert to Huber distance
+    double b2 = HUBER*HUBER;
+    dist = 2*b2*(sqrt(1+dist/b2)-1);
+#endif
     int n=0;
     for (int i=0; i<(int)tracks.size(); i++)
       {

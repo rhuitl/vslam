@@ -22,12 +22,12 @@ namespace sba
       setJacobiansMono_(nd, pt, jpp);
   }
   
-  double Proj::calcErr(const Node &nd, const Point &pt)
+  double Proj::calcErr(const Node &nd, const Point &pt, const double huber)
   {
     if (stereo)
-      return calcErrStereo_(nd, pt);
+      return calcErrStereo_(nd, pt, huber);
     else
-      return calcErrMono_(nd, pt);
+      return calcErrMono_(nd, pt, huber);
   }
   
   double Proj::getErrNorm()
@@ -140,19 +140,45 @@ namespace sba
 
   // calculate error of a projection
   // we should do something about negative Z
-  double Proj::calcErrMono_(const Node &nd, const Point &pt)
+  double Proj::calcErrMono_(const Node &nd, const Point &pt, double huber)
   {
     Eigen3::Vector3d p1 = nd.w2i * pt; err = p1.head(2)/p1(2); 
     if (p1(2) <= 0.0) 
     {
 #ifdef DEBUG
-      printf("[CalcErr] negative Z! Node %d point %d\n",ndi,pti);
+      printf("[CalcErr] negative Z! Node %d \n",ndi);
       if (isnan(err[0]) || isnan(err[1]) ) printf("[CalcErr] NaN!\n"); 
 #endif
       err = Eigen3::Vector3d(0.0,0.0,0.0);
       return 0.0;
     }
     err -= kp;
+
+    // pseudo-Huber weighting
+    // C(e) = 2*s^2*[sqrt(1+(e/s)^2)-1]
+    // w = sqrt(C(norm(e)))/norm(e)
+
+    if (huber > 0)
+      {
+        double b2 = huber*huber; // kernel width
+        double e2 = err.head<2>().squaredNorm();
+        if (e2 > b2)
+          {
+            double c = 2.0*huber*sqrt(e2) - b2;
+            double w = sqrt(c/e2);
+            err.head<2>() *= w; // weight the error
+            //            std::cout << "Huber weight: " << w << "  Err sq: " << e2 << std::endl;
+          }
+
+
+//         double b2 = HUBER*HUBER;        // kernel width
+//         double e2 = err.squaredNorm();
+//         e2 = std::max(e2,1e-22);    // can't have a zero here
+//         double w = 2*b2*(sqrt(1+e2/b2)-1);
+//         w = sqrt(w/e2);
+//         err.head<2>() *= w;         // weight the error
+      }
+
     return err.head<2>().squaredNorm(); 
   }
 
@@ -255,7 +281,7 @@ namespace sba
 
   // calculate error of a projection
   // we should do something about negative Z
-  double Proj::calcErrStereo_(const Node &nd, const Point &pt)
+  double Proj::calcErrStereo_(const Node &nd, const Point &pt, double huber)
   { 
     Eigen3::Vector3d p1 = nd.w2i * pt; 
     Eigen3::Vector3d p2 = nd.w2n * pt; 
@@ -303,6 +329,29 @@ namespace sba
     if (useCovar)
       err = covarmat*err;
      
+    // pseudo-Huber weighting
+    // C(e) = 2*s^2*[sqrt(1+(e/s)^2)-1]
+    // w = sqrt(C(norm(e)))/norm(e)
+
+    if (huber > 0.0)
+      {
+        double b2 = huber*huber; // kernel width
+        double e2 = err.squaredNorm();
+        if (e2 > b2)
+          {
+            double c = 2.0*huber*sqrt(e2) - b2;
+            double w = sqrt(c/e2);
+            err *= w;
+            //            std::cout << "Huber weight: " << w << "  Err sq: " << e2 << std::endl;
+          }
+      }
+    //    e2 = std::max(e2,1e-22);    // can't have a zero here
+    //    double w = sqrt(2*b2*(sqrt(1+e2/b2)-1));
+    //    w = sqrt(w/e2);
+    //    std::cout << "Huber weight: " << w << "  Err sq: " << e2 << std::endl;
+    //    err *= w;                   // weight the error
+
+
     return err.squaredNorm();
   }
   

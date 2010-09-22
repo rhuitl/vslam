@@ -939,8 +939,9 @@ namespace sba
     int iter = 0;               // iterations
     sqMinDelta = 1e-8 * 1e-8;
     double cost = calcCost();
-    /* cout << iter << " Initial squared cost: " << cost << " which is " 
-       << sqrt(cost/ncons) << " rms error" << endl; */
+    if (verbose)
+      cout << iter << " Initial squared cost: " << cost << " which is " 
+           << sqrt(cost/ncons) << " rms error" << endl; 
 
     int good_iter = 0;
     for (; iter<niter; iter++)  // loop at most <niter> times
