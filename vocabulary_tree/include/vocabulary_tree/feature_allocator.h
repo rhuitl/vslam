@@ -6,14 +6,18 @@
 
 namespace vt {
 
-/// Meta-function to get the default allocator for a particular feature type.
+/**
+ * \brief Meta-function to get the default allocator for a particular feature type.
+ *
+ * Defaults to \c std::allocator<Feature>.
+ */
 template<class Feature>
 struct DefaultAllocator
 {
   typedef std::allocator<Feature> type;
 };
 
-// Specialization for Eigen3::Matrix types.
+// Specialization to use aligned allocator for Eigen3::Matrix types.
 template<typename Scalar, int Rows, int Cols, int Options, int MaxRows, int MaxCols>
 struct DefaultAllocator< Eigen3::Matrix<Scalar, Rows, Cols, Options, MaxRows, MaxCols> >
 {

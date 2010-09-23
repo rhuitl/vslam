@@ -11,12 +11,16 @@
 
 namespace vt {
 
-// Function objects for choosing the initial centers
+// Forward declare function objects for choosing the initial centers
 struct InitRandom;
 struct InitGiven;
 /// @todo InitKmeanspp
 
-/// Class implementing naive k-means.
+/**
+ * \brief Class for performing K-means clustering, optimized for a particular feature type and metric.
+ *
+ * The standard Lloyd's algorithm is used. By default, cluster centers are initialized randomly.
+ */
 template<class Feature, class Distance = distance::L2<Feature>,
          class FeatureAllocator = typename DefaultAllocator<Feature>::type>
 class SimpleKmeans
@@ -25,9 +29,17 @@ public:
   typedef typename Distance::result_type squared_distance_type;
   typedef boost::function<void(const std::vector<Feature*>&, size_t, std::vector<Feature, FeatureAllocator>&, Distance)> Initializer;
 
-  /// @todo FeatureAllocator parameter
+  /**
+   * \brief Constructor
+   *
+   * \param zero Object representing zero in the feature space
+   * \param d    Functor for calculating squared distance
+   * 
+   * @todo FeatureAllocator parameter
+   */
   SimpleKmeans(const Feature& zero = Feature(), Distance d = Distance());
 
+  /// Set function object used to choose initial cluster centers.
   void setInitMethod(const Initializer& init) { choose_centers_ = init; }
 
   size_t getMaxIterations() const { return max_iterations_; }
@@ -36,11 +48,29 @@ public:
   size_t getRestarts() const { return restarts_; }
   void setRestarts(size_t restarts) { restarts_ = restarts; }
 
+  /**
+   * \brief Partition a set of features into k clusters.
+   *
+   * \param      features   The features to be clustered.
+   * \param      k          The number of clusters.
+   * \param[out] centers    A set of k cluster centers.
+   * \param[out] membership Cluster assignment for each feature
+   */
   squared_distance_type cluster(const std::vector<Feature, FeatureAllocator>& features, size_t k,
                                 std::vector<Feature, FeatureAllocator>& centers,
                                 std::vector<unsigned int>& membership) const;
 
-  // More convenient for hierarchical clustering
+  /**
+   * \brief Partition a set of features into k clusters.
+   *
+   * This version is more convenient for hierarchical clustering, as you do not have to copy
+   * feature objects.
+   *
+   * \param      features   The features to be clustered.
+   * \param      k          The number of clusters.
+   * \param[out] centers    A set of k cluster centers.
+   * \param[out] membership Cluster assignment for each feature
+   */
   squared_distance_type clusterPointers(const std::vector<Feature*>& features, size_t k,
                                         std::vector<Feature, FeatureAllocator>& centers,
                                         std::vector<unsigned int>& membership) const;
@@ -170,6 +200,9 @@ SimpleKmeans<Feature, Distance, FeatureAllocator>::clusterOnce(const std::vector
 }
 
 
+/**
+ * \brief Initializer for K-means that randomly selects k features as the cluster centers.
+ */
 struct InitRandom
 {
   template<class Feature, class Distance, class FeatureAllocator>
@@ -187,6 +220,9 @@ struct InitRandom
   }
 };
 
+/**
+ * \brief Dummy initializer for K-means that leaves the centers as-is.
+ */
 struct InitGiven
 {
   template<class Feature, class Distance, class FeatureAllocator>

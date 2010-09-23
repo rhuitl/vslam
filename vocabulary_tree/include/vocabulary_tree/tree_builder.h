@@ -8,6 +8,10 @@
 
 namespace vt {
 
+/**
+ * \brief Class for building a new vocabulary by hierarchically clustering
+ * a set of training features.
+ */
 template<class Feature, class Distance = distance::L2<Feature>,
          class FeatureAllocator = typename DefaultAllocator<Feature>::type>
 class TreeBuilder
@@ -16,14 +20,32 @@ public:
   typedef MutableVocabularyTree<Feature, Distance, FeatureAllocator> Tree;
   typedef SimpleKmeans<Feature, Distance, FeatureAllocator> Kmeans;
   typedef std::vector<Feature, FeatureAllocator> FeatureVector;
-  
+
+  /**
+   * \brief Constructor
+   *
+   * \param zero Object representing zero in the feature space
+   * \param d    Functor for calculating squared distance
+   */
   TreeBuilder(const Feature& zero = Feature(), Distance d = Distance());
 
+  /**
+   * \brief Build a new vocabulary tree.
+   *
+   * The number of words in the resulting vocabulary is at most k ^ levels.
+   *
+   * \param training_features The set of training features to cluster.
+   * \param k                 The branching factor, or max children of any node.
+   * \param levels            The number of levels in the tree.
+   */
   void build(const FeatureVector& training_features, uint32_t k, uint32_t levels);
 
+  /// Get the built vocabulary tree.
   const Tree& tree() const { return tree_; }
 
+  /// Get the k-means clusterer.
   Kmeans& kmeans() { return kmeans_; }
+  /// Get the k-means clusterer.
   const Kmeans& kmeans() const { return kmeans_; }
 
 protected:

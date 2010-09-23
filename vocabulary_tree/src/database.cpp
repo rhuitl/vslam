@@ -14,13 +14,13 @@ Database::Database(uint32_t num_words)
 {
 }
 
-DocId Database::insert(const Document& words)
+DocId Database::insert(const std::vector<Word>& document)
 {
   /// @todo Evaluate whether sorting words makes much difference in speed
   DocId doc_id = database_vectors_.size();
 
   // For each word, retrieve its inverted file and increment the count for doc_id.
-  for (Document::const_iterator it = words.begin(), end = words.end(); it != end; ++it) {
+  for (std::vector<Word>::const_iterator it = document.begin(), end = document.end(); it != end; ++it) {
     Word word = *it;
     InvertedFile& file = word_files_[word];
     if (file.empty() || file.back().id != doc_id)
@@ -31,15 +31,15 @@ DocId Database::insert(const Document& words)
 
   // Precompute the document vector to compare queries against.
   database_vectors_.resize(doc_id + 1);
-  computeVector(words, database_vectors_.back());
+  computeVector(document, database_vectors_.back());
   
   return doc_id;
 }
 
-void Database::find(const Document& words, size_t N, Matches& matches) const
+void Database::find(const std::vector<Word>& document, size_t N, std::vector<Match>& matches) const
 {
   DocumentVector query;
-  computeVector(words, query);
+  computeVector(document, query);
 
   // Accumulate the best N matches
   using namespace boost::accumulators;
@@ -57,11 +57,11 @@ void Database::find(const Document& words, size_t N, Matches& matches) const
   std::copy(bestN(acc).begin(), bestN(acc).end(), matches.begin());
 }
 
-DocId Database::findAndInsert(const Document& words, size_t N, Matches& matches)
+DocId Database::findAndInsert(const std::vector<Word>& document, size_t N, std::vector<Match>& matches)
 {
   /// @todo Can this be accelerated? Could iterate over words only once?
-  find(words, N, matches);
-  return insert(words);
+  find(document, N, matches);
+  return insert(document);
 }
 
 void Database::computeTfIdfWeights(float default_weight)
@@ -103,9 +103,9 @@ void Database::loadWeights(const std::string& file)
   }
 }
 
-void Database::computeVector(const Document& words, DocumentVector& v) const
+void Database::computeVector(const std::vector<Word>& document, DocumentVector& v) const
 {
-  for (Document::const_iterator it = words.begin(), end = words.end(); it != end; ++it) {
+  for (std::vector<Word>::const_iterator it = document.begin(), end = document.end(); it != end; ++it) {
     Word word = *it;
     v[word] += word_weights_[word];
   }

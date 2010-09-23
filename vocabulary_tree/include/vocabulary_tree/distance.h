@@ -7,7 +7,17 @@
 namespace vt {
 namespace distance {
 
-/// Meta-function returning a type that can be used to accumulate many values of T.
+/**
+ * \brief Meta-function returning a type that can be used to accumulate many values of T.
+ *
+ * By default, the accumulator type is the same as \c T. Specializations for the basic types
+ * are:
+ * \li \c uint8_t -> \c uint32_t
+ * \li \c uint16_t -> \c uint32_t
+ * \li \c int8_t -> \c int32_t
+ * \li \c int16_t -> \c int32_t
+ * \li \c float -> \c double
+ */
 template<typename T>
 struct Accumulator
 {

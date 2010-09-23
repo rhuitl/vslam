@@ -5,6 +5,12 @@
 
 namespace vt {
 
+/**
+ * \brief Vocabulary tree that exposes the hierarchical clustering centers. Mainly
+ * intended for building a new tree.
+ *
+ * When loading and using an existing vocabulary tree, use VocabularyTree instead.
+ */
 template<class Feature, class Distance = vt::distance::L2<Feature>,
          class FeatureAllocator = typename DefaultAllocator<Feature>::type>
 class MutableVocabularyTree : public vt::VocabularyTree<Feature, Distance, FeatureAllocator>
