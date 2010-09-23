@@ -37,6 +37,7 @@
 #include <highgui.h>
 //#include <features_2d/draw.h>
 #include <posest/pnp_ransac.h>
+#include <posest/cxeigen.hpp>
 
 #include <iostream>
 #include <algorithm>
