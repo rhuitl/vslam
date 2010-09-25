@@ -14,7 +14,7 @@
   <depend package="cv_bridge"/>
   <depend package="message_filters"/>
   
-  <depend package="pcl_ros"/>
+  <depend package="pcl"/>
   <depend package="tf"/>
   <depend package="std_msgs"/>
   <depend package="nav_msgs"/>

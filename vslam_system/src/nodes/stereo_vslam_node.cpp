@@ -18,7 +18,6 @@
 #include <nav_msgs/Odometry.h>
 #include <geometry_msgs/PoseStamped.h>
 
-#include <pcl_ros/publisher.h>
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
 

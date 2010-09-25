@@ -14,8 +14,6 @@
 #include <vslam_system/any_detector.h>
 #include <vslam_system/StereoVslamNodeConfig.h>
 
-#include <pcl_ros/publisher.h>
-
 using namespace sba;
 using namespace pcl;
 using namespace Eigen3;
