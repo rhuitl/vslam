@@ -444,25 +444,31 @@ namespace sba
   {
     int ret = 0;
     for (int i=0; i<(int)tracks.size(); i++)
+    {
+      ProjMap &prjs = tracks[i].projections;
+      int ngood = 0;
+      // increment is IN for loop, since after erasing an element, the old iterator is invalid
+      // => incrementing from old iterator results in undefined behgaviour!
+      for(ProjMap::iterator itr = prjs.begin(); itr != prjs.end(); /*no increment here!!!*/)
       {
-        ProjMap &prjs = tracks[i].projections;
-        int ngood = 0;
-        for(ProjMap::iterator itr = prjs.begin(); itr != prjs.end(); itr++)
-          {
-            Proj &prj = itr->second;
-            if (prj.isValid) 
-              ngood++;
-            else
-              prjs.erase(itr); // Erase bad projections
-          }
-        
-        // Clear out tracks with too few good projections.
-        if (ngood < 2)
-          {
-            prjs.clear();
-            ret++;
-          }
+        Proj &prj = itr->second;
+        if (prj.isValid)
+        {
+          ngood++;
+          ++itr;
+        }
+        else
+        {
+          prjs.erase(itr++); // Erase bad projections
+        }
       }
+      // Clear out tracks with too few good projections.
+      if (ngood < 2)
+      {
+        prjs.clear();
+        ret++;
+      }
+    }
     return ret; // Returns the number of tracks cleared.
   }
 
