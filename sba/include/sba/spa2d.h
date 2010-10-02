@@ -195,7 +195,7 @@ namespace sba
       EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
       /// constructor
-      SysSPA2d() { nFixed = 1; verbose = true; lambda = 1.0e-4, print_iros_stats=false; }
+      SysSPA2d() { nFixed = 1; verbose = false; lambda = 1.0e-4, print_iros_stats=false; }
 
       /// add a node at a pose
       /// <pos> is x,y,th, with th in radians

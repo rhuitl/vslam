@@ -156,8 +156,10 @@ namespace sba
   void CSparse::setupCSstructure(double diaginc, bool init)
   {
 #ifdef SBA_CHOLMOD
-    if (useCholmod)
+    if (useCholmod) {
       cholmod_start(&Common); // this is finished in doChol()
+      Common.print = 0;
+    }
 #endif
 
     // reserve space and set things up
@@ -329,15 +331,15 @@ namespace sba
         b.xtype = CHOLMOD_REAL;
         b.dtype = CHOLMOD_DOUBLE;
         b.x = B.data();
-        cout << "CHOLMOD analyze..." << flush;
+        //cout << "CHOLMOD analyze..." << flush;
         L = cholmod_analyze (chA, &Common) ; // analyze 
-        cout << "factorize..." << flush;
+        //cout << "factorize..." << flush;
         cholmod_factorize (chA, L, &Common) ; // factorize 
-        cout << "solve..." << flush;
+        //cout << "solve..." << flush;
         x = cholmod_solve (CHOLMOD_A, L, &b, &Common) ; // solve Ax=b
         //        cholmod_print_factor (L, (char *)"L", &Common) ;
 
-        cout << "refine" << endl;
+        //cout << "refine" << endl;
         // one step of iterative refinement, cheap
 	/* Ax=b was factorized and solved, R = B-A*X */
 	R = cholmod_copy_dense (&b, &Common) ;
@@ -408,6 +410,7 @@ namespace sba
 #ifdef SBA_CHOLMOD
     chA = NULL;
     chInited = false;
+    Common.print=0;
 #endif
     asize = 0;
     csize = 0;
@@ -502,8 +505,10 @@ namespace sba
   void CSparse2d::setupCSstructure(double diaginc, bool init)
   {
 #ifdef SBA_CHOLMOD
-    if (useCholmod)
+    if (useCholmod) {
       cholmod_start(&Common); // this is finished in doChol()
+      Common.print = 0;
+    }
 #endif
 
     // reserve space and set things up
@@ -678,15 +683,15 @@ namespace sba
         b.xtype = CHOLMOD_REAL;
         b.dtype = CHOLMOD_DOUBLE;
         b.x = B.data();
-        cout << "CHOLMOD analyze..." << flush;
+        //cout << "CHOLMOD analyze..." << flush;
         L = cholmod_analyze (chA, &Common) ; // analyze 
-        cout << "factorize..." << flush;
+        //cout << "factorize..." << flush;
         cholmod_factorize (chA, L, &Common) ; // factorize 
-        cout << "solve..." << flush;
+        //cout << "solve..." << flush;
         x = cholmod_solve (CHOLMOD_A, L, &b, &Common) ; // solve Ax=b
         //        cholmod_print_factor (L, (char *)"L", &Common) ;
 
-        cout << "refine" << endl;
+        //cout << "refine" << endl;
         // one step of iterative refinement, cheap
 	/* Ax=b was factorized and solved, R = B-A*X */
 	R = cholmod_copy_dense (&b, &Common) ;
