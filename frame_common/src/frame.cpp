@@ -203,7 +203,7 @@ namespace frame_common
     frame.pts.resize(nkpts);
     frame.disps.resize(nkpts);
 
-    #pragma omp parallel for shared(st, frame)
+    #pragma omp parallel for shared( st )
     for (int i=0; i<nkpts; i++)
       {
 	      double disp = st->lookup_disparity(frame.kpts[i].pt.x,frame.kpts[i].pt.y);
@@ -240,7 +240,7 @@ namespace frame_common
       frame.pl_normals.resize(ptcloudsize);
       frame.pl_ipts.resize(ptcloudsize);
       
-      #pragma omp parallel for shared( frame )
+      #pragma omp parallel for
       for (unsigned int i=0; i < frame.pointcloud.points.size(); i++)
       {
         PointXYZRGBNormal &pt = frame.pointcloud.points[i];
@@ -289,7 +289,7 @@ namespace frame_common
       matches.clear();
       // Starting at i=1 as a hack to not let through (0,0,0) matches (why is this in the ptcloud?))
       
-      #pragma omp parallel for shared( transformed_cloud, frame1, f0_indices, f1_indices, matches )
+      #pragma omp parallel for shared( transformed_cloud, f0_indices, f1_indices )
       for (unsigned int i=1; i < f0_indices.size(); i++)
       {
         const PointXYZRGBNormal &pt0 = transformed_cloud.points[f0_indices[i]];
@@ -330,7 +330,7 @@ namespace frame_common
       
       // Iterate over the output tree looking for all the input points and finding
       // nearest neighbors.
-      #pragma omp parallel for shared( input, output, input_tree, output_tree, input_indices, output_indices )
+      #pragma omp parallel for shared( input_tree, output_tree )
       for (unsigned int i = 0; i < input.points.size(); i++)
       {
         PointXYZRGBNormal input_pt = input.points[i];
