@@ -170,7 +170,8 @@ int main(int argc, char **argv)
   SysSPA2d spa;
   spa.verbose=false;
   spa.print_iros_stats=false;
-  spa.useCholmod(false);
+  //  spa.useCholmod(false);
+  spa.useCholmod(true);
 
 
   // use max nodes if we haven't specified it
@@ -210,7 +211,7 @@ int main(int argc, char **argv)
 
       t0 = utime();
       //      spa.doSPA(1,1.0e-4,SBA_SPARSE_CHOLESKY);
-      spa.doSPA(1,1.0e-4,SBA_BLOCK_JACOBIAN_PCG,1.0e-8,10);
+      spa.doSPA(1,1.0e-4,SBA_BLOCK_JACOBIAN_PCG,1.0e-8,15);
       t1 = utime();
       cumtime += t1 - t0;
       if (i%100 == 0) 
@@ -222,7 +223,7 @@ int main(int argc, char **argv)
 
 
 
-  printf("[TestSPA2D] Compute took %0.2f ms/node, total squared cost %0.2f ms\n", 0.001*(double)cumtime/(double)nnodes, cumtime*0.001);
+  printf("[TestSPA2D] Compute took %0.2f ms/node, total time %0.2f ms; error %0.2f\n", 0.001*(double)cumtime/(double)nnodes, cumtime*0.001, spa.errcost);
   // printf("[TestSPA] Accepted iterations: %d\n", niters);
   // printf("[TestSPA] Distance cost: %0.3f m rms\n", sqrt(spa.calcCost(true)/(double)spa.p2cons.size()));
 
