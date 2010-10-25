@@ -124,6 +124,17 @@ namespace sba
       return false;
     }
     tracks[pi].projections[ci] = Proj(ci, q, stereo);
+
+#if 0
+    /// NOTE
+    Eigen3::Matrix3d covar;
+    covar.setIdentity();
+    covar(0,0) = 0.4;
+    covar(1,1) = 0.4;
+    covar(2,2) = 4.0;
+    tracks[pi].projections[ci].setCovariance(covar);
+#endif
+
     return true;
   }
 
@@ -154,7 +165,18 @@ namespace sba
         return true;
       return false;
     }
-    tracks[pi].projections[ci] = Proj(ci, q);
+    tracks[pi].projections[ci] = Proj(ci, q, true);
+
+#if 0
+    /// NOTE
+    Eigen3::Matrix3d covar;
+    covar.setIdentity();
+    covar(0,0) = 0.4;
+    covar(1,1) = 0.4;
+    covar(2,2) = 4.0;
+    tracks[pi].projections[ci].setCovariance(covar);
+#endif
+
     return true;
   }
   

@@ -149,7 +149,7 @@ int main(int argc, char **argv)
   sys.nFixed = 1;
   sys.printStats();
   sys.csp.useCholmod = true;
-  sys.huber = 0.0;
+  sys.huber = 4.0;
 
 
 #if 0

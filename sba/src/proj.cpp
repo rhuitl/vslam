@@ -292,9 +292,11 @@ namespace sba
     {
       // Project point onto plane.
       Eigen3::Vector3d w = pt.head<3>()-plane_point;
+
       //printf("w: %f %f %f\n", w.x(), w.y(), w.z());
       //Eigen3::Vector3d projpt = pt.head<3>()+(w.dot(plane_normal))*plane_normal;
       Eigen3::Vector3d projpt = plane_point+(w.dot(plane_normal))*plane_normal;
+      //      Eigen3::Vector3d projpt = pt.head<3>()+(w.dot(plane_normal))*plane_normal;
       //printf("[Proj] Distance to plane: %f\n", w.dot(plane_normal));
       p1 = nd.w2i*Eigen3::Vector4d(projpt.x(), projpt.y(), projpt.z(), 1.0);
       p2 = nd.w2n*Eigen3::Vector4d(projpt.x(), projpt.y(), projpt.z(), 1.0);
@@ -313,7 +315,7 @@ namespace sba
       printf("[CalcErr] negative Z! Node %d\n",ndi);
       if (isnan(err[0]) || isnan(err[1]) ) printf("[CalcErr] NaN!\n"); 
 #endif
-      err = Eigen3::Vector3d(0.0,0.0,0.0);
+      err.setZero();
       
       return 0.0;
     }
@@ -329,10 +331,7 @@ namespace sba
     if (useCovar)
       err = covarmat*err;
      
-    // pseudo-Huber weighting
-    // C(e) = 2*s^2*[sqrt(1+(e/s)^2)-1]
-    // w = sqrt(C(norm(e)))/norm(e)
-
+    // Huber kernel weighting
     if (huber > 0.0)
       {
         double b2 = huber*huber; // kernel width
@@ -345,12 +344,6 @@ namespace sba
             //            std::cout << "Huber weight: " << w << "  Err sq: " << e2 << std::endl;
           }
       }
-    //    e2 = std::max(e2,1e-22);    // can't have a zero here
-    //    double w = sqrt(2*b2*(sqrt(1+e2/b2)-1));
-    //    w = sqrt(w/e2);
-    //    std::cout << "Huber weight: " << w << "  Err sq: " << e2 << std::endl;
-    //    err *= w;                   // weight the error
-
 
     return err.squaredNorm();
   }

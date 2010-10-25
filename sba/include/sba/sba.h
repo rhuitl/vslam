@@ -409,7 +409,7 @@ namespace sba
     /// error
     Eigen3::Matrix<double,12,1> err;
     /// calculates projection error and stores it in <err>
-    inline Eigen3::Matrix<double,12,1> calcErr(const Node &nd, const Point &pt);
+    Eigen3::Matrix<double,12,1> calcErr(const Node &nd, const Point &pt);
 
     /// Jacobians of 0p1,0p2 with respect to global p0, p1, p2
     Eigen3::Matrix<double,6,6> J10, J11, J20, J22;

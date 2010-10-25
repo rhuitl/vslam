@@ -22,9 +22,9 @@ void drawGraph(const SysSBA &sba, const ros::Publisher &camera_pub,
   camera_marker.pose.orientation.y = 0.0;
   camera_marker.pose.orientation.z = 0.0;
   camera_marker.pose.orientation.w = 1.0;
-  camera_marker.scale.x = 0.02;
-  camera_marker.scale.y = 0.02;
-  camera_marker.scale.z = 0.02;
+  camera_marker.scale.x = 0.04;
+  camera_marker.scale.y = 0.04;
+  camera_marker.scale.z = 0.04;
   camera_marker.color.r = 0.0f;
   camera_marker.color.g = 1.0f;
   camera_marker.color.b = 1.0f;
@@ -113,9 +113,10 @@ void drawGraph(const SysSBA &sba, const ros::Publisher &camera_pub,
               Vector3d plane_point = prj.plane_point;
               Vector3d plane_normal = prj.plane_normal;
               Eigen3::Vector3d w = pt0.head<3>()-plane_point;
-              Eigen3::Vector3d projpt = plane_point+(w.dot(plane_normal))*plane_normal;
-              Vector3d pt1 = pt0.head<3>()+0.1*plane_normal;
-              //Vector3d pt1 = projpt;
+              //              Eigen3::Vector3d projpt = plane_point+(w.dot(plane_normal))*plane_normal;
+              Eigen3::Vector3d projpt = pt0.head<3>() - (w.dot(plane_normal))*plane_normal;
+              //              Vector3d pt1 = pt0.head<3>()+0.1*plane_normal;
+              Vector3d pt1 = projpt;
 	          
               camera_marker.points[ii].x = pt0.z();
               camera_marker.points[ii].y = -pt0.x();
