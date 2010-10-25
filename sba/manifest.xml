@@ -9,7 +9,6 @@
   <depend package="roscpp"/>
   <depend package="eigen3"/>
   <depend package="suitesparse"/>
-  <depend package="sparselib"/>
   <depend package="csparse"/>
   <depend package="bpcg"/>
   <depend package="std_msgs"/>
