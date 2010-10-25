@@ -72,10 +72,13 @@ void pnpTask(const vector<char>& used_points_mask, const Mat& camera_matrix, con
   projected_points.resize(object_points.size());
   projectPoints(Mat(object_points), rvecl, tvecl, camera_matrix, dist_coeffs, projected_points);
 
+  vector<Point3f> rotated_points;
+  project3dPoints(object_points, rvecl, tvecl, rotated_points);
+
   vector<int> inliers_indexes;
   for (size_t i = 0; i < object_points.size(); i++)
   {
-    if (norm(image_points[i] - projected_points[i]) < max_dist)
+    if ((norm(image_points[i] - projected_points[i]) < max_dist) && (rotated_points[i].z > 0))
     {
       inliers_indexes.push_back(i);
     }
