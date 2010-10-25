@@ -92,6 +92,11 @@ target_link_libraries(test/run_spa2d sba)
 rosbuild_add_executable(test/run_spa test/run_spa.cpp test/read_spa.cpp)
 target_link_libraries(test/run_spa sba)
 
+# SPA on graph-type files
+rosbuild_add_executable(test/run_spa_graph_file test/run_spa_graph_file.cpp)
+target_link_libraries(test/run_spa_graph_file sba)
+
+
 # Spiral SBA for results
 rosbuild_add_executable(test/run_sba_spiral test/run_sba_spiral.cpp test/spiral_setup.cpp)
 target_link_libraries(test/run_sba_spiral sba)

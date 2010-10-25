@@ -67,19 +67,19 @@ int main(int argc, char **argv)
 
   fin = argv[1];
 
-  SysSBA sys;
-  readGraphFile(fin, sys);
+  SysSPA sys;
+  readSPAGraphFile(fin, sys);
   //  writeGraphFile("sba-out.graph", sys);
 
   double cost = sys.calcCost();
   cout << "Initial squared cost: " << cost << endl;
 
   sys.nFixed = 1;
-  sys.printStats();
   sys.csp.useCholmod = true;
+  sys.verbose = true;
 
-  //  sys.doSBA(10,1e-4,SBA_SPARSE_CHOLESKY);
-  sys.doSBA(10,1e-4,SBA_BLOCK_JACOBIAN_PCG,1e-8,200);
+  sys.doSPA(10,1e-4,SBA_SPARSE_CHOLESKY);
+  //  sys.doSPA(10,1e-4,SBA_BLOCK_JACOBIAN_PCG,1e-8,200);
 
   return 0;
 }

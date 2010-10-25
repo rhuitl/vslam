@@ -1,26 +1,32 @@
 #!/bin/bash
-# shell script for making a source distribution of the SPA2D library
+# shell script for making a source distribution of the sSBA library
 
-DISTDIR=spa2d-0.1
+DISTDIR=ssba-0.1
 
-mkdir -p ${DISTDIR} ${DISTDIR}/src ${DISTDIR}/include/ ${DISTDIR}/include/sba
+mkdir -p ${DISTDIR} ${DISTDIR}/src ${DISTDIR}/include/ ${DISTDIR}/include/sba \
+         ${DISTDIR}/include/bpcg ${DISTDIR}/obj ${DISTDIR}/lib \
+         ${DISTDIR}/examples ${DISTDIR}/data ${DISTDIR}/bin
 
-cp src/spa2d.cpp ${DISTDIR}/src
-cp src/csparse.cpp ${DISTDIR}/src
-cp include/sba/csparse.h ${DISTDIR}/include/sba
-cp include/sba/spa2d.h ${DISTDIR}/include/sba
-tar -cvzf ${DISTDIR}.tgz ${DISTDIR}
+cp src/spa2d.cpp src/csparse.cpp src/proj.cpp src/sba.cpp src/spa.cpp src/node.cpp src/sba_file_io.cpp ${DISTDIR}/src
+cp ../bpcg/include/bpcg/bpcg.h ${DISTDIR}/include/bpcg
+cp include/sba/sba.h include/sba/csparse.h include/sba/proj.h include/sba/sba_file_io.h \
+   include/sba/node.h include/sba/spa2d.h include/sba/sba_setup.h include/sba/read_spa.h ${DISTDIR}/include/sba
+cp test/run_sba_graph_file.cpp ${DISTDIR}/examples/run_sba.cpp
+cp test/run_spa_graph_file.cpp ${DISTDIR}/examples/run_spa.cpp
+cp data/*.graph ${DISTDIR}/data
+cp Makefile-lib ${DISTDIR}/Makefile
+#tar -cvzf ${DISTDIR}.tgz ${DISTDIR}
 
-
-# Making a standalone SPA2D library
+# Making a standalone sSBA library
 
 # Dependencies
 # ============
 
 # External libs
-#    Eigen
-#    CSparse 
-#    CHOLMOD/SuiteSparse (optional, uses GPL license)
+#    Eigen3  (LGPL3 license)
+#    CSparse (LGPL license)
+#    CHOLMOD/SuiteSparse (optional, uses LGPL license for CHOLMOD)
+
 
 
 # Include file setup

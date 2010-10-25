@@ -610,7 +610,7 @@ static void make_qrot(double rr, double rp, double ry, Vector4d &v)
 
 int  sba::ParseGraphFile(const char *fin,	// input file
   vector< Vector5d, Eigen3::aligned_allocator<Vector5d> > &camp, // cam params <fx fy cx cy>
-			 vector< Vector4d, Eigen3::aligned_allocator<Vector4d> > &camq, // cam rotation quaternion
+  vector< Vector4d, Eigen3::aligned_allocator<Vector4d> > &camq, // cam rotation quaternion
   vector< Vector3d, Eigen3::aligned_allocator<Vector3d> > &camt, // cam translation
   vector< Vector3d, Eigen3::aligned_allocator<Vector3d> > &ptp, // point position
   // point tracks - each vector is <camera_index point_index u v d>; 
@@ -855,3 +855,235 @@ int sba::writeGraphFile(const char *filename, SysSBA& sba, bool mono)
 
     return 0;
 } 
+
+
+//
+// SPA (3D pose graphs)
+//
+
+
+//
+// add a single node to the graph, in the position given by the VERTEX2 entry in the file
+//
+
+void 
+addnode(SysSPA &spa, int n, 
+	// node translation
+	std::vector< Eigen3::Vector3d, Eigen3::aligned_allocator<Eigen3::Vector3d> > ntrans,
+	// node rotation
+	std::vector< Eigen3::Vector4d, Eigen3::aligned_allocator<Eigen3::Vector4d> > nqrot,
+	// constraint indices
+	std::vector< Eigen3::Vector2i, Eigen3::aligned_allocator<Eigen3::Vector2i> > cind,
+	// constraint local translation 
+	std::vector< Eigen3::Vector3d, Eigen3::aligned_allocator<Eigen3::Vector3d> > ctrans,
+	// constraint local rotation as quaternion
+	std::vector< Eigen3::Vector4d, Eigen3::aligned_allocator<Eigen3::Vector4d> > cqrot,
+	// constraint covariance
+	std::vector< Eigen3::Matrix<double,6,6>, Eigen3::aligned_allocator<Eigen3::Matrix<double,6,6> > > cvar)
+
+{
+  Node nd;
+
+  // rotation
+  Quaternion<double> frq;
+  frq.coeffs() = nqrot[n];
+  frq.normalize();
+  if (frq.w() <= 0.0) frq.coeffs() = -frq.coeffs();
+  nd.qrot = frq.coeffs();
+
+  // translation
+  Vector4d v;
+  v.head(3) = ntrans[n];
+  v(3) = 1.0;
+  nd.trans = v;
+  nd.setTransform();        // set up world2node transform
+  nd.setDr(true);
+
+  // add to system
+  spa.nodes.push_back(nd);
+
+  // add in constraints
+  for (int i=0; i<(int)ctrans.size(); i++)
+    {
+      ConP2 con;
+      con.ndr = cind[i].x();
+      con.nd1 = cind[i].y();
+
+      if ((con.ndr == n && con.nd1 <= n-1) ||
+          (con.nd1 == n && con.ndr <= n-1))
+        {
+	  con.tmean = ctrans[i];
+	  Quaternion<double> qr;
+	  qr.coeffs() = cqrot[i];
+	  qr.normalize();
+	  con.qpmean = qr.inverse(); // inverse of the rotation measurement
+	  con.prec = cvar[i];       // ??? should this be inverted ???
+
+	  // need a boost for noise-offset system
+	  //con.prec.block<3,3>(3,3) *= 10.0;
+	  spa.p2cons.push_back(con);
+	}
+    }
+}
+
+int sba::readSPAGraphFile(const char *filename, SysSPA& spaout)
+{ 
+  // Create vectors to hold the data from the graph file. 
+  // node translation
+  std::vector< Eigen3::Vector3d, Eigen3::aligned_allocator<Eigen3::Vector3d> > ntrans;
+  // node rotation
+  std::vector< Eigen3::Vector4d, Eigen3::aligned_allocator<Eigen3::Vector4d> > nqrot;
+  // constraint indices
+  std::vector< Eigen3::Vector2i, Eigen3::aligned_allocator<Eigen3::Vector2i> > cind;
+  // constraint local translation 
+  std::vector< Eigen3::Vector3d, Eigen3::aligned_allocator<Eigen3::Vector3d> > ctrans;
+  // constraint local rotation as quaternion
+  std::vector< Eigen3::Vector4d, Eigen3::aligned_allocator<Eigen3::Vector4d> > cqrot;
+  // constraint covariance
+  std::vector< Eigen3::Matrix<double,6,6>, Eigen3::aligned_allocator<Eigen3::Matrix<double,6,6> > > cvar;
+
+  int ret = ParseSPAGraphFile(filename, ntrans, nqrot, cind, ctrans, cqrot, cvar);
+  if (ret < 0)
+    return -1;
+        
+  cout << "# [ReadSPAFile] Found " << (int)ntrans.size() << " nodes and " 
+       << (int)cind.size() << " constraints" << endl;
+
+  int nnodes = ntrans.size();
+
+  // add in nodes
+  for (int i=0; i<nnodes; i++)
+    addnode(spaout, i, ntrans, nqrot, cind, ctrans, cqrot, cvar);
+    
+  return 0;
+}
+
+
+// cv is upper triangular
+void make_covar(double *cv, Matrix<double,6,6> &m)
+{
+  m.setZero();
+
+  int i = 0;
+  m(0,0) = cv[i++];
+  m(0,1) = cv[i++];
+  m(0,2) = cv[i++];
+  m(0,3) = cv[i++];
+  m(0,4) = cv[i++];
+  m(0,5) = cv[i++];
+
+  m(1,1) = cv[i++];
+  m(1,2) = cv[i++];
+  m(1,3) = cv[i++];
+  m(1,4) = cv[i++];
+  m(1,5) = cv[i++];
+
+  m(2,2) = cv[i++];
+  m(2,3) = cv[i++];
+  m(2,4) = cv[i++];
+  m(2,5) = cv[i++];
+
+  m(3,3) = cv[i++];
+  m(3,4) = cv[i++];
+  m(3,5) = cv[i++];
+
+  m(4,4) = cv[i++];
+  m(4,5) = cv[i++];
+
+  m(5,5) = cv[i++];
+
+  // make symmetric
+  Matrix<double,6,6> mt = m.transpose();
+  mt.diagonal().setZero();
+  m = m+mt;
+}
+
+int
+sba::ParseSPAGraphFile(const char *fin, // input file
+   std::vector< Eigen3::Vector3d, Eigen3::aligned_allocator<Eigen3::Vector3d> > &ntrans, // node translation
+   std::vector< Eigen3::Vector4d, Eigen3::aligned_allocator<Eigen3::Vector4d> > &nqrot,  // node rotation
+   std::vector< Eigen3::Vector2i, Eigen3::aligned_allocator<Eigen3::Vector2i> > &cind,   // constraint indices
+   std::vector< Eigen3::Vector3d, Eigen3::aligned_allocator<Eigen3::Vector3d> > &ctrans, // constraint local translation 
+   std::vector< Eigen3::Vector4d, Eigen3::aligned_allocator<Eigen3::Vector4d> > &cqrot,  // constraint local rotation as quaternion
+   std::vector< Eigen3::Matrix<double,6,6>, Eigen3::aligned_allocator<Eigen3::Matrix<double,6,6> > > &cvar) // constraint covariance
+{
+  ifstream ifs(fin);
+  if (ifs == NULL)
+    {
+      cout << "Can't open file " << fin << endl;
+      return -1;
+    }
+  ifs.precision(10);
+
+  // loop over lines
+  string line;
+  int nline = 0;
+  bool first = true;
+  while (getline(ifs,line))
+    {
+      nline++;
+      stringstream ss(line);    // make a string stream
+      string type;
+      ss >> type;
+      size_t pos = type.find("#");
+      if (pos != string::npos)
+        continue;               // comment line
+
+      if (type == "VERTEX_SE3")    // have a vertex
+        {
+          int n;
+          double tx,ty,tz,rr,rp,ry;
+          if (!(ss >> n >> tx >> ty >> tz >> rr >> rp >> ry))
+            {
+              cout << "[ReadSPA] Bad VERTEX_SE3 at line " << nline << endl;
+              return -1;
+            }
+          ntrans.push_back(Vector3d(tx,ty,tz));
+          Vector4d v;
+          make_qrot(rr,rp,ry,v);
+          nqrot.push_back(v);
+        }
+
+      if (type == "EDGE_SE3_SE3")      // have an edge
+        {
+          int n1,n2;
+          double tx,ty,tz,rr,rp,ry;
+          double cv[21];
+
+          // indices and measurement
+          if (!(ss >> n1 >> n2 >> tx >> ty >> tz >> rr >> rp >> ry))
+            {
+              cout << "[ReadSPA] Bad EDGE_SE3_SE3 at line " << nline << endl;
+              return -1;
+            }
+          cind.push_back(Vector2i(n1,n2));
+          ctrans.push_back(Vector3d(tx,ty,tz));
+          Vector4d v;
+          make_qrot(rr,rp,ry,v);
+          cqrot.push_back(v);
+
+          // covar
+          if (!(ss >> cv[0] >> cv[1] >> cv[2] >> cv[3] >> cv[4] 
+                >> cv[5] >> cv[6] >> cv[7] >> cv[8] >> cv[9] 
+                >> cv[10] >> cv[11] >> cv[12] >> cv[13] >> cv[14] 
+                >> cv[15] >> cv[16] >> cv[17] >> cv[18] >> cv[19] >> cv[20]))
+            {
+              cout << "[ReadSPA] Bad EDGE_SE3_SE3 at line " << nline << endl;
+              return -1;
+            }
+          Matrix<double,6,6> m;
+          make_covar(cv,m);
+          if (first)
+            {
+              //cout << endl;
+              //for (int j=0; j<21; j++);
+                //cout << cv[j] << " ";
+              //cout << endl << endl << << m << endl;
+              first = false;
+            }
+          cvar.push_back(m);
+        }
+
+    }
+  return 0;
+}

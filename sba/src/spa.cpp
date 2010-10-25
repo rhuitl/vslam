@@ -1028,8 +1028,9 @@ namespace sba
 
         // new cost
         double newcost = calcCost();
-        /* cout << iter << " Updated squared cost: " << newcost << " which is " 
-           << sqrt(newcost/ncons) << " rms error" << endl; */
+	if (verbose)
+	  cout << iter << " Updated squared cost: " << newcost << " which is " 
+           << sqrt(newcost/ncons) << " rms error" << endl;
         
         // check if we did good
         if (newcost < cost) // && iter != 0) // NOTE: iter==0 case is for checking
@@ -1062,7 +1063,8 @@ namespace sba
 
 
             cost = calcCost();  // need to reset errors
-            // cout << iter << " Downdated cost: " << cost << endl;
+            if (verbose)
+	      cout << iter << " Downdated cost: " << cost << endl;
             // NOTE: shouldn't need to redo all calcs in setupSys
         }
       }

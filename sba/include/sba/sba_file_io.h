@@ -91,6 +91,25 @@ namespace sba
   int writeGraphFile(const char *filename, SysSBA& sba, bool mono=false);
 
 
+  /** \brief Reads 3D pose graph data from a graph-type file to an instance of SysSPA.
+   *
+   * \param filename The name of the bundler-formatted file to read from.
+   * \param spaout An instance of SPA that the file will be written to.
+   * Note: where is the documentation for this format?
+   */
+
+  int readSPAGraphFile(const char *filename, SysSPA& spaout);
+
+  /** \brief A low-level parser for graph files. */
+  int
+  ParseSPAGraphFile(const char *fin, // input file
+   std::vector< Eigen3::Vector3d, Eigen3::aligned_allocator<Eigen3::Vector3d> > &ntrans, // node translation
+   std::vector< Eigen3::Vector4d, Eigen3::aligned_allocator<Eigen3::Vector4d> > &nqrot,  // node rotation
+   std::vector< Eigen3::Vector2i, Eigen3::aligned_allocator<Eigen3::Vector2i> > &cind,   // constraint indices
+   std::vector< Eigen3::Vector3d, Eigen3::aligned_allocator<Eigen3::Vector3d> > &ctrans, // constraint local translation 
+   std::vector< Eigen3::Vector4d, Eigen3::aligned_allocator<Eigen3::Vector4d> > &cqrot,  // constraint local rotation as quaternion
+   std::vector< Eigen3::Matrix<double,6,6>, Eigen3::aligned_allocator<Eigen3::Matrix<double,6,6> > > &cvar); // constraint covariance
+
 }; // namespace SBA
 
 #endif
