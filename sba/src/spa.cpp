@@ -604,7 +604,7 @@ namespace sba
       //      cout << q1.coeffs().transpose() << endl << endl;
 
 // this seems to mess up convergence...
-#ifdef NORMALIZE_Q				
+#ifdef NORMALIZE_Q                              
       if (q1.w() < 0.0)
         err.block<3,1>(3,0) = -q1.vec(); // normalized
       else
@@ -850,14 +850,14 @@ namespace sba
             csp.addDiagBlock(m,i1);
             if (i0>=0)
               {
-		Matrix<double,6,6> m2 = con.J0t * tp;
-		if (i1 < i0)
-		  {
-		    m = m2.transpose();
-		    csp.addOffdiagBlock(m,i1,i0);
-		  }
-		else
-		  csp.addOffdiagBlock(m2,i0,i1);
+                Matrix<double,6,6> m2 = con.J0t * tp;
+                if (i1 < i0)
+                  {
+                    m = m2.transpose();
+                    csp.addOffdiagBlock(m,i1,i0);
+                  }
+                else
+                  csp.addOffdiagBlock(m2,i0,i1);
               }
           }
 
@@ -872,7 +872,7 @@ namespace sba
 
     // set up sparse matrix structure from blocks
     if (sparseType == SBA_BLOCK_JACOBIAN_PCG)
-      csp.incDiagBlocks(lam);	// increment diagonal block
+      csp.incDiagBlocks(lam);   // increment diagonal block
     else
       csp.setupCSstructure(lam,iter==0); 
 
@@ -957,16 +957,16 @@ namespace sba
         else
           setupSys(lambda);     // set up linear system
 
-	// use appropriate linear solver
-	if (useCSparse == SBA_BLOCK_JACOBIAN_PCG)
-	  {
+        // use appropriate linear solver
+        if (useCSparse == SBA_BLOCK_JACOBIAN_PCG)
+          {
             if (csp.B.rows() != 0)
-	      {
-		int iters = csp.doBPCG(maxCGiters,initTol,iter);
+              {
+                int iters = csp.doBPCG(maxCGiters,initTol,iter);
                 if (verbose)
                   cout << "[Block PCG] " << iters << " iterations" << endl;
-	      }
-	  }
+              }
+          }
         else if (useCSparse > 0)
         {
             bool ok = csp.doChol();
@@ -1028,8 +1028,8 @@ namespace sba
 
         // new cost
         double newcost = calcCost();
-	if (verbose)
-	  cout << iter << " Updated squared cost: " << newcost << " which is " 
+        if (verbose)
+          cout << iter << " Updated squared cost: " << newcost << " which is " 
            << sqrt(newcost/ncons) << " rms error" << endl;
         
         // check if we did good
@@ -1064,7 +1064,7 @@ namespace sba
 
             cost = calcCost();  // need to reset errors
             if (verbose)
-	      cout << iter << " Downdated cost: " << cost << endl;
+              cout << iter << " Downdated cost: " << cost << endl;
             // NOTE: shouldn't need to redo all calcs in setupSys
         }
       }
@@ -1118,5 +1118,85 @@ namespace sba
     ofs.close();
   }
 
+
+  // Set up spanning tree initialization
+  void SysSPA::spanningTree(int node)
+  {
+    int nnodes = nodes.size();
+
+    // set up an index from nodes to their constraints
+    vector<vector<int> > cind;
+    cind.resize(nnodes);
+
+    for(size_t pi=0; pi<p2cons.size(); pi++)
+      {
+        ConP2 &con = p2cons[pi];
+        int i0 = con.ndr;
+        int i1 = con.nd1;
+        cind[i0].push_back(i1);
+        cind[i1].push_back(i0);        
+      }
+
+    // set up breadth-first algorithm
+    VectorXd dist(nnodes);
+    dist.setConstant(1e100);
+    if (node >= nnodes)
+      node = 0;
+    dist[node] = 0.0;
+    multimap<double,int> open;  // open list, priority queue - can have duplicates
+    open.insert(make_pair<double,int>(0.0,node));
+
+    // do breadth-first computation
+    while (!open.empty())
+      {
+        // get top node, remove it
+        int ni = open.begin()->second;
+        double di = open.begin()->first;
+        open.erase(open.begin());
+        if (di > dist[ni]) continue; // already dealt with
+
+        // update neighbors
+        Node &nd = nodes[ni];
+        Matrix<double,3,4> n2w;
+        transformF2W(n2w,nd.trans,nd.qrot); // from node to world coords
+
+        vector<int> &nns = cind[ni];
+        for (int i=0; i<(int)nns.size(); i++)
+          {
+            ConP2 &con = p2cons[nns[i]];
+            double dd = con.tmean.norm(); // incremental distance
+            // neighbor node index
+            int nn = con.nd1;
+            if (nn == ni)
+              nn = con.ndr;
+            Node &nd2 = nodes[nn];
+            Vector3d tmean = con.tmean;
+            Quaterniond qpmean = con.qpmean;
+            if (nn == con.ndr)       // wrong way, reverse
+              {
+                qpmean = qpmean.inverse();
+                tmean = nd.qrot.toRotationMatrix().transpose()*nd2.qrot.toRotationMatrix()*tmean;
+              }
+                
+            if (dist[nn] > di + dd) // is neighbor now closer?
+              {
+                // set priority queue
+                dist[nn] = di+dd;
+                open.insert(make_pair<double,int>(di+dd,nn));
+                // update initial pose
+                Vector4d trans;
+                trans.head(3) = tmean;
+                trans(3) = 1.0;
+                nd2.trans.head(3) = n2w*trans;
+                nd2.qrot = qpmean*nd.qrot;
+                nd2.normRot();
+                nd2.setTransform();
+                nd2.setDr(true);
+              }
+          }
+      }
+    
+  }
+  
 
 }  // namespace sba

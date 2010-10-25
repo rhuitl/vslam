@@ -285,7 +285,7 @@ namespace sba
       std::vector<Eigen3::Vector3d, Eigen3::aligned_allocator<Eigen3::Vector3d> > tps;
 
       /// storage for Jacobian products
-	std::vector<JacobProds, Eigen3::aligned_allocator<JacobProds> > jps;
+        std::vector<JacobProds, Eigen3::aligned_allocator<JacobProds> > jps;
 
     };
 
@@ -492,6 +492,9 @@ namespace sba
 
       /// Convergence bound (square of minimum acceptable delta change)
       double sqMinDelta;
+
+      /// Spanning tree initialization
+      void spanningTree(int node=0);
 
       /// Add a constraint between two poses, in a given pose frame.
       /// <pr> is reference pose, <p0> and <p1> are the pose constraints.

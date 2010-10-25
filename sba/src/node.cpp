@@ -16,7 +16,7 @@ namespace sba
     setDr(true);
   }
 
-  // What is this line for????
+  // constant derivative matrices
   // these are the derivatives of the *inverse* rotation
   Eigen3::Matrix3d Node::dRidx, Node::dRidy, Node::dRidz;
 

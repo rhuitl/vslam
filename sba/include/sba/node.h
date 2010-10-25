@@ -70,7 +70,7 @@ namespace sba
     Eigen3::Quaternion<double> qrot;  ///< Rotation of the node expressed as a Quaternion.
     
     /// \brief Normalize quaternion to unit. 
-    /// Problem with derivatives near w=0, solved by a hack for now.
+    /// Problem with global derivatives near w=0, solved by a hack for now.
     void normRot();
     
     /// \brief Normalize quaternion to unit, without w=0 considerations.
