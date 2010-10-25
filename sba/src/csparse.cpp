@@ -121,11 +121,6 @@ namespace sba
       }
   }
 
-  // true for off-diagonal entries 
-  static int dropdiag (int i, int j, double aij, void *other) 
-    { return (i != j) ;}
-
-
   void CSparse::incDiagBlocks(double lam)
   {
     for (int i=0; i<(int)diag.size(); i++)
