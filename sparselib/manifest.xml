@@ -12,6 +12,8 @@
     <cpp cflags="-I${prefix}/include/ -DCOMPLEX='std::complex&lt;double&gt;'" lflags="-L${prefix}/lib/ -lsparse.a -lspblas.a -lmv.a" />
   </export>
 
+  <rosdep name="unzip" />
+
   <platform os="ubuntu" version="9.04"/>
   <platform os="ubuntu" version="9.10"/>
   <platform os="ubuntu" version="10.04"/>
