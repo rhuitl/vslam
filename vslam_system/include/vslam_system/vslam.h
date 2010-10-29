@@ -25,7 +25,7 @@ class VslamSystem
     /// Pointer to pointcloud processor.
     boost::shared_ptr<frame_common::PointcloudProc> pointcloud_processor_;
     /// Pointcloud matches.
-    std::vector<pe::Match> pointcloud_matches_;
+    std::vector<cv::DMatch> pointcloud_matches_;
     bool doPointPlane;         // true if we want to process point clouds
 
   public:

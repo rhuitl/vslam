@@ -59,7 +59,7 @@ namespace pe
   //
 
   int PoseEstimator3d::estimate(const Frame& f0, const Frame& f1, 
-                                const std::vector<Match> &matches)
+                                const std::vector<cv::DMatch> &matches)
   {
     // convert keypoints in match to 3d points
     std::vector<Vector4d, aligned_allocator<Vector4d> > p0; // homogeneous coordinates
@@ -72,11 +72,11 @@ namespace pe
     vector<int> m0, m1;
     for (int i=0; i<nmatch; i++)
       {
-        if (f0.disps[matches[i].index1] > minMatchDisp && 
-            f1.disps[matches[i].index2] > minMatchDisp)
+        if (f0.disps[matches[i].queryIdx] > minMatchDisp && 
+            f1.disps[matches[i].trainIdx] > minMatchDisp)
           {
-            m0.push_back(matches[i].index1);
-            m1.push_back(matches[i].index2);
+            m0.push_back(matches[i].queryIdx);
+            m1.push_back(matches[i].trainIdx);
           }
       }
 
@@ -201,7 +201,7 @@ namespace pe
     //    printf("Total ransac: %d  Neg det: %d\n", ntot, nneg);
 
     // reduce matches to inliers
-    vector<Match> inls;    // temporary for current inliers
+    vector<cv::DMatch> inls;    // temporary for current inliers
     inliers.clear();
     Matrix<double,3,4> tfm;
     tfm.block<3,3>(0,0) = rot;
@@ -210,14 +210,14 @@ namespace pe
     nmatch = matches.size();
     for (int i=0; i<nmatch; i++)
       {
-        if (!f0.goodPts[matches[i].index1] || !f1.goodPts[matches[i].index2])
+        if (!f0.goodPts[matches[i].queryIdx] || !f1.goodPts[matches[i].trainIdx])
           continue;
-        Vector3d pt = tfm*f1.pts[matches[i].index2];
+        Vector3d pt = tfm*f1.pts[matches[i].trainIdx];
         Vector3d ipt = f0.cam2pix(pt);
-        const cv::KeyPoint &kp = f0.kpts[matches[i].index1];
+        const cv::KeyPoint &kp = f0.kpts[matches[i].queryIdx];
         double dx = kp.pt.x - ipt.x();
         double dy = kp.pt.y - ipt.y();
-        double dd = f0.disps[matches[i].index1] - ipt.z();
+        double dd = f0.disps[matches[i].queryIdx] - ipt.z();
         if (dx*dx < maxInlierXDist2 && dy*dy < maxInlierXDist2 && 
             dd*dd < maxInlierDDist2)
           inls.push_back(matches[i]);
@@ -256,8 +256,8 @@ namespace pe
         for (int i=0; i<(int)inls.size(); i++)
           {
             // add point
-            int i0 = inls[i].index1;
-            int i1 = inls[i].index2;
+            int i0 = inls[i].queryIdx;
+            int i1 = inls[i].trainIdx;
             Vector4d pt = f0.pts[i0];
             sba.addPoint(pt);
             

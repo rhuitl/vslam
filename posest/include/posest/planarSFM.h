@@ -90,7 +90,7 @@ void reprojectPoints(const cv::Mat& intrinsics, const cv::Mat& R, const cv::Mat&
 void matchesFromIndices(const std::vector<cv::KeyPoint>& _set1, const std::vector<cv::KeyPoint>& _set2, const std::vector<int>& indices,
                         std::vector<cv::Point2f>& points1, std::vector<cv::Point2f>& points2);
 
-void matchesFromIndices(const std::vector<cv::KeyPoint>& src1, const std::vector<cv::KeyPoint>& src2, const std::vector<Match>& indices,
+void matchesFromIndices(const std::vector<cv::KeyPoint>& src1, const std::vector<cv::KeyPoint>& src2, const std::vector<cv::DMatch>& indices,
     std::vector<cv::Point2f>& dst1, std::vector<cv::Point2f>& dst2);
 
 float calcScaledPointCloudDistance(const std::vector<cv::Point3f>& points1, const std::vector<cv::Point3f>& points2);

@@ -314,7 +314,7 @@ public:
   
     // add connections between frames, based on keypoint matches
   void addProjections(fc::Frame &f0, fc::Frame &f1, 
-                      const std::vector<pe::Match> &inliers,
+                      const std::vector<cv::DMatch> &inliers,
                       const Matrix<double,3,4>& f2w, int ndi0, int ndi1)
   {
     // set up array to kill duplicate matches
@@ -324,8 +324,8 @@ public:
     // add points and projections
     for (int i=0; i<(int)inliers.size(); i++)
       {
-        int i0 = inliers[i].index1;
-        int i1 = inliers[i].index2;
+        int i0 = inliers[i].queryIdx;
+        int i1 = inliers[i].trainIdx;
 
         if (matched0[i0]) continue;
         if (matched1[i1]) continue;

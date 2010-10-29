@@ -56,26 +56,27 @@ static void camParams2Mat(const fc::CamParams& params, Mat& intrinsics)
 namespace pe
 {
 void drawMatches(const Mat& img, const vector<KeyPoint>& kpts1, const vector<KeyPoint>& kpts2,
-                 const vector<Match>& matches, Mat& display)
+                 const vector<cv::DMatch>& matches, Mat& display)
 {
   img.copyTo(display);
   for (size_t i = 0; i < matches.size(); i++)
   {
-    circle(display, kpts1[matches[i].index1].pt, 3, CV_RGB(255, 0, 0));
-    line(display, kpts1[matches[i].index1].pt, kpts2[matches[i].index2].pt, CV_RGB(0, 0, 255));
+    circle(display, kpts1[matches[i].queryIdx].pt, 3, CV_RGB(255, 0, 0));
+    line(display, kpts1[matches[i].queryIdx].pt, kpts2[matches[i].trainIdx].pt, CV_RGB(0, 0, 255));
+    line(display, kpts1[matches[i].queryIdx].pt, kpts2[matches[i].trainIdx].pt, CV_RGB(0, 0, 255));
   }
 }
 ;
 
-void extractPnPData(const fc::Frame& frame1, const fc::Frame& frame2, const std::vector<Match> &matches, vector<
+void extractPnPData(const fc::Frame& frame1, const fc::Frame& frame2, const std::vector<cv::DMatch> &matches, vector<
     cv::Point2f>& imagePoints, vector<cv::Point3f>& objectPoints)
 {
   std::cout << "extractPnPData: frame1.pts.size() = " << frame1.pts.size() << std::endl;
 //  float zsum = 0, zsum2 = 0;
   for (size_t i = 0; i < matches.size(); i++)
   {
-    int i1 = matches[i].index1;
-    int i2 = matches[i].index2;
+    int i1 = matches[i].queryIdx;
+    int i2 = matches[i].trainIdx;
 
     if (frame1.goodPts[i1] == false)
       continue;
@@ -109,13 +110,13 @@ int PoseEstimator2d::estimate(const fc::Frame& frame1, const fc::Frame& frame2)
   }
 }
 
-void filterMatchesOpticalFlow(const fc::Frame& frame1, const fc::Frame& frame2, std::vector<Match>& matches)
+void filterMatchesOpticalFlow(const fc::Frame& frame1, const fc::Frame& frame2, std::vector<cv::DMatch>& matches)
 {
   vector<Point2f> points1, points2, points2_of;
   for(size_t i = 0; i < matches.size(); i++)
   {
-    points1.push_back(frame1.kpts[matches[i].index1].pt);
-    points2.push_back(frame2.kpts[matches[i].index2].pt);
+    points1.push_back(frame1.kpts[matches[i].queryIdx].pt);
+    points2.push_back(frame2.kpts[matches[i].trainIdx].pt);
   }
 
   vector<unsigned char> status;
@@ -124,12 +125,12 @@ void filterMatchesOpticalFlow(const fc::Frame& frame1, const fc::Frame& frame2, 
   calcOpticalFlowPyrLK(frame1.img, frame2.img, points1, points2_of, status, err, cvSize(10, 10));
 #else
 #endif
-  vector<Match> matches_filtered;
+  vector<cv::DMatch> matches_filtered;
   const float maxError = 2.0f;
   for(size_t i = 0; i < matches.size(); i++)
   {
     if(!status[i]) continue;
-    if(norm(points2[matches[i].index2] - points2_of[matches[i].index2]) < maxError)
+    if(norm(points2[matches[i].trainIdx] - points2_of[matches[i].trainIdx]) < maxError)
     {
       matches_filtered.push_back(matches[i]);
     }
@@ -146,17 +147,12 @@ void filterMatchesOpticalFlow(const fc::Frame& frame1, const fc::Frame& frame2, 
 #endif
 }
 
-bool greaterMatchPredicate(const Match& m1, const Match& m2)
+void filterMatchesByDistance(std::vector<cv::DMatch>& matches, float percentile = 0.1f)
 {
-  return m1.distance < m2.distance;
-}
-
-void filterMatchesByDistance(std::vector<Match>& matches, float percentile = 0.1f)
-{
-  std::sort(matches.begin(), matches.end(), greaterMatchPredicate);
+  std::sort(matches.begin(), matches.end());
 
   // matches.resize does not compile due to absence of Match default constructor
-  vector<Match> filtered;
+  vector<cv::DMatch> filtered;
   for(size_t i = 0; i < (size_t)floor(matches.size()*percentile); i++)
   {
     filtered.push_back(matches[i]);
@@ -165,9 +161,9 @@ void filterMatchesByDistance(std::vector<Match>& matches, float percentile = 0.1
   matches = filtered;
 }
 
-int PoseEstimator2d::estimate(const fc::Frame& frame1, const fc::Frame& frame2, const std::vector<Match>& _matches)
+int PoseEstimator2d::estimate(const fc::Frame& frame1, const fc::Frame& frame2, const std::vector<cv::DMatch>& _matches)
 {
-  vector<Match> matches = _matches;
+  vector<cv::DMatch> matches = _matches;
   filterMatchesByDistance(matches, 0.5f);
 
   std::cout << "called PoseEstimator2d::estimate for frames " << frame1.frameId << " and " << frame2.frameId
@@ -328,7 +324,7 @@ int PoseEstimator2d::estimate(const fc::Frame& frame1, const fc::Frame& frame2, 
   assert(valid.size() == cloud.size() && cloud.size() == matches.size());
   int goodCount = 0;
   double minz = 1e10, maxz = 0;
-  vector<Match> _inliers;
+  vector<cv::DMatch> _inliers;
 
   float z1sum = 0, z2sum = 0, z1sum2 = 0, z2sum2 = 0;
   int countFiltered = 0;
@@ -356,8 +352,8 @@ int PoseEstimator2d::estimate(const fc::Frame& frame1, const fc::Frame& frame2, 
 #endif
 
     inliers.push_back(matches[i]);
-    int i1 = matches[i].index1;
-    int i2 = matches[i].index2;
+    int i1 = matches[i].queryIdx;
+    int i2 = matches[i].trainIdx;
 
     if(norm(cloud[i]) < 10)
     {
@@ -414,7 +410,7 @@ int PoseEstimator2d::estimate(const fc::Frame& frame1, const fc::Frame& frame2, 
   {
 #if 1
     Mat display1, display2;
-    vector<Match> match_samples;
+    vector<cv::DMatch> match_samples;
     vector<int> match_indices;
     sample(matches.size(), 100, match_indices);
     vectorSubset(matches, match_indices, match_samples);
@@ -436,7 +432,7 @@ int PoseEstimator2d::estimate(const fc::Frame& frame1, const fc::Frame& frame2, 
 
     /// @todo Don't have cv::drawKeypoints, cv::drawMatches might not be used right here
     Mat img_matches;
-    vector<Match> inlier_sample;
+    vector<cv::DMatch> inlier_sample;
     vector<int> inlier_indices;
     sample(inliers.size(), 50, inlier_indices);
     vectorSubset(inliers, inlier_indices, inlier_sample);

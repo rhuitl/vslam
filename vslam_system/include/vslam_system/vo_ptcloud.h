@@ -104,7 +104,7 @@ namespace vslam
     boost::shared_ptr<pe::PoseEstimator> pose_estimator_;
     
   private:
-    std::vector<pe::Match> pointcloud_matches_;
+    std::vector<cv::DMatch> pointcloud_matches_;
   };
 
   // adds projections between two frames based on inlier matches
@@ -112,11 +112,11 @@ namespace vslam
   // ipts is an optional global point vector
   void addProjections(fc::FrameExtended &f0, fc::FrameExtended &f1, 
                       std::vector<fc::FrameExtended, Eigen3::aligned_allocator<fc::FrameExtended> > &frames,
-                      sba::SysSBA &sba, const std::vector<pe::Match> &inliers,
+                      sba::SysSBA &sba, const std::vector<cv::DMatch> &inliers,
                       const Matrix<double,3,4>& f2w, int ndi0, int ndi1, std::vector<int>* ipts = NULL);
                       
   void addPointCloudProjections(fc::FrameExtended &f0, fc::FrameExtended &f1, 
-                    sba::SysSBA &sba, const std::vector<pe::Match> &inliers,
+                    sba::SysSBA &sba, const std::vector<cv::DMatch> &inliers,
                       const Matrix<double,3,4>& f2w_frame0, 
                       const Matrix<double,3,4>& f2w_frame1, 
                       int ndi0, int ndi1, std::vector<int>* ipts = NULL);

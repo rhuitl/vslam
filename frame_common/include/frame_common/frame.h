@@ -70,8 +70,6 @@
 
 
 // Forward declaration.
-namespace pe { struct Match; };
-
 namespace frame_common
 {
 
@@ -196,7 +194,7 @@ namespace frame_common
       /// \brief Match points with previous frame, given an initial pose estimate.
       void match(const Frame& frame0, const Frame& frame1, 
                   const Eigen3::Vector3d& trans, const Eigen3::Quaterniond& rot, 
-                  std::vector<pe::Match>& matches) const;
+                  std::vector<cv::DMatch>& matches) const;
       
     private:
       /// \brief Subsample cloud for faster matching and processing, while
@@ -225,7 +223,7 @@ namespace frame_common
 } // end of namespace frame_common
 
 /// @todo Replace this with cv::DMatch. Moved here as quickest way to fix frame_extended.
-namespace pe
+/*namespace pe
 {
   struct Match
   {
@@ -239,6 +237,6 @@ namespace pe
     }
   };
 } // namespace pe
-
+*/
 #endif // _FRAME_H_
 

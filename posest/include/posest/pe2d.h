@@ -59,7 +59,7 @@ public:
   virtual int estimate(const fc::Frame& frame1, const fc::Frame& frame2);
 
   virtual int estimate(const fc::Frame& frame1, const fc::Frame& frame2,
-                       const std::vector<Match> &matches);
+                       const std::vector<cv::DMatch> &matches);
 
 protected:
   void setPose(const cv::Mat& rvec, const cv::Mat& tvec);

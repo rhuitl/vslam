@@ -90,7 +90,7 @@ namespace frame_common
       }
       
       /** \brief Match points with previous frame, given an initial pose estimate of trans and rot. */
-      void match(frame_common::FrameExtended& frame, const Eigen3::Vector3d& trans, const Eigen3::Quaterniond& rot, std::vector<pe::Match>& matches)
+      void match(frame_common::FrameExtended& frame, const Eigen3::Vector3d& trans, const Eigen3::Quaterniond& rot, std::vector<cv::DMatch>& matches)
       {
         PointCloud<PointXYZRGBNormal> transformed_cloud;
         
@@ -139,7 +139,7 @@ namespace frame_common
           diff(2) = diff(2) - diff(0);
           
           if ((norm0 - norm1).norm() < 0.5)
-            matches.push_back(pe::Match(other_indices[i], this_indices[i], dist));
+            matches.push_back(cv::DMatch(other_indices[i], this_indices[i], dist));
         }
         
         printf("[FrameExtended] Found %d matches, then converted %d matches.\n", (int)other_indices.size(), (int)matches.size());

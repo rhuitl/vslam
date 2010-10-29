@@ -17,6 +17,11 @@ public:
   {
   }
 
+  virtual void detect( const cv::Mat& image, vector<cv::KeyPoint>& keypoints, const cv::Mat& mask=cv::Mat() ) const
+  {
+    active_detector_->detect(image, keypoints, mask);
+  }
+
   template <class Config>
   void update(Config& config)
   {
@@ -47,13 +52,6 @@ public:
       active_detector_ = new cv::GridAdaptedFeatureDetector(active_detector_, config.grid_max_keypoints,
                                                             config.grid_rows, config.grid_cols);
     }
-  }
-
-protected:
-  virtual void detectImpl(const cv::Mat& image, const cv::Mat& mask,
-                          std::vector<cv::KeyPoint>& keypoints) const
-  {
-    active_detector_->detect(image, keypoints, mask);
   }
 };
 

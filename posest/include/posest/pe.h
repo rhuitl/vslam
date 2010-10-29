@@ -46,15 +46,6 @@ namespace fc  = frame_common;
 
 namespace pe
 {
-  /// @todo This should go in OpenCV
-  void drawMatches(const cv::Mat& img1, const std::vector<cv::KeyPoint>& keypoints1,
-                   const cv::Mat& img2, const std::vector<cv::KeyPoint>& keypoints2,
-                   const std::vector<Match>& matches, cv::Mat& outImg,
-                   const cv::Scalar& matchColor = cv::Scalar::all(-1),
-                   const cv::Scalar& singlePointColor = cv::Scalar::all(-1),
-                   const std::vector<char>& matchesMask = std::vector<char>(),
-                   int flags = cv::DrawMatchesFlags::DEFAULT);
-
   /// A class that estimates camera pose from features in image frames.
   class PoseEstimator
   {
@@ -74,8 +65,8 @@ namespace pe
     bool polish;
 
     // all matches and inliers
-    std::vector<Match> matches; ///< Matches between features in frames.
-    std::vector<Match> inliers; ///< RANSAC inliers of matches.
+    std::vector<cv::DMatch> matches; ///< Matches between features in frames.
+    std::vector<cv::DMatch> inliers; ///< RANSAC inliers of matches.
 
     /// number of RANSAC iterations
     int numRansac;
@@ -104,7 +95,7 @@ namespace pe
     /// optionally polishes the result.
     /// Frames must have filled features and descriptors.
     virtual int estimate(const fc::Frame& frame1, const fc::Frame& frame2,
-                         const std::vector<Match> &matches) = 0;
+                         const std::vector<cv::DMatch> &matches) = 0;
 
     /// \brief Uses RANSAC to find best inlier count by finding matches using 
     /// the provided matcher, optionally polishes the result.
@@ -115,7 +106,7 @@ namespace pe
     //void doPolish(fc::Frame& f0, fc::Frame& f1);
 
     void setTestMode(bool mode);
-    void setTestMatches(const std::vector<Match>& matches)
+    void setTestMatches(const std::vector<cv::DMatch>& matches)
     {
       assert(testMode==true);
       testMatches = matches;
@@ -129,10 +120,10 @@ namespace pe
     Eigen3::Vector3d trans; ///< Translation of the camera between the frames.
 
   protected:
-    void matchFrames(const fc::Frame& f0, const fc::Frame& f1, std::vector<int>& fwd_matches);
+    void matchFrames(const fc::Frame& f0, const fc::Frame& f1, std::vector<cv::DMatch>& fwd_matches);
     
     bool testMode;
-    std::vector<Match> testMatches;
+    std::vector<cv::DMatch> testMatches;
 
   };
 

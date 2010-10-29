@@ -64,7 +64,7 @@ public:
   // assumes frames are set up externally
   // second form uses reverse matches as well
   virtual int estimate(const fc::Frame& frame1, const fc::Frame& frame2,
-                       const std::vector<Match> &matches);
+                       const std::vector<cv::DMatch> &matches);
                        
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW // needed for 16B alignment
 };

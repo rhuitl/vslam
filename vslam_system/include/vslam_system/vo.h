@@ -122,7 +122,7 @@ namespace vslam
   
   private:
     /// Pointcloud matches.
-    std::vector<pe::Match> pointcloud_matches_;
+    std::vector<cv::DMatch> pointcloud_matches_;
   };
 
   /// \brief Adds projections between two frames based on inlier matches.
@@ -141,7 +141,7 @@ namespace vslam
   ///                external indices.
   void addProjections(fc::Frame &f0, fc::Frame &f1, 
                       std::vector<fc::Frame, Eigen3::aligned_allocator<fc::Frame> > &frames,
-                      sba::SysSBA &sba, const std::vector<pe::Match> &inliers,
+                      sba::SysSBA &sba, const std::vector<cv::DMatch> &inliers,
                       const Matrix<double,3,4>& f2w, int ndi0, int ndi1, std::vector<int>* ipts = NULL);
   
   /// \brief Adds point-plane projections between two frames based on inlier matches.
@@ -159,7 +159,7 @@ namespace vslam
   /// \param ipts    Optional parameter for a mapping between internal and 
   ///                external indices.                    
   void addPointCloudProjections(fc::Frame &f0, fc::Frame &f1, 
-                  sba::SysSBA &sba, const std::vector<pe::Match> &inliers,
+                  sba::SysSBA &sba, const std::vector<cv::DMatch> &inliers,
                     const Matrix<double,3,4>& f2w_frame0, 
                     const Matrix<double,3,4>& f2w_frame1, 
                     int ndi0, int ndi1, std::vector<int>* ipts = NULL);

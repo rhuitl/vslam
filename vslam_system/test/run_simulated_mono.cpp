@@ -382,7 +382,7 @@ int main(int argc, char** argv)
     // set matches
 //    std::vector<f2d::Match> testMatches = matches;
 //    pe::addLinkNoise(testMatches, 0.3);
-    std::vector<pe::Match> testMatches;
+    std::vector<cv::DMatch> testMatches;
     std::vector<cv::KeyPoint> keypoints;
     simulator.getNextFrame(f1.kpts, testMatches);
 

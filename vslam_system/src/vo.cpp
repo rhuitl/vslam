@@ -400,7 +400,7 @@ namespace vslam
   // add connections between frames, based on keypoint matches
   void addProjections(fc::Frame &f0, fc::Frame &f1, 
                       std::vector<fc::Frame, Eigen3::aligned_allocator<fc::Frame> > &frames,
-                      SysSBA &sba, const std::vector<pe::Match> &inliers,
+                      SysSBA &sba, const std::vector<cv::DMatch> &inliers,
                       const Matrix<double,3,4>& f2w, int ndi0, int ndi1, std::vector<int>* ipts)
   {
     // set up array to kill duplicate matches
@@ -414,8 +414,8 @@ namespace vslam
     // add points and projections
     for (int i=0; i<(int)inliers.size(); i++)
       {
-        int i0 = inliers[i].index1;
-        int i1 = inliers[i].index2;
+        int i0 = inliers[i].queryIdx;
+        int i1 = inliers[i].trainIdx;
 
         if (matched0[i0]) continue;
         if (matched1[i1]) continue;
@@ -492,7 +492,7 @@ namespace vslam
   
   // Pointcloud matches, copied from above. Think of a more elegant way of doing this.
   void addPointCloudProjections(fc::Frame &f0, fc::Frame &f1, 
-                      SysSBA &sba, const std::vector<pe::Match> &inliers,
+                      SysSBA &sba, const std::vector<cv::DMatch> &inliers,
                       const Matrix<double,3,4>& f2w_frame0, 
                       const Matrix<double,3,4>& f2w_frame1, 
                       int ndi0, int ndi1, std::vector<int>* ipts)
@@ -506,8 +506,8 @@ namespace vslam
 
     for (int i=0; i<(int)inliers.size(); i++)
       {
-        int i0 = inliers[i].index1;
-        int i1 = inliers[i].index2;
+        int i0 = inliers[i].queryIdx;
+        int i1 = inliers[i].trainIdx;
 
         int pti;
 

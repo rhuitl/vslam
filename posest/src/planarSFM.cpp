@@ -118,15 +118,15 @@ void keyPoints2Point2f(const vector<KeyPoint>& src, vector<Point2f>& dst)
   }
 }
 
-void matchesFromIndices(const vector<KeyPoint>& src1, const vector<KeyPoint>& src2, const vector<Match>& indices,
+void matchesFromIndices(const vector<KeyPoint>& src1, const vector<KeyPoint>& src2, const vector<cv::DMatch>& indices,
                         vector<Point2f>& dst1, vector<Point2f>& dst2)
 {
   dst1.clear();
   dst2.clear();
   for(size_t i = 0; i < indices.size(); i++)
   {
-    dst1.push_back(src1[indices[i].index1].pt);
-    dst2.push_back(src2[indices[i].index2].pt);
+    dst1.push_back(src1[indices[i].queryIdx].pt);
+    dst2.push_back(src2[indices[i].trainIdx].pt);
   }
 }
 

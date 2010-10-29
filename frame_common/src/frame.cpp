@@ -254,7 +254,7 @@ namespace frame_common
     
     void PointcloudProc::match(const Frame& frame0, const Frame& frame1, 
           const Eigen3::Vector3d& trans, const Eigen3::Quaterniond& rot, 
-          std::vector<pe::Match>& matches) const
+          std::vector<cv::DMatch>& matches) const
     {
       PointCloud<PointXYZRGBNormal> transformed_cloud;
       
@@ -312,7 +312,7 @@ namespace frame_common
         
         if ((norm0 - norm1).norm() < 0.5 && dist < 0.2)
           #pragma omp critical
-          matches.push_back(pe::Match(f0_indices[i], f1_indices[i], dist));
+          matches.push_back(cv::DMatch(f0_indices[i], f1_indices[i], dist));
       }
       
       printf("[FrameExtended] Found %d matches, then converted %d matches.\n", (int)f0_indices.size(), (int)matches.size());

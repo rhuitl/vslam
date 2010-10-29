@@ -107,14 +107,14 @@ void addLinkNoise(vector<int>& indices, double ratio = 0.05)
     }
 }
 
-void addLinkNoise(vector<Match>& indices, double ratio)
+void addLinkNoise(vector<cv::DMatch>& indices, double ratio)
 {
     const int count = int(indices.size()*ratio/2);
     for(size_t i = 0; i < count; i++)
     {
         int index1 = rand()%indices.size();
         int index2 = rand()%indices.size();
-        std::swap(indices[index1].index2, indices[index2].index2);
+        std::swap(indices[index1].trainIdx, indices[index2].trainIdx);
     }
 }
 
@@ -333,7 +333,7 @@ void CircleCameraSimulator::updateRT()
   dumpFltMat("Ground truth relative tvec", dtvec);
 }
 
-void CircleCameraSimulator::getNextFrame(std::vector<cv::KeyPoint>& imagePoints, std::vector<Match>& matches)
+void CircleCameraSimulator::getNextFrame(std::vector<cv::KeyPoint>& imagePoints, std::vector<cv::DMatch>& matches)
 {
   updateRT();
 
@@ -355,7 +355,7 @@ void CircleCameraSimulator::getNextFrame(std::vector<cv::KeyPoint>& imagePoints,
   visible_ = visible;
 }
 
-void CircleCameraSimulator::calcMatches(const std::vector<int>& newVisible, std::vector<Match>& matches)
+void CircleCameraSimulator::calcMatches(const std::vector<int>& newVisible, std::vector<cv::DMatch>& matches)
 {
   assert(visible_.size() == newVisible.size());
 
@@ -364,7 +364,7 @@ void CircleCameraSimulator::calcMatches(const std::vector<int>& newVisible, std:
   {
     if(visible_[i] && newVisible[i])
     {
-      matches.push_back(Match(index1, index2, 0.0));
+      matches.push_back(cv::DMatch(index1, index2, 0.f));
     }
 
     if(visible_[i]) index1++;

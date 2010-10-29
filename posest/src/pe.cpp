@@ -47,66 +47,6 @@ using namespace std;
 
 namespace pe
 {
-
-  void drawMatches(const cv::Mat& img1, const std::vector<cv::KeyPoint>& keypoints1,
-                   const cv::Mat& img2, const std::vector<cv::KeyPoint>& keypoints2,
-                   const std::vector<Match>& matches, cv::Mat& outImg,
-                   const cv::Scalar& matchColor, const cv::Scalar& singlePointColor,
-                   const std::vector<char>& matchesMask, int flags)
-  {
-    using namespace cv;
-    Size size( img1.cols + img2.cols, MAX(img1.rows, img2.rows) );
-    if( flags & DrawMatchesFlags::DRAW_OVER_OUTIMG )
-    {
-        if( size.width > outImg.cols || size.height > outImg.rows )
-            CV_Error( CV_StsBadSize, "outImg has size less than need to draw img1 and img2 together" );
-    }
-    else
-    {
-        outImg.create( size, CV_MAKETYPE(img1.depth(), 3) );
-        Mat outImg1 = outImg( Rect(0, 0, img1.cols, img1.rows) );
-        cvtColor( img1, outImg1, CV_GRAY2RGB );
-        Mat outImg2 = outImg( Rect(img1.cols, 0, img2.cols, img2.rows) );
-        cvtColor( img2, outImg2, CV_GRAY2RGB );
-    }
-
-    RNG rng;
-    // draw keypoints
-    if( !(flags & DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS) )
-    {
-        bool isRandSinglePointColor = singlePointColor == Scalar::all(-1);
-        for( vector<KeyPoint>::const_iterator it = keypoints1.begin(); it < keypoints1.end(); ++it )
-        {
-            circle( outImg, it->pt, 3, isRandSinglePointColor ?
-                    Scalar(rng.uniform(0, 256), rng.uniform(0, 256), rng.uniform(0, 256)) : singlePointColor );
-        }
-        for( vector<KeyPoint>::const_iterator it = keypoints2.begin(); it < keypoints2.end(); ++it )
-        {
-            cv::Point p = it->pt;
-            circle( outImg, cv::Point(p.x+img1.cols, p.y), 3, isRandSinglePointColor ?
-                    Scalar(rng.uniform(0, 256), rng.uniform(0, 256), rng.uniform(0, 256)) : singlePointColor );
-        }
-     }
-
-    // draw matches
-    bool isRandMatchColor = matchColor == Scalar::all(-1);
-    if( !matchesMask.empty() && matchesMask.size() != matches.size() )
-        CV_Error( CV_StsBadSize, "mask must have the same size as matches" );
-    for( int i = 0; i < matches.size(); i++ )
-    {
-        if( matchesMask.empty() || matchesMask[i] )
-        {
-            Point2f pt1 = keypoints1[matches[i].index1].pt,
-                    pt2 = keypoints2[matches[i].index2].pt,
-                    dpt2 = Point2f( std::min(pt2.x+img1.cols, float(outImg.cols-1)), pt2.y );
-            Scalar randColor( rng.uniform(0, 256), rng.uniform(0, 256), rng.uniform(0, 256) );
-            circle( outImg, pt1, 3, isRandMatchColor ? randColor : matchColor );
-            circle( outImg, dpt2, 3, isRandMatchColor ? randColor : matchColor );
-            line( outImg, pt1, dpt2, isRandMatchColor ? randColor : matchColor );
-        }
-    }
-  }
-
   PoseEstimator::PoseEstimator(int NRansac, bool LMpolish, double mind,
                                    double maxidx, double maxidd) : testMode(false)
   {
@@ -124,15 +64,14 @@ namespace pe
     windowed = true;
   }
 
-void PoseEstimator::matchFrames(const fc::Frame& f0, const fc::Frame& f1, std::vector<int>& fwd_matches)
+void PoseEstimator::matchFrames(const fc::Frame& f0, const fc::Frame& f1, std::vector<cv::DMatch>& fwd_matches)
   {
     cv::Mat mask;
     if (windowed)
       mask = cv::windowedMatchingMask(f0.kpts, f1.kpts, wx, wy);
 
     matcher->clear();
-    matcher->add(f1.dtors);
-    matcher->match(f0.dtors, mask, fwd_matches);
+    matcher->match(f0.dtors, f1.dtors, fwd_matches, mask); 
   }
 
   //
@@ -151,19 +90,19 @@ void PoseEstimator::matchFrames(const fc::Frame& f0, const fc::Frame& f1, std::v
     inliers.clear();
 
     // do forward and reverse matches
-    std::vector<int> fwd_matches, rev_matches;
+    std::vector<cv::DMatch> fwd_matches, rev_matches;
     matchFrames(f0, f1, fwd_matches);
     matchFrames(f1, f0, rev_matches);
     //printf("**** Forward matches: %d, reverse matches: %d ****\n", (int)fwd_matches.size(), (int)rev_matches.size());
 
     // combine unique matches into one list
     for (int i = 0; i < (int)fwd_matches.size(); ++i) {
-      if (fwd_matches[i] >= 0)
-        matches.push_back( Match(i, fwd_matches[i]) );
+      if (fwd_matches[i].trainIdx >= 0)
+        matches.push_back( cv::DMatch(i, fwd_matches[i].trainIdx, 0.f) );
     }
     for (int i = 0; i < (int)rev_matches.size(); ++i) {
-      if (rev_matches[i] >= 0 && i != fwd_matches[rev_matches[i]])
-        matches.push_back( Match(rev_matches[i], i) );
+      if (rev_matches[i].trainIdx >= 0 && i != fwd_matches[rev_matches[i].trainIdx].trainIdx)
+        matches.push_back( cv::DMatch(rev_matches[i].trainIdx, i, 0.f) );
     }
     //printf("**** Total unique matches: %d ****\n", (int)matches.size());
     

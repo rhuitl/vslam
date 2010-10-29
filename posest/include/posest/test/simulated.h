@@ -50,7 +50,7 @@ void generateProjections(const cv::Mat& intrinsics, const cv::Mat& rvec, const c
 void generatePlanarObject(std::vector<cv::Point3f>& points, cv::Point3f N = cv::Point3f(0.0f, 0.0f, 1.0f), float d = 10.0f);
 void generate3DPointCloud(std::vector<cv::Point3f>& points, cv::Point3f pmin = cv::Point3f(-1, -1, 5), cv::Point3f pmax = cv::Point3f(1, 1, 10));
 
-void addLinkNoise(std::vector<Match>& indices, double ratio = 0.05);
+void addLinkNoise(std::vector<cv::DMatch>& indices, double ratio = 0.05);
 
 void calcVisible(const cv::Mat& intrinsics, const cv::Mat& R, const cv::Mat& T,
         const std::vector<cv::Point3f>& objectPoints, const std::vector<cv::Point2f>& imagePoints, std::vector<bool>& visible);
@@ -64,7 +64,7 @@ public:
 //  CameraSimulator(const cv::Mat& intrinsics) {};
 //  ~CameraSimulator() {};
 
-  virtual void getNextFrame(std::vector<cv::KeyPoint>& imagePoints, std::vector<Match>& matches) = 0;
+  virtual void getNextFrame(std::vector<cv::KeyPoint>& imagePoints, std::vector<cv::DMatch>& matches) = 0;
 };
 
 class CircleCameraSimulator : public CameraSimulator
@@ -73,8 +73,8 @@ public:
   CircleCameraSimulator(const cv::Mat& intrinsics, const std::vector<cv::Point3f>& cloud);
   ~CircleCameraSimulator() {};
 
-  void getNextFrame(std::vector<cv::KeyPoint>& imagePoints, std::vector<Match>& matches);
-  void calcMatches(const std::vector<int>& newVisible, std::vector<Match>& matches);
+  void getNextFrame(std::vector<cv::KeyPoint>& imagePoints, std::vector<cv::DMatch>& matches);
+  void calcMatches(const std::vector<int>& newVisible, std::vector<cv::DMatch>& matches);
 
   virtual void initRT();
   virtual void updateRT();
