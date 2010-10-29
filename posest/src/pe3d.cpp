@@ -237,13 +237,16 @@ namespace pe
 
         // set up nodes
         // should have a frame => node function        
-        sba.addNode(Vector4d(0,0,0,1), Quaternion<double>(Vector4d(0,0,0,1)), 
-          f0.cam, true);
+        Vector4d v0 = Vector4d(0,0,0,1);
+        Quaterniond q0 = Quaternion<double>(Vector4d(0,0,0,1));
+        sba.addNode(v0, q0, f0.cam, true);
         
         Quaterniond qr1(rot);   // from rotation matrix
         Vector4d temptrans = Vector4d(trans(0), trans(1), trans(2), 1.0);
 
-        sba.addNode(temptrans, qr1.normalized(), f1.cam, false);
+        //        sba.addNode(temptrans, qr1.normalized(), f1.cam, false);
+        qr1.normalize();
+        sba.addNode(temptrans, qr1, f1.cam, false);
 
         int in = 3;
         if (in > (int)inls.size())
@@ -272,10 +275,11 @@ namespace pe
             sba.addStereoProj(1, i, ipt);
           }
 
-        sba.doSBA(5,10e-4,0);
+        sba.huber = 2.0;
+        sba.doSBA(5,10e-4,SBA_DENSE_CHOLESKY);
         int nbad = sba.removeBad(2.0);
 //        cout << endl << "Removed " << nbad << " projections > 2 pixels error" << endl;
-        sba.doSBA(5,10e-5,0);
+        sba.doSBA(5,10e-5,SBA_DENSE_CHOLESKY);
 
 //        cout << endl << sba.nodes[1].trans.transpose().head(3) << endl;
 

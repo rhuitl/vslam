@@ -478,8 +478,8 @@ void PoseEstimator2d::setPose(const cv::Mat& rvec, const cv::Mat& tvec)
   // invert the pose for the frame
   R = R.t();
   tvec_inv = -R * tvec;
-  cv2eigen(R, rot);
-  cv2eigen(tvec_inv, trans);
+  //  cv2eigen(R, rot);
+  //  cv2eigen(tvec_inv, trans);
 
   dumpFltMat("tvec in SetPose", tvec);
   dumpFltMat("rvec in SetPose", rvec);
