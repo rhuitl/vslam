@@ -868,39 +868,39 @@ int sba::writeGraphFile(const char *filename, SysSBA& sba, bool mono)
 
 void 
 addnode(SysSPA &spa, int n, 
-	// node translation
-	std::vector< Eigen3::Vector3d, Eigen3::aligned_allocator<Eigen3::Vector3d> > ntrans,
-	// node rotation
-	std::vector< Eigen3::Vector4d, Eigen3::aligned_allocator<Eigen3::Vector4d> > nqrot,
-	// constraint indices
-	std::vector< Eigen3::Vector2i, Eigen3::aligned_allocator<Eigen3::Vector2i> > cind,
-	// constraint local translation 
-	std::vector< Eigen3::Vector3d, Eigen3::aligned_allocator<Eigen3::Vector3d> > ctrans,
-	// constraint local rotation as quaternion
-	std::vector< Eigen3::Vector4d, Eigen3::aligned_allocator<Eigen3::Vector4d> > cqrot,
-	// constraint covariance
-	std::vector< Eigen3::Matrix<double,6,6>, Eigen3::aligned_allocator<Eigen3::Matrix<double,6,6> > > cvar)
-
+ std::vector< Eigen3::Vector3d, Eigen3::aligned_allocator<Eigen3::Vector3d> > ntrans, 	// node translation
+ std::vector< Eigen3::Vector4d, Eigen3::aligned_allocator<Eigen3::Vector4d> > nqrot,	// node rotation
+ std::vector< Eigen3::Vector2i, Eigen3::aligned_allocator<Eigen3::Vector2i> > cind,	// constraint indices
+ std::vector< Eigen3::Vector3d, Eigen3::aligned_allocator<Eigen3::Vector3d> > ctrans,	// constraint local translation 
+ std::vector< Eigen3::Vector4d, Eigen3::aligned_allocator<Eigen3::Vector4d> > cqrot,	// constraint local rotation as quaternion
+ std::vector< Eigen3::Matrix<double,6,6>, Eigen3::aligned_allocator<Eigen3::Matrix<double,6,6> > > prec) // constraint covariance
 {
   Node nd;
 
   // rotation
   Quaternion<double> frq;
   frq.coeffs() = nqrot[n];
+#if 0
   frq.normalize();
   if (frq.w() <= 0.0) frq.coeffs() = -frq.coeffs();
   nd.qrot = frq.coeffs();
+#endif
 
   // translation
   Vector4d v;
   v.head(3) = ntrans[n];
   v(3) = 1.0;
+
+  spa.addNode(v,frq);
+
+#if 0
   nd.trans = v;
   nd.setTransform();        // set up world2node transform
   nd.setDr(true);
 
   // add to system
   spa.nodes.push_back(nd);
+#endif
 
   // add in constraints
   for (int i=0; i<(int)ctrans.size(); i++)
@@ -917,7 +917,7 @@ addnode(SysSPA &spa, int n,
 	  qr.coeffs() = cqrot[i];
 	  qr.normalize();
 	  con.qpmean = qr.inverse(); // inverse of the rotation measurement
-	  con.prec = cvar[i];       // ??? should this be inverted ???
+	  con.prec = prec[i];       // ??? should this be inverted ???
 
 	  // need a boost for noise-offset system
 	  //con.prec.block<3,3>(3,3) *= 10.0;
@@ -929,20 +929,14 @@ addnode(SysSPA &spa, int n,
 int sba::readSPAGraphFile(const char *filename, SysSPA& spaout)
 { 
   // Create vectors to hold the data from the graph file. 
-  // node translation
-  std::vector< Eigen3::Vector3d, Eigen3::aligned_allocator<Eigen3::Vector3d> > ntrans;
-  // node rotation
-  std::vector< Eigen3::Vector4d, Eigen3::aligned_allocator<Eigen3::Vector4d> > nqrot;
-  // constraint indices
-  std::vector< Eigen3::Vector2i, Eigen3::aligned_allocator<Eigen3::Vector2i> > cind;
-  // constraint local translation 
-  std::vector< Eigen3::Vector3d, Eigen3::aligned_allocator<Eigen3::Vector3d> > ctrans;
-  // constraint local rotation as quaternion
-  std::vector< Eigen3::Vector4d, Eigen3::aligned_allocator<Eigen3::Vector4d> > cqrot;
-  // constraint covariance
-  std::vector< Eigen3::Matrix<double,6,6>, Eigen3::aligned_allocator<Eigen3::Matrix<double,6,6> > > cvar;
+  std::vector< Eigen3::Vector3d, Eigen3::aligned_allocator<Eigen3::Vector3d> > ntrans; 	// node translation
+  std::vector< Eigen3::Vector4d, Eigen3::aligned_allocator<Eigen3::Vector4d> > nqrot;	// node rotation
+  std::vector< Eigen3::Vector2i, Eigen3::aligned_allocator<Eigen3::Vector2i> > cind;	// constraint indices
+  std::vector< Eigen3::Vector3d, Eigen3::aligned_allocator<Eigen3::Vector3d> > ctrans;	// constraint local translation 
+  std::vector< Eigen3::Vector4d, Eigen3::aligned_allocator<Eigen3::Vector4d> > cqrot;	// constraint local rotation as quaternion
+  std::vector< Eigen3::Matrix<double,6,6>, Eigen3::aligned_allocator<Eigen3::Matrix<double,6,6> > > prec; // constraint covariance
 
-  int ret = ParseSPAGraphFile(filename, ntrans, nqrot, cind, ctrans, cqrot, cvar);
+  int ret = ParseSPAGraphFile(filename, ntrans, nqrot, cind, ctrans, cqrot, prec);
   if (ret < 0)
     return -1;
         
@@ -953,7 +947,7 @@ int sba::readSPAGraphFile(const char *filename, SysSPA& spaout)
 
   // add in nodes
   for (int i=0; i<nnodes; i++)
-    addnode(spaout, i, ntrans, nqrot, cind, ctrans, cqrot, cvar);
+    addnode(spaout, i, ntrans, nqrot, cind, ctrans, cqrot, prec);
     
   return 0;
 }
@@ -1005,7 +999,7 @@ sba::ParseSPAGraphFile(const char *fin, // input file
    std::vector< Eigen3::Vector2i, Eigen3::aligned_allocator<Eigen3::Vector2i> > &cind,   // constraint indices
    std::vector< Eigen3::Vector3d, Eigen3::aligned_allocator<Eigen3::Vector3d> > &ctrans, // constraint local translation 
    std::vector< Eigen3::Vector4d, Eigen3::aligned_allocator<Eigen3::Vector4d> > &cqrot,  // constraint local rotation as quaternion
-   std::vector< Eigen3::Matrix<double,6,6>, Eigen3::aligned_allocator<Eigen3::Matrix<double,6,6> > > &cvar) // constraint covariance
+   std::vector< Eigen3::Matrix<double,6,6>, Eigen3::aligned_allocator<Eigen3::Matrix<double,6,6> > > &prec) // constraint covariance
 {
   ifstream ifs(fin);
   if (ifs == NULL)
@@ -1081,7 +1075,7 @@ sba::ParseSPAGraphFile(const char *fin, // input file
               //cout << endl << endl << << m << endl;
               first = false;
             }
-          cvar.push_back(m);
+          prec.push_back(m);
         }
 
     }

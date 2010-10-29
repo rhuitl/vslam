@@ -638,6 +638,54 @@ namespace sba
     }
 
 
+  // Adds a node to the system. 
+  // \return the index of the node added.
+  int SysSPA::addNode(Eigen3::Matrix<double,4,1> &trans, 
+                      Eigen3::Quaternion<double> &qrot,
+                      bool isFixed)
+  {
+    Node nd;
+    nd.trans = trans;
+    nd.qrot = qrot;
+    nd.isFixed = isFixed;
+    nd.setTransform(); // set up world2node transform
+    nd.setDr(true); // set rotational derivatives
+    // Should this be local or global?
+    nd.normRot();//Local();
+    nodes.push_back(nd);
+    return nodes.size()-1;
+  }
+
+
+  // add a constraint
+  // <nd0>, <nd1> are node id's
+  // <mean> is x,y,th, with th in radians
+  // <prec> is a 3x3 precision matrix (inverse covariance
+  // returns true if nodes are found
+  bool SysSPA::addConstraint(int nd0, int nd1,
+                             Eigen3::Vector3d &tmean,
+                             Eigen3::Quaterniond &qpmean,
+                             Eigen3::Matrix<double,6,6> &prec)
+  {
+    if (nd0 >= (int)nodes.size() || nd1 >= (int)nodes.size()) 
+      return false;
+    
+    ConP2 con;
+    con.ndr = nd0;
+    con.nd1 = nd1;
+
+    con.tmean = tmean;
+    Quaternion<double> qr;
+    qr = qpmean;
+    qr.normalize();
+    con.qpmean = qr.inverse(); // inverse of the rotation measurement
+    con.prec = prec;            
+
+    p2cons.push_back(con);
+    return true;
+  }
+
+
   // error measure, squared
   // assumes node transforms have already been calculated
   // <tcost> is true if we just want the distance offsets

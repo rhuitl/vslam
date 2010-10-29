@@ -80,8 +80,8 @@ namespace sba
   
   // Adds a node to the system. 
   // \return the index of the node added.
-  int SysSBA::addNode(Eigen3::Matrix<double,4,1> trans, 
-                      Eigen3::Quaternion<double> qrot,
+  int SysSBA::addNode(Eigen3::Matrix<double,4,1> &trans, 
+                      Eigen3::Quaternion<double> &qrot,
                       const fc::CamParams &cp,
                       bool isFixed)
   {

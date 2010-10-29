@@ -81,8 +81,8 @@ int main(int argc, char **argv)
   sys.csp.useCholmod = true;
   sys.verbose = true;
 
-  sys.doSPA(20,1e-4,SBA_SPARSE_CHOLESKY);
-  //  sys.doSPA(10,1e-4,SBA_BLOCK_JACOBIAN_PCG,1e-8,200);
+  //  sys.doSPA(10,1e-4,SBA_SPARSE_CHOLESKY);
+  sys.doSPA(10,1e-4,SBA_BLOCK_JACOBIAN_PCG,1e-8,200);
 
   return 0;
 }

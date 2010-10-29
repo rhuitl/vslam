@@ -208,7 +208,7 @@ namespace sba
   // add a node at a pose
   // <pos> is x,y,th, with th in radians
   // returns node position 
-  int SysSPA2d::addNode2d(Vector3d &pos, int id)
+  int SysSPA2d::addNode(Vector3d &pos, int id)
   {
     Node2d nd;
     nd.nodeId = id;
@@ -218,7 +218,7 @@ namespace sba
     nd.trans(2) = 1.0;
 
     // add in to system
-    nd.setTransform();		// set up world2node transform
+    nd.setTransform();          // set up world2node transform
     nd.setDr();
     int ndi = nodes.size();
     nodes.push_back(nd);
@@ -231,7 +231,7 @@ namespace sba
   // <prec> is a 3x3 precision matrix (inverse covariance
   // returns true if nodes are found
   // TODO: make node lookup more efficient
-  bool SysSPA2d::addConstraint2d(int ndi0, int ndi1, Vector3d &mean, 
+  bool SysSPA2d::addConstraint(int ndi0, int ndi1, Vector3d &mean, 
                                  Matrix3d &prec)
   {
     int ni0 = -1, ni1 = -1;
@@ -375,13 +375,13 @@ namespace sba
             csp.addDiagBlock(m,i1);
             if (i0>=0)
               {
-		Matrix<double,3,3> m2 = con.J0t * tp;
-		if (i1 < i0)
-		  {
-		    m = m2.transpose();
-		    csp.addOffdiagBlock(m,i1,i0);
-		  }
-		else
+                Matrix<double,3,3> m2 = con.J0t * tp;
+                if (i1 < i0)
+                  {
+                    m = m2.transpose();
+                    csp.addOffdiagBlock(m,i1,i0);
+                  }
+                else
                   {
                     csp.addOffdiagBlock(m2,i0,i1);
                   }
@@ -399,7 +399,7 @@ namespace sba
 
     // set up sparse matrix structure from blocks
     if (sparseType == SBA_BLOCK_JACOBIAN_PCG)
-      csp.incDiagBlocks(lam);	// increment diagonal block
+      csp.incDiagBlocks(lam);   // increment diagonal block
     else
       csp.setupCSstructure(lam,iter==0); 
     t3 = utime();
@@ -483,16 +483,16 @@ namespace sba
         //        cout << "[SPA] Solving...";
         t1 = utime();
 
-	// use appropriate linear solver
-	if (useCSparse == SBA_BLOCK_JACOBIAN_PCG)
-	  {
+        // use appropriate linear solver
+        if (useCSparse == SBA_BLOCK_JACOBIAN_PCG)
+          {
             if (csp.B.rows() != 0)
-	      {
-		int iters = csp.doBPCG(maxCGiters,initTol,iter);
+              {
+                int iters = csp.doBPCG(maxCGiters,initTol,iter);
                 if (verbose)
                   cout << "[Block PCG] " << iters << " iterations" << endl;
-	      }
-	  }
+              }
+          }
 #ifdef SBA_DSIF
         // PCG with incomplete Cholesky
         else if (useCSparse == 3)
@@ -505,11 +505,11 @@ namespace sba
         else if (useCSparse > 0)
           {
             if (csp.B.rows() != 0)
-	      {
-		bool ok = csp.doChol();
-		if (!ok)
-		  cout << "[DoSBA] Sparse Cholesky failed!" << endl;
-	      }
+              {
+                bool ok = csp.doChol();
+                if (!ok)
+                  cout << "[DoSBA] Sparse Cholesky failed!" << endl;
+              }
           }
 
         // Dense direct Cholesky 
@@ -594,16 +594,16 @@ namespace sba
                    0.001*(double)(t3-t2));
           }
 
-	double dt=1e-6*(double)(t3-t0);
-	cumTime+=dt;
-	if (print_iros_stats){
-	  cerr << "iteration= " << iter
-	       << "\t chi2= " << cost
-	       << "\t time= " << dt
-	       << "\t cumTime= " << cumTime
-	       << "\t kurtChi2= " << cost
-	       << endl;
-	}
+        double dt=1e-6*(double)(t3-t0);
+        cumTime+=dt;
+        if (print_iros_stats){
+          cerr << "iteration= " << iter
+               << "\t chi2= " << cost
+               << "\t time= " << dt
+               << "\t cumTime= " << cumTime
+               << "\t kurtChi2= " << cost
+               << endl;
+        }
 
       }
 
@@ -764,9 +764,9 @@ namespace sba
       {
         Con2dP2 &con = p2cons[pi];
 
-	// don't consider old constraints
-	if (con.ndr < newnode && con.nd1 < newnode)
-	  continue;
+        // don't consider old constraints
+        if (con.ndr < newnode && con.nd1 < newnode)
+          continue;
 
         con.setJacobians(nodes);
 
@@ -774,14 +774,14 @@ namespace sba
         int i0 = con.ndr-nFixed; // will be negative if fixed
         int i1 = con.nd1-nFixed; // will be negative if fixed
         
-	// DSIF will not diverge on standard datasets unless
+        // DSIF will not diverge on standard datasets unless
         //   we reduce the precision of the constraints
-	double fact = 1.0;
-	if (i0 != i1-1) fact = 0.99; // what should we use????
+        double fact = 1.0;
+        if (i0 != i1-1) fact = 0.99; // what should we use????
 
         if (i0>=0)
           {
-	    Matrix<double,3,3> m = con.J0t*con.prec*con.J0;
+            Matrix<double,3,3> m = con.J0t*con.prec*con.J0;
             csp.addDiagBlock(m,i0);
           }
         if (i1>=0)
@@ -791,14 +791,14 @@ namespace sba
 
             if (i0>=0)
               {
-		Matrix<double,3,3> m2 = con.J0t*con.prec*con.J1;
-		m2 = m2 * fact * fact;
-		if (i1 < i0)
-		  {
-		    m = m2.transpose();
-		    csp.addOffdiagBlock(m,i1,i0);
-		  }
-		else
+                Matrix<double,3,3> m2 = con.J0t*con.prec*con.J1;
+                m2 = m2 * fact * fact;
+                if (i1 < i0)
+                  {
+                    m = m2.transpose();
+                    csp.addOffdiagBlock(m,i1,i0);
+                  }
+                else
                   {
                     csp.addOffdiagBlock(m2,i0,i1);
                   }
@@ -815,7 +815,7 @@ namespace sba
 
     //    t2 = utime();
 
-    csp.Bprev = csp.B;		// save for next iteration
+    csp.Bprev = csp.B;          // save for next iteration
 
     // set up sparse matrix structure from blocks
     csp.setupCSstructure(1.0,true); 
@@ -851,13 +851,13 @@ namespace sba
         cout << "[doDSIF] no new nodes to add" << endl;
         return;
       }
-    else			// set up saved mean value of pose
+    else                        // set up saved mean value of pose
       {
-	for (int i=newnode; i<nnodes; i++)
-	  {
-	    nodes[i].oldtrans = nodes[i].trans;
-	    nodes[i].oldarot = nodes[i].arot;
-	  }
+        for (int i=newnode; i<nnodes; i++)
+          {
+            nodes[i].oldtrans = nodes[i].trans;
+            nodes[i].oldarot = nodes[i].arot;
+          }
       }
 
     for (int i=0; i<nnodes; i++)
@@ -868,7 +868,7 @@ namespace sba
         else 
           nd.isFixed = true;
         nd.setTransform();      // set up world-to-node transform for cost calculation
-        nd.setDr();		// always use local angles
+        nd.setDr();             // always use local angles
       }
 
     // initialize vars
@@ -905,21 +905,21 @@ namespace sba
     int ci = 0;
     for(int i=0; i < nnodes; i++)
       {
-	Node2d &nd = nodes[i];
-	if (nd.isFixed) continue; // not to be updated
-	nd.trans.head(2) = nd.oldtrans.head(2)+BB.segment<2>(ci);
-	nd.arot = nd.oldarot+BB(ci+2); 
-	nd.normArot();
-	nd.setTransform();  // set up projection matrix for cost calculation
-	nd.setDr();         // set rotational derivatives
-	ci += 3;            // advance B index
+        Node2d &nd = nodes[i];
+        if (nd.isFixed) continue; // not to be updated
+        nd.trans.head(2) = nd.oldtrans.head(2)+BB.segment<2>(ci);
+        nd.arot = nd.oldarot+BB(ci+2); 
+        nd.normArot();
+        nd.setTransform();  // set up projection matrix for cost calculation
+        nd.setDr();         // set rotational derivatives
+        ci += 3;            // advance B index
       }
 
     // new cost
     double newcost = calcCost();
     if (verbose)
       cout << " Updated squared cost: " << newcost << " which is " 
-	   << sqrt(newcost/ncons) << " rms error" << endl;
+           << sqrt(newcost/ncons) << " rms error" << endl;
         
     t3 = utime();
   }
@@ -1024,41 +1024,41 @@ namespace sba
       {
         Con2dP2 &con = p2cons[pi];
 
-	// don't consider old constraints
-	if (con.ndr < newnode && con.nd1 < newnode)
-	  continue;
+        // don't consider old constraints
+        if (con.ndr < newnode && con.nd1 < newnode)
+          continue;
 
         con.setJacobians(nodes);
-	Matrix3d J;
-	J.setIdentity();
-	Vector2d dRdth = nodes[con.ndr].dRdx.transpose() * con.tmean;
-	J(0,2) = dRdth(0);
-	J(1,2) = dRdth(1);
-	Matrix3d Jt = J.transpose();
-	Vector3d u;
-	u.head(2) = nodes[con.ndr].trans.head(2);
-	u(2) = nodes[con.ndr].arot;
-	Vector3d f;
-	f.head(2) = u.head(2) + nodes[con.ndr].w2n.transpose().block<2,2>(0,0) * con.tmean;
-	f(2) = u(2) + con.amean;
-	if (f(2) > M_PI) f(2) -= 2.0*M_PI;
-	if (f(2) < M_PI) f(2) += 2.0*M_PI;
+        Matrix3d J;
+        J.setIdentity();
+        Vector2d dRdth = nodes[con.ndr].dRdx.transpose() * con.tmean;
+        J(0,2) = dRdth(0);
+        J(1,2) = dRdth(1);
+        Matrix3d Jt = J.transpose();
+        Vector3d u;
+        u.head(2) = nodes[con.ndr].trans.head(2);
+        u(2) = nodes[con.ndr].arot;
+        Vector3d f;
+        f.head(2) = u.head(2) + nodes[con.ndr].w2n.transpose().block<2,2>(0,0) * con.tmean;
+        f(2) = u(2) + con.amean;
+        if (f(2) > M_PI) f(2) -= 2.0*M_PI;
+        if (f(2) < M_PI) f(2) += 2.0*M_PI;
 
-	
-	cout << "[SetupDSIF] u  = " << u.transpose() << endl;
-	cout << "[SetupDSIF] f  = " << f.transpose() << endl;
-	cout << "[SetupDSIF] fo = " << nodes[con.nd1].trans.transpose() << endl;
+        
+        cout << "[SetupDSIF] u  = " << u.transpose() << endl;
+        cout << "[SetupDSIF] f  = " << f.transpose() << endl;
+        cout << "[SetupDSIF] fo = " << nodes[con.nd1].trans.transpose() << endl;
 
 
         // add in 4 blocks of A; actually just need upper triangular
         int i0 = con.ndr-nFixed; // will be negative if fixed
         int i1 = con.nd1-nFixed; // will be negative if fixed
         
-	if (i0 != i1-1) continue; // just sequential nodes for now
+        if (i0 != i1-1) continue; // just sequential nodes for now
 
         if (i0>=0)
           {
-	    Matrix<double,3,3> m = Jt*con.prec*J;
+            Matrix<double,3,3> m = Jt*con.prec*J;
             csp.addDiagBlock(m,i0);
           }
         if (i1>=0)
@@ -1068,15 +1068,15 @@ namespace sba
 
             if (i0>=0)
               {
-		Matrix<double,3,3> m2 = -con.prec * J;
+                Matrix<double,3,3> m2 = -con.prec * J;
 
 
-		if (i1 < i0)
-		  {
-		    m = m2.transpose();
-		    csp.addOffdiagBlock(m,i1,i0);
-		  }
-		else
+                if (i1 < i0)
+                  {
+                    m = m2.transpose();
+                    csp.addOffdiagBlock(m,i1,i0);
+                  }
+                else
                   {
                     csp.addOffdiagBlock(m2,i0,i1);
                   }
@@ -1084,24 +1084,24 @@ namespace sba
           }
 
         // add in 2 blocks of B
-	// Jt Gamma (J u - e)
-	Vector3d Juf = J*u - f;
-	if (Juf(2) > M_PI) Juf(2) -= 2.0*M_PI;
-	if (Juf(2) < M_PI) Juf(2) += 2.0*M_PI;
+        // Jt Gamma (J u - e)
+        Vector3d Juf = J*u - f;
+        if (Juf(2) > M_PI) Juf(2) -= 2.0*M_PI;
+        if (Juf(2) < M_PI) Juf(2) += 2.0*M_PI;
         if (i0>=0)
-	  {
-	    csp.B.block<3,1>(i0*3,0) += Jt * con.prec * Juf;
-	  }
+          {
+            csp.B.block<3,1>(i0*3,0) += Jt * con.prec * Juf;
+          }
         if (i1>=0)
-	  {
-	    csp.B.block<3,1>(i1*3,0) -= con.prec * Juf;
-	  }
+          {
+            csp.B.block<3,1>(i1*3,0) -= con.prec * Juf;
+          }
 
       } // finish P2 constraints
 
     //    t2 = utime();
 
-    csp.Bprev = csp.B;		// save for next iteration
+    csp.Bprev = csp.B;          // save for next iteration
 
     // set up sparse matrix structure from blocks
     csp.setupCSstructure(1.0,true); 
@@ -1149,7 +1149,7 @@ namespace sba
         else 
           nd.isFixed = true;
         nd.setTransform();      // set up world-to-node transform for cost calculation
-        nd.setDr();		// always use local angles
+        nd.setDr();             // always use local angles
       }
 
     // initialize vars
@@ -1160,18 +1160,18 @@ namespace sba
 
     if (newnode == 1)
       {
-	// set up first system with node 0
-	csp.setupBlockStructure(1,false); // initialize CSparse structures
-	Matrix3d m;
-	m.setIdentity();
-	m = m*1000000;
-	csp.addDiagBlock(m,0);
-	Vector3d u;
-	u.head(2) = nodes[0].trans.head(2);
-	u(2) = nodes[0].arot;
-	csp.B.head(3) = u*1000000;
-	csp.Bprev = csp.B;		// save for next iteration
-	cout << "[doDSIF] B = " << csp.B.transpose() << endl;    
+        // set up first system with node 0
+        csp.setupBlockStructure(1,false); // initialize CSparse structures
+        Matrix3d m;
+        m.setIdentity();
+        m = m*1000000;
+        csp.addDiagBlock(m,0);
+        Vector3d u;
+        u.head(2) = nodes[0].trans.head(2);
+        u(2) = nodes[0].arot;
+        csp.B.head(3) = u*1000000;
+        csp.Bprev = csp.B;              // save for next iteration
+        cout << "[doDSIF] B = " << csp.B.transpose() << endl;    
       }
 
     // set up and solve linear system
@@ -1195,9 +1195,9 @@ namespace sba
     t1 = utime();
     if (useCSparse)
       {
-	bool ok = csp.doChol();
-	if (!ok)
-	  cout << "[doDSIF] Sparse Cholesky failed!" << endl;
+        bool ok = csp.doChol();
+        if (!ok)
+          cout << "[doDSIF] Sparse Cholesky failed!" << endl;
       }
     else
       A.ldlt().solveInPlace(B); // Cholesky decomposition and solution
@@ -1213,21 +1213,21 @@ namespace sba
     int ci = 0;
     for(int i=0; i < nnodes; i++)
       {
-	Node2d &nd = nodes[i];
-	if (nd.isFixed) continue; // not to be updated
-	nd.trans.head<2>() = BB.segment<2>(ci);
-	nd.arot = BB(ci+2); 
-	nd.normArot();
-	nd.setTransform();  // set up projection matrix for cost calculation
-	nd.setDr();         // set rotational derivatives
-	ci += 3;            // advance B index
+        Node2d &nd = nodes[i];
+        if (nd.isFixed) continue; // not to be updated
+        nd.trans.head<2>() = BB.segment<2>(ci);
+        nd.arot = BB(ci+2); 
+        nd.normArot();
+        nd.setTransform();  // set up projection matrix for cost calculation
+        nd.setDr();         // set rotational derivatives
+        ci += 3;            // advance B index
       }
 
     // new cost
     double newcost = calcCost();
     if (verbose)
       cout << " Updated squared cost: " << newcost << " which is " 
-	   << sqrt(newcost/ncons) << " rms error" << endl;
+           << sqrt(newcost/ncons) << " rms error" << endl;
         
     t3 = utime();
   }
@@ -1259,9 +1259,9 @@ namespace sba
       {
         Con2dP2 &con = p2cons[pi];
 
-	// don't consider old constraints
-	if (con.ndr < newnode && con.nd1 < newnode)
-	  continue;
+        // don't consider old constraints
+        if (con.ndr < newnode && con.nd1 < newnode)
+          continue;
 
         con.setJacobians(nodes);
 
@@ -1269,11 +1269,11 @@ namespace sba
         int i0 = con.ndr-nFixed; // will be negative if fixed
         int i1 = con.nd1-nFixed; // will be negative if fixed
         
-	if (i0 != i1-1) continue; // just sequential nodes for now
+        if (i0 != i1-1) continue; // just sequential nodes for now
 
         if (i0>=0)
           {
-	    Matrix<double,3,3> m = con.J0t*con.prec*con.J0;
+            Matrix<double,3,3> m = con.J0t*con.prec*con.J0;
             csp.addDiagBlock(m,i0);
           }
         if (i1>=0)
@@ -1283,13 +1283,13 @@ namespace sba
 
             if (i0>=0)
               {
-		Matrix<double,3,3> m2 = con.J0t*con.prec*con.J1;
-		if (i1 < i0)
-		  {
-		    m = m2.transpose();
-		    csp.addOffdiagBlock(m,i1,i0);
-		  }
-		else
+                Matrix<double,3,3> m2 = con.J0t*con.prec*con.J1;
+                if (i1 < i0)
+                  {
+                    m = m2.transpose();
+                    csp.addOffdiagBlock(m,i1,i0);
+                  }
+                else
                   {
                     csp.addOffdiagBlock(m2,i0,i1);
                   }
@@ -1297,30 +1297,30 @@ namespace sba
           }
 
         // add in 2 blocks of B
-	// (J u + e)^T G J
+        // (J u + e)^T G J
 
         if (i0>=0)
-	  {
-	    Vector3d u;
-	    u.head(2) = nodes[con.ndr].trans.head(2);
-	    u(2) = nodes[con.ndr].arot;
-	    Vector3d bm = con.err + con.J0 * u;
-	    csp.B.block<3,1>(i0*3,0) += (bm.transpose() * con.prec * con.J0).transpose();
-	  }
+          {
+            Vector3d u;
+            u.head(2) = nodes[con.ndr].trans.head(2);
+            u(2) = nodes[con.ndr].arot;
+            Vector3d bm = con.err + con.J0 * u;
+            csp.B.block<3,1>(i0*3,0) += (bm.transpose() * con.prec * con.J0).transpose();
+          }
         if (i1>=0)
-	  {
-	    Vector3d u;
-	    u.head(2) = nodes[con.nd1].trans.head(2);
-	    u(2) = nodes[con.nd1].arot;
-	    Vector3d bm = con.err + con.J1 * u;
-	    csp.B.block<3,1>(i1*3,0) += (bm.transpose() * con.prec * con.J1).transpose();
-	  }
+          {
+            Vector3d u;
+            u.head(2) = nodes[con.nd1].trans.head(2);
+            u(2) = nodes[con.nd1].arot;
+            Vector3d bm = con.err + con.J1 * u;
+            csp.B.block<3,1>(i1*3,0) += (bm.transpose() * con.prec * con.J1).transpose();
+          }
 
       } // finish P2 constraints
 
     //    t2 = utime();
 
-    csp.Bprev = csp.B;		// save for next iteration
+    csp.Bprev = csp.B;          // save for next iteration
 
     // set up sparse matrix structure from blocks
     csp.setupCSstructure(1.0,true); 
@@ -1366,7 +1366,7 @@ namespace sba
         else 
           nd.isFixed = true;
         nd.setTransform();      // set up world-to-node transform for cost calculation
-        nd.setDr();		// always use local angles
+        nd.setDr();             // always use local angles
       }
 
     // initialize vars
@@ -1396,9 +1396,9 @@ namespace sba
     t1 = utime();
     if (useCSparse)
       {
-	bool ok = csp.doChol();
-	if (!ok)
-	  cout << "[doDSIF] Sparse Cholesky failed!" << endl;
+        bool ok = csp.doChol();
+        if (!ok)
+          cout << "[doDSIF] Sparse Cholesky failed!" << endl;
       }
     else
       A.ldlt().solveInPlace(B); // Cholesky decomposition and solution
@@ -1414,27 +1414,92 @@ namespace sba
     int ci = 0;
     for(int i=0; i < nnodes; i++)
       {
-	Node2d &nd = nodes[i];
-	if (nd.isFixed) continue; // not to be updated
-	nd.trans.head<2>() = BB.segment<2>(ci);
-	nd.arot = BB(ci+2); 
-	nd.normArot();
-	nd.setTransform();  // set up projection matrix for cost calculation
-	nd.setDr();         // set rotational derivatives
-	ci += 3;            // advance B index
+        Node2d &nd = nodes[i];
+        if (nd.isFixed) continue; // not to be updated
+        nd.trans.head<2>() = BB.segment<2>(ci);
+        nd.arot = BB(ci+2); 
+        nd.normArot();
+        nd.setTransform();  // set up projection matrix for cost calculation
+        nd.setDr();         // set rotational derivatives
+        ci += 3;            // advance B index
       }
 
     // new cost
     double newcost = calcCost();
     if (verbose)
       cout << " Updated squared cost: " << newcost << " which is " 
-	   << sqrt(newcost/ncons) << " rms error" << endl;
+           << sqrt(newcost/ncons) << " rms error" << endl;
         
     t3 = utime();
 
   }  // namespace sba
 
 
+  /// remove node with id
+  /// <id> is a node id
+  void SysSPA2d::removeNode(int id)
+  {
+    int ind = -1;
+    for (int i=0; i<(int)nodes.size(); i++)
+      {
+        if (nodes[i].nodeId == ind)
+          ind = i;
+      }
+    if (ind < 0) return;
+
+    // remove node
+    nodes.erase(nodes.begin() + ind);
+
+    // remove all constraints referring to node
+    // and adjust indices of all nodes with indices
+    // greater than 'ind'
+    int i=0;
+    while (i <(int)p2cons.size())
+      {
+        std::vector<Con2dP2,Eigen::aligned_allocator<Con2dP2> >::iterator iter = p2cons.begin() + i;
+        if (iter->ndr == ind || iter->nd1 == ind)
+          {
+            p2cons.erase(iter);
+          }
+        else
+          {
+            if (iter->ndr > ind) iter->ndr--;
+            if (iter->nd1 > ind) iter->nd1--;
+            i++;
+          }
+      }
+  }
+
+  /// remove all constraints between ids
+  // <nd0>, <nd1> are node id's
+  bool SysSPA2d::removeConstraint(int ndi0, int ndi1)
+  {
+    int ni0 = -1, ni1 = -1;
+    for (int i=0; i<(int)nodes.size(); i++)
+      {
+        if (nodes[i].nodeId == ndi0)
+          ni0 = i;
+        if (nodes[i].nodeId == ndi1)
+          ni1 = i;
+      }
+    if (ni0 < 0 || ni1 < 0) return false;
+
+    int i=0;
+    while (i <(int)p2cons.size())
+      {
+        std::vector<Con2dP2,Eigen::aligned_allocator<Con2dP2> >::iterator iter = p2cons.begin() + i;
+        if (iter->ndr == ni0 && iter->nd1 == ni1)
+          {
+            p2cons.erase(iter);
+          }
+        else
+          {
+            i++;
+          }
+      }
+
+    return true;
+  }
 
 
 

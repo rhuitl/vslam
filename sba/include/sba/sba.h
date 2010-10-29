@@ -168,8 +168,8 @@ namespace sba
       /// baseline and other camera parameters.
       /// \param isFixed Whether this camera is fixed in space or not, for sba.
       /// \return the index of the node added.
-      int addNode(Eigen3::Matrix<double,4,1> trans, 
-                      Eigen3::Quaternion<double> qrot,
+      int addNode(Eigen3::Matrix<double,4,1> &trans, 
+                      Eigen3::Quaternion<double> &qrot,
                       const fc::CamParams &cp,
                       bool isFixed = false);
 
@@ -448,6 +448,27 @@ namespace sba
 
       /// print info
       bool verbose;
+
+      /// \brief Adds a node to the system.
+      /// \param trans A 4x1 vector of translation of the camera.
+      /// \param qrot A Quaternion containing the rotatin of the camera.
+      /// \param isFixed Whether this camera is fixed in space or not, for spa.
+      /// \return the index of the node added.
+      int addNode(Eigen3::Matrix<double,4,1> &trans, 
+                      Eigen3::Quaternion<double> &qrot,
+                      bool isFixed = false);
+
+      /// \brief Adds a pose constraint to the system.
+      /// \param n1 Index of first node of the constraint
+      /// \param n2 Index of second node of the constraint
+      /// \param tmean A 3x1 vector, local translation from n1 to n2
+      /// \param qpmean A Quaternion, local rotation from n1 to n2
+      /// \param prec A 6x6 matrix, precision matrix for this link
+      /// \return true if constraint added, false if nd0 or nd1 not found
+      bool addConstraint(int nd0, int nd1,
+                        Eigen3::Vector3d &tmean,
+                        Eigen3::Quaterniond &qpmean,
+                        Eigen3::Matrix<double,6,6> &prec);
 
       /// set of nodes (camera frames) for SPA system, indexed by position;
       std::vector<Node,Eigen3::aligned_allocator<Node> > nodes;

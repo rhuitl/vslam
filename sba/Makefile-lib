@@ -6,8 +6,10 @@ CC = g++
 CXX = g++
 LD = g++
 
-EIGEN3_DIR = /home/konolige/cturtle_trunk/point_cloud_perception/eigen3
-CSPARSE_DIR = /home/konolige/cturtle_trunk/vslam/csparse
+#EIGEN3_DIR = /home/konolige/cturtle_trunk/point_cloud_perception/eigen3
+#CSPARSE_DIR = /home/konolige/cturtle_trunk/vslam/csparse
+EIGEN3_DIR = /u/konolige/cturtle_trunk/ros-pkg/point_cloud_perception/eigen3
+CSPARSE_DIR = /u/konolige/cturtle_trunk/ros-pkg/vslam/csparse
 
 CPPFLAGS = -Wall -g -O3 -fPIC -Iinclude -I/usr/local/include \
   -I$(CSPARSE_DIR)/include -I$(EIGEN3_DIR)/include
