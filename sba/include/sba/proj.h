@@ -139,6 +139,9 @@ namespace sba
       /// Whether this is a point-plane match (true) or a point-point match (false).
       bool pointPlane;
       
+      /// Point-plane error
+      double errpp;
+
       /// Normal for point-plane projections
       Eigen3::Vector3d plane_normal;
       

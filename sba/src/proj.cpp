@@ -4,15 +4,15 @@ namespace sba
 {
   Proj::Proj(int ci, Eigen3::Vector3d &q, bool stereo)
       : ndi(ci), kp(q), stereo(stereo), 
-        isValid(true), useCovar(false), pointPlane(false) {}
+        isValid(true), useCovar(false), pointPlane(false), errpp(0.0) {}
       
   Proj::Proj(int ci, Eigen3::Vector2d &q) 
       : ndi(ci), kp(q(0), q(1), 0), 
-        stereo(false), isValid(true), useCovar(false), pointPlane(false) {}
+        stereo(false), isValid(true), useCovar(false), pointPlane(false), errpp(0.0) {}
   
   Proj::Proj() 
       : ndi(0), kp(0, 0, 0), 
-        stereo(false), isValid(false), useCovar(false), pointPlane(false) {}
+        stereo(false), isValid(false), useCovar(false), pointPlane(false), errpp(0.0) {}
 
   void Proj::setJacobians(const Node &nd, const Point &pt, JacobProds *jpp)
   {
@@ -286,24 +286,8 @@ namespace sba
     Eigen3::Vector3d p1 = nd.w2i * pt; 
     Eigen3::Vector3d p2 = nd.w2n * pt; 
     Eigen3::Vector3d pb(nd.baseline,0,0);
-    
-    // TODO: Clean this up a bit. 
-    if (pointPlane)
-    {
-      // Project point onto plane.
-      Eigen3::Vector3d w = pt.head<3>()-plane_point;
 
-      //printf("w: %f %f %f\n", w.x(), w.y(), w.z());
-      //Eigen3::Vector3d projpt = pt.head<3>()+(w.dot(plane_normal))*plane_normal;
-      Eigen3::Vector3d projpt = plane_point+(w.dot(plane_normal))*plane_normal;
-      //      Eigen3::Vector3d projpt = pt.head<3>()+(w.dot(plane_normal))*plane_normal;
-      //printf("[Proj] Distance to plane: %f\n", w.dot(plane_normal));
-      p1 = nd.w2i*Eigen3::Vector4d(projpt.x(), projpt.y(), projpt.z(), 1.0);
-      p2 = nd.w2n*Eigen3::Vector4d(projpt.x(), projpt.y(), projpt.z(), 1.0);
-    }
-    
     double invp1 = 1.0/p1(2);
-    
     err.head<2>() = p1.head<2>()*invp1;
     // right camera px
     p2 = nd.Kcam*(p2-pb);
@@ -345,9 +329,32 @@ namespace sba
           }
       }
 
-    return err.squaredNorm();
+    // check point-plane error
+    if (pointPlane)
+    {
+      // Project point onto plane.
+      Eigen3::Vector3d w = pt.head<3>()-plane_point;
+      errpp = w.dot(plane_normal);
+
+      // Huber kernel weighting
+      if (huber > 0.0)
+	{
+	  double b2 = huber*huber; // kernel width
+	  double e2 = errpp*errpp;
+	  if (e2 > b2)
+	    {
+	      double c = 2.0*huber*sqrt(e2) - b2;
+	      double w = sqrt(c/e2);
+	      errpp *= w;
+	      //            std::cout << "Huber weight: " << w << "  Err sq: " << e2 << std::endl;
+	    }
+	}
+    }
+
+    return err.squaredNorm() + errpp*errpp;
   }
   
+
   // Constructors for track.
   Track::Track() : point() { }
   Track::Track(Point p) : point(p) { }
