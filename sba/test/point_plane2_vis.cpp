@@ -70,6 +70,9 @@ class Plane
 };
 
 
+// this needs to be global
+vector<Point, Eigen3::aligned_allocator<Point> > points;
+
 void setupSBA(SysSBA &sys)
 {
     // Create camera parameters.
@@ -78,7 +81,7 @@ void setupSBA(SysSBA &sys)
     cam_params.fy = 430; // Focal length in y
     cam_params.cx = 320; // X position of principal point
     cam_params.cy = 240; // Y position of principal point
-    cam_params.tx = -30; // Baseline (no baseline since this is monocular)
+    cam_params.tx = 0.3; // Baseline 
 
     // Define dimensions of the image.
     int maxx = 640;
@@ -88,19 +91,37 @@ void setupSBA(SysSBA &sys)
     Plane middleplane;
     middleplane.resize(3, 2, 10, 5);
     //middleplane.rotate(PI/4.0, PI/6.0, 1, 0);
-    middleplane.rotate(PI/4.0, 1, 0, 0);
+    middleplane.rotate(PI/4.0, 1, 0, 1);
     middleplane.translate(0.0, 0.0, 5.0);
     
+    // Create another plane containing a wall of points.
+    Plane mp2;
+    mp2.resize(3, 2, 10, 5);
+    mp2.rotate(0, 0, 0, 1);
+    mp2.translate(0.0, 0.0, 4.0);
+
+
+    // Create another plane containing a wall of points.
+    Plane mp3;
+    mp3.resize(3, 2, 10, 5);
+    mp3.rotate(-PI/4.0, 1, 0, 1);
+    mp3.translate(0.0, 0.0, 4.5);
+
+
+
     // Vector containing the true point positions.
-    vector<Point, Eigen3::aligned_allocator<Point> > points;
     vector<Eigen3::Vector3d, Eigen3::aligned_allocator<Eigen3::Vector3d> > normals;
     
     points.insert(points.end(), middleplane.points.begin(), middleplane.points.end());
     normals.insert(normals.end(), middleplane.points.size(), middleplane.normal);
+    points.insert(points.end(), mp2.points.begin(), mp2.points.end());
+    normals.insert(normals.end(), mp2.points.size(), mp2.normal);
+    points.insert(points.end(), mp3.points.begin(), mp3.points.end());
+    normals.insert(normals.end(), mp3.points.size(), mp3.normal);
     
     // Create nodes and add them to the system.
     unsigned int nnodes = 2; // Number of nodes.
-    double path_length = 0.5; // Length of the path the nodes traverse.
+    double path_length = 1.0; // Length of the path the nodes traverse.
 
     // Set the random seed.
     unsigned short seed = (unsigned short)time(NULL);
@@ -110,6 +131,10 @@ void setupSBA(SysSBA &sys)
     
     Vector3d inormal0 = middleplane.normal;
     Vector3d inormal1 = middleplane.normal;
+    Vector3d inormal20 = mp2.normal;
+    Vector3d inormal21 = mp2.normal;
+    Vector3d inormal30 = mp3.normal;
+    Vector3d inormal31 = mp3.normal;
     
     for (i = 0; i < nnodes; i++)
     { 
@@ -117,7 +142,7 @@ void setupSBA(SysSBA &sys)
       Vector4d trans(i/(nnodes-1.0)*path_length, 0, 0, 1);
             
 #if 1
-      if (i >= 0)
+      if (i >= 2)
 	    {
 	      // perturb a little
 	      double tnoise = 0.5;	// meters
@@ -130,7 +155,7 @@ void setupSBA(SysSBA &sys)
       // Don't rotate.
       Quaterniond rot(1, 0, 0, 0);
 #if 1
-      if (i >= 0)
+      if (i >= 2)
 	    {
 	      // perturb a little
 	      double qnoise = 0.1;	// meters
@@ -146,9 +171,17 @@ void setupSBA(SysSBA &sys)
       
       // set normal
       if (i == 0)
-        inormal0 = rot.toRotationMatrix().transpose() * inormal0;
+	{
+	  inormal0 = rot.toRotationMatrix().transpose() * inormal0;
+	  inormal20 = rot.toRotationMatrix().transpose() * inormal20;
+	  inormal30 = rot.toRotationMatrix().transpose() * inormal30;
+	}
       else
-        inormal1 = rot.toRotationMatrix().transpose() * inormal1;
+	{
+	  inormal1 = rot.toRotationMatrix().transpose() * inormal1;
+	  inormal21 = rot.toRotationMatrix().transpose() * inormal21;
+	  inormal31 = rot.toRotationMatrix().transpose() * inormal31;
+	}
     }
         
     double pointnoise = 1.0;
@@ -213,6 +246,10 @@ void setupSBA(SysSBA &sys)
       projp.head<2>() = proj2dp;
       projp(2) = pcp(0)/pcp(2);
 
+      // add noise to projections
+      double prnoise = 0.5;	// 0.5 pixels
+      proj.head<2>() += Vector2d(prnoise*(drand48() - 0.5),prnoise*(drand48() - 0.5));
+      projp.head<2>() += Vector2d(prnoise*(drand48() - 0.5),prnoise*(drand48() - 0.5));
 
 
       // If valid (within the range of the image size), add the stereo 
@@ -224,12 +261,17 @@ void setupSBA(SysSBA &sys)
           sys.addStereoProj(1, k+nn, projp);
 
           // add point-plane matches
-          sys.addPointPlaneMatch(0, k, inormal0, 1, k+nn, inormal1);
+	  if (i < midindex)
+	    sys.addPointPlaneMatch(0, k, inormal0, 1, k+nn, inormal1);
+	  else if (i < 2*midindex)
+	    sys.addPointPlaneMatch(0, k, inormal20, 1, k+nn, inormal21);
+	  else
+	    sys.addPointPlaneMatch(0, k, inormal30, 1, k+nn, inormal31);
           //          sys.addStereoProj(0, k+nn, projp);
           //          sys.addStereoProj(1, k, proj);
 
           Matrix3d covar;
-          double cv = 0.05;
+          double cv = 0.01;
           covar << cv, 0, 0,
             0, cv, 0, 
             0, 0, cv;
@@ -247,7 +289,7 @@ void setupSBA(SysSBA &sys)
     // Add noise to node position.
     
     double transscale = 2.0;
-    double rotscale = 0.2;
+    double rotscale = 0.5;
     
     // Don't actually add noise to the first node, since it's fixed.
     for (i = 1; i < sys.nodes.size(); i++)
@@ -337,6 +379,31 @@ void processSBA(ros::NodeHandle node)
 	      ros::spinOnce();
 	      ros::Duration(0.5).sleep();
       }
+
+
+    // reset covariances and continue
+    for (int i = 0; i < points.size(); i++)
+    {
+      int nn = points.size();
+      Matrix3d covar;
+      double cv = 0.1;
+      covar << cv, 0, 0,
+	0, cv, 0, 
+	0, 0, cv;
+      sys.setProjCovariance(0, i+nn, covar);
+      sys.setProjCovariance(1, i, covar);
+    }
+
+    for (int j=0; j<10; j++)
+      {
+        if (!ros::ok())
+	        break;
+	      sys.doSBA(1, 0, SBA_SPARSE_CHOLESKY);
+	      drawGraph(sys, cam_marker_pub, point_marker_pub, 1, sys.tracks.size()/2);
+	      ros::spinOnce();
+	      ros::Duration(0.5).sleep();
+      }
+
 }
 
 int main(int argc, char **argv)

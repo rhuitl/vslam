@@ -219,7 +219,7 @@ namespace sba
    fake_proj.isValid = false;
 #endif
     
-#if 0
+#if 1
     // Backward: point 1 into camera 0. 
     Vector3d proj_backward;
     //nodes[ci0].projectStereo(pt1, proj_backward);
@@ -1496,7 +1496,7 @@ void SysSBA::setupSys(double sLambda)
             itr != tracks.end(); itr++, pi++)
           {
             ProjMap &prjs = itr->projections;
-            if (prjs.size() < 2) continue;
+//            if (prjs.size() < 2) continue;
             Vector3d tp = tps[pi]; // copy to preserve the original
             // loop over cameras in each track
             for(ProjMap::iterator pitr = prjs.begin(); pitr != prjs.end(); pitr++)
