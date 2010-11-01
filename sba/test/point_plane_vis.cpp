@@ -229,8 +229,8 @@ void setupSBA(SysSBA &sys)
           rotmat = rotation.toRotationMatrix();
           covar = rotmat.transpose()*covar0*rotmat;
           
-          if (!(i % sys.nodes.size() == j))
-            sys.setProjCovariance(j, i, covar);
+	  //          if (!(i % sys.nodes.size() == j))
+	  //            sys.setProjCovariance(j, i, covar);
         }
       }
     }

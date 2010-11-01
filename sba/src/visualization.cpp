@@ -22,9 +22,9 @@ void drawGraph(const SysSBA &sba, const ros::Publisher &camera_pub,
   camera_marker.pose.orientation.y = 0.0;
   camera_marker.pose.orientation.z = 0.0;
   camera_marker.pose.orientation.w = 1.0;
-  camera_marker.scale.x = 0.04;
-  camera_marker.scale.y = 0.04;
-  camera_marker.scale.z = 0.04;
+  camera_marker.scale.x = 0.02;
+  camera_marker.scale.y = 0.02;
+  camera_marker.scale.z = 0.02;
   camera_marker.color.r = 0.0f;
   camera_marker.color.g = 1.0f;
   camera_marker.color.b = 1.0f;
@@ -96,9 +96,6 @@ void drawGraph(const SysSBA &sba, const ros::Publisher &camera_pub,
   // draw point-plane projections
   int num_tracks = sba.tracks.size();
   int ii = camera_marker.points.size();
-  camera_marker.scale.x = 0.001;
-  camera_marker.scale.y = 0.001;
-  camera_marker.scale.z = 0.001;
 
   for (int i=0; i < num_tracks; i++)
     {

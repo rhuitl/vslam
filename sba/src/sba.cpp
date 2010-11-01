@@ -1210,10 +1210,6 @@ void SysSBA::setupSys(double sLambda)
             Hpp += prj.jp->Hpp; // add in JpT*Jp
             bp  -= prj.jp->Bp; // subtract JcT*f from bp; compute transpose twice???
 
-	    // point-plane bp and Hpp 
-	    Hpp += prj.plane_normal * prj.plane_normal.transpose(); // 3x3 matrix
-	    bp -= prj.plane_normal * prj.errpp;
-
             if (!nodes[prj.ndi].isFixed)  // if not a fixed camera, do more
               {
                 dcnt(prj.ndi - nFixed)++;
