@@ -138,7 +138,7 @@ namespace pe
 #endif
 
         // do the SVD thang
-        SVD<Matrix3d> svd(H);
+        JacobiSVD<Matrix3d> svd(H, ComputeFullU | ComputeFullV);
         Matrix3d V = svd.matrixV();
         Matrix3d R = V * svd.matrixU().transpose();          
         double det = R.determinant();
