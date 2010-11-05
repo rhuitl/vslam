@@ -1184,7 +1184,7 @@ void SysSBA::setupSys(double sLambda)
     for(size_t pi=0; pi<tracks.size(); pi++)
       {
         ProjMap &prjs = tracks[pi].projections;
-        if (prjs.size() < 2) continue; // this catches some problems with bad tracks
+        if (prjs.size() < 1) continue; // this catches some problems with bad tracks
 
 	// set up vector storage of Jacobian products
 	if (prjs.size() > jps.size())
@@ -1496,7 +1496,7 @@ void SysSBA::setupSys(double sLambda)
             itr != tracks.end(); itr++, pi++)
           {
             ProjMap &prjs = itr->projections;
-//            if (prjs.size() < 2) continue;
+            if (prjs.size() < 1) continue;
             Vector3d tp = tps[pi]; // copy to preserve the original
             // loop over cameras in each track
             for(ProjMap::iterator pitr = prjs.begin(); pitr != prjs.end(); pitr++)

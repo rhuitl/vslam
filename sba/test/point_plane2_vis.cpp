@@ -13,6 +13,9 @@ using namespace std;
 
 const double PI = 3.141592;
 
+#define USE_PPL
+//#define USE_PP
+
 class Plane
 {
   public:
@@ -260,9 +263,16 @@ void setupSBA(SysSBA &sys)
           sys.addStereoProj(0, k, proj);
           sys.addStereoProj(1, k+nn, projp);
 
+#ifdef USE_PP
+          // add exact matches
+          if (i == 20 || i == 65 || i == 142)
+            sys.addStereoProj(1, k, projp);
+#endif
+
+#ifdef USE_PPL
           // add point-plane matches
 	  if (i < midindex)
-	    sys.addPointPlaneMatch(0, k, inormal0, 1, k+nn, inormal1);
+            sys.addPointPlaneMatch(0, k, inormal0, 1, k+nn, inormal1);
 	  else if (i < 2*midindex)
 	    sys.addPointPlaneMatch(0, k, inormal20, 1, k+nn, inormal21);
 	  else
@@ -277,6 +287,7 @@ void setupSBA(SysSBA &sys)
             0, 0, cv;
           sys.setProjCovariance(0, k+nn, covar);
           sys.setProjCovariance(1, k, covar);
+#endif
 
         }
       else
@@ -370,7 +381,7 @@ void processSBA(ros::NodeHandle node)
     //ROS_INFO("Sleeping for 2 seconds to publish post-SBA markers.");
     ros::Duration(0.5).sleep();
 
-    for (int j=0; j<10; j++)
+    for (int j=0; j<30; j+=3)
       {
         if (!ros::ok())
 	        break;
@@ -381,20 +392,22 @@ void processSBA(ros::NodeHandle node)
       }
 
 
+#ifdef USE_PPL
     // reset covariances and continue
     for (int i = 0; i < points.size(); i++)
     {
       int nn = points.size();
       Matrix3d covar;
-      double cv = 0.1;
+      double cv = 0.3;
       covar << cv, 0, 0,
 	0, cv, 0, 
 	0, 0, cv;
       sys.setProjCovariance(0, i+nn, covar);
       sys.setProjCovariance(1, i, covar);
     }
+#endif
 
-    for (int j=0; j<10; j++)
+    for (int j=0; j<30; j+=3)
       {
         if (!ros::ok())
 	        break;

@@ -329,6 +329,51 @@ TEST(TestSPA2d, TestSimple3nodes)
 
 }
 
+TEST(TestSPA2d, TestMarthi3nodes)
+{
+  SysSPA2d spa;
+
+  int n0 = spa.addNode(Vector3d(0,0,0),0);
+  int n1 = spa.addNode(Vector3d(2,5,0),1);
+  int n2 = spa.addNode(Vector3d(9,1,0),2);
+  printf("Nodes: %d %d %d\n", n0, n1, n2);
+
+  Matrix3d prec;
+  prec.setIdentity();
+  spa.addConstraint(n0,n1,Vector3d(1,0,0),prec);
+  spa.addConstraint(n0,n2,Vector3d(0.5,1,0),prec);
+  spa.addConstraint(n2,n1,Vector3d(0.5,-1,0),prec);
+
+  Node2d &nd0 = spa.nodes[1];
+  Node2d &nd1 = spa.nodes[2];
+  double qnoise = M_PI*5.0/180.0; // convert to radians
+
+  nd0.arot += qnoise;
+  nd0.normArot();
+
+  nd1.arot -= qnoise;
+  nd1.normArot();
+
+  cout << "[SPA Spiral] Initial cost is " << spa.calcCost() << endl;
+  cout << "[SPA Spiral] Number of constraints is " << spa.p2cons.size() << endl;  
+
+  long long t0, t1;
+  t0 = utime();
+  spa.nFixed = 1;               // one fixed frame
+  int niters = spa.doSPA(4,1.0e-4,0);
+  t1 = utime();
+  printf("[TestSPA2d] Compute took %0.2f ms/iter\n", 0.001*(double)(t1-t0)/(double)niters);
+  printf("[TestSPA2d] Accepted iterations: %d\n", niters);
+
+  cout << "Node 1 pose: " << nd0.trans.transpose() << endl;
+  cout << "Node 2 pose: " << nd1.trans.transpose() << endl;
+
+  EXPECT_EQ_ABS(spa.calcCost(), 0.0, 1.0e-12);
+
+}
+
+
+
 // these should all be redone with displacement noise
 TEST(TestSPA2d, TestSimple10_i90)
 {

@@ -208,7 +208,7 @@ namespace sba
   // add a node at a pose
   // <pos> is x,y,th, with th in radians
   // returns node position 
-  int SysSPA2d::addNode(Vector3d &pos, int id)
+  int SysSPA2d::addNode(const Vector3d &pos, int id)
   {
     Node2d nd;
     nd.nodeId = id;
@@ -231,8 +231,8 @@ namespace sba
   // <prec> is a 3x3 precision matrix (inverse covariance
   // returns true if nodes are found
   // TODO: make node lookup more efficient
-  bool SysSPA2d::addConstraint(int ndi0, int ndi1, Vector3d &mean, 
-                                 Matrix3d &prec)
+  bool SysSPA2d::addConstraint(int ndi0, int ndi1, const Vector3d &mean, 
+                                 const Matrix3d &prec)
   {
     int ni0 = -1, ni1 = -1;
     for (int i=0; i<(int)nodes.size(); i++)

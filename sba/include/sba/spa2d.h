@@ -199,14 +199,14 @@ namespace sba
 
       /// add a node at a pose
       /// <pos> is x,y,th, with th in radians
-      int addNode(Vector3d &pos, int id);
+      int addNode(const Vector3d &pos, int id);
       void removeNode(int id);
 
       // add a constraint
       // <nd0>, <nd1> are node id's
       // <mean> is x,y,th, with th in radians
       // <prec> is a 3x3 precision matrix (inverse covariance
-      bool addConstraint(int nd0, int nd1, Vector3d &mean, Matrix3d &prec);
+      bool addConstraint(int nd0, int nd1, const Vector3d &mean, const Matrix3d &prec);
       bool removeConstraint(int ndi0, int ndi1);
 
 
