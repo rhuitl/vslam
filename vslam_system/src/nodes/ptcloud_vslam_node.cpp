@@ -98,13 +98,14 @@ public:
     vslam_system_.vo_.mindist = 0; ///< Minimum linear distance between keyframes (meters).
     vslam_system_.vo_.minang = 0;  ///< Minimum angular distance between keyframes (radians).
     vslam_system_.vo_.mininls = 0; ///< Minimum number of inliers.
-    vslam_system_.vo_.pose_estimator_->wx = 400;
-    vslam_system_.vo_.pose_estimator_->wy = 200;
+    vslam_system_.setVOWindow(300,60);
+    vslam_system_.setVORansacIt(2000);
+    vslam_system_.setPRWindow(200,40);
     vslam_system_.nSkip = 1; 
-    vslam_system_.prInliers = 100;
-    vslam_system_.setPRRansacIt(1000);
-    vslam_system_.doPointPlane = true;
-    
+    vslam_system_.setPlaceInliers(100);
+    vslam_system_.setPRRansacIt(2000);
+    vslam_system_.doPointPlane = false;
+    vslam_system_.setHuber(2.0);
   }
 
   void configCb(vslam_system::StereoVslamNodeConfig& config, uint32_t level)

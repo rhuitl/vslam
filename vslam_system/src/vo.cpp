@@ -106,7 +106,7 @@ namespace vslam
           if (((dist < mindist && angledist < minang) && (inl > mininls))) // check for angle as well
           {
             // not a keyframe
-            cout << "Not a keyframe! " << (mindist) << " " << (minang) << " " <<(mininls) << endl;
+            cout << "Not a keyframe! " << (mindist) << " " << (minang) << " " << (inl) << "/" << (mininls) << endl;
             return false;
           }
         }
@@ -182,7 +182,7 @@ namespace vslam
 
     cout << "[Stereo VO] Inliers: " << inl << "  Nodes: " << sba.nodes.size() << "   Points: " << sba.tracks.size() << endl;
     sba.verbose = 0;
-    sba.doSBA(2,1.0e-5,0);          // dense version
+    sba.doSBA(4,1.0e-5,0);          // dense version
 
     // Do pointcloud matching and add the projections to the system.
     // Rot,trans is wrong, should be from updated SBA values
@@ -347,6 +347,7 @@ namespace vslam
     /// should reconstruct inliers from most recent two frames
     Frame &f0 = *(eframes.end()-2);
     addProjections(f0, f1, eframes, esba, pose_estimator_->inliers, f2w_frame0, ndi-1, ndi, NULL);
+    esba.doSBA(3,1.0e-4,SBA_SPARSE_CHOLESKY);
     if (doPointPlane)
       addPointCloudProjections(f0, f1, esba, pointcloud_matches_, f2w_frame0, f2w_frame1, ndi-1, ndi, NULL);
   }

@@ -53,6 +53,10 @@ target_link_libraries(run_stereo vo)
 #rosbuild_add_compile_flags(bin/run_stereo -O3 -DNDEBUG -Wno-missing-field-initializers -msse3)
 #rosbuild_add_compile_flags(bin/run_stereo -g -O0 -DDEBUG=1 -Wno-missing-field-initializers -msse3)
 
+# read stereo sequence from PS device and SBA it
+rosbuild_add_executable(run_ps src/run_ps.cpp)
+target_link_libraries(run_ps vo)
+
 # read stereo sequence for an object and SBA it
 rosbuild_add_executable(run_object src/run_object.cpp)
 target_link_libraries(run_object vo)

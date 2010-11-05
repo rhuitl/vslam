@@ -83,7 +83,8 @@ bool VslamSystem::addFrame(const frame_common::CamParams& camera_parameters,
   }
 
   if (frames_.size() > 1 && vo_.pose_estimator_->inliers.size() < 40)
-    std::cout << std::endl << "******** Bad image match: " << std::endl << std::endl;
+    std::cout << std::endl << "******** Bad image match: " << vo_.pose_estimator_->inliers.size() 
+              << " inliers" << std::endl << std::endl;
 
   return is_keyframe;
 }
@@ -189,10 +190,11 @@ void VslamSystem::addKeyframe(frame_common::Frame& next_frame)
 	        {
 	          // fix all but last NNN frames
 	          int n = sba_.nodes.size();
-	          if (n < 100) n = 50;
-	          else n = n - 50;
+                  n = n-50;
+                  if (n < 1) n=1;
 	          sba_.nFixed = n;
-	          sba_.doSBA(3,1.0e-4,SBA_BLOCK_JACOBIAN_PCG);
+                  sba_.doSBA(3,1.0e-4, SBA_SPARSE_CHOLESKY);
+                  //	          sba_.doSBA(3,1.0e-4,SBA_BLOCK_JACOBIAN_PCG);
 	          sba_.nFixed = 1;
 	        }
 	    }
