@@ -320,6 +320,11 @@ int main(int argc, char** argv)
   vslam.setKeyAngle(0.2);	// radians
   vslam.setKeyInliers(300);
   vslam.setHuber(2.0);          // Huber cost function cutoff
+  vslam.vo_.pose_estimator_->wy = 64;
+  vslam.vo_.pose_estimator_->wx = 64;
+  //  vslam.vo_.pose_estimator_->numRansac = 1000;
+  vslam.vo_.sba.verbose = false;
+  vslam.sba_.verbose = false;
   
   // set up markers for visualization
   ros::init(argc, argv, "VisBundler");

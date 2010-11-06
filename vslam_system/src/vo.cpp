@@ -90,7 +90,10 @@ namespace vslam
       }
     else                        // else find pose relative to previous frame
       {
-        inl = pose_estimator_->estimate(frames.back(),fnew);
+        // check for initial pose estimate from last matched frame
+        Frame &refFrame = frames.back();
+
+        inl = pose_estimator_->estimate(refFrame,fnew);
         fq = Quaterniond(pose_estimator_->rot);
         trans.head(3) = pose_estimator_->trans;
         trans(3) = 1.0;
@@ -105,8 +108,9 @@ namespace vslam
           // small number of inliers because we're losing inliers.
           if (((dist < mindist && angledist < minang) && (inl > mininls))) // check for angle as well
           {
-            // not a keyframe
-            cout << "Not a keyframe! " << (mindist) << " " << (minang) << " " << (inl) << "/" << (mininls) << endl;
+            // not a keyframe, set up translated keypoints in ref frame
+            cout << "[Stereo VO] Skipping frame " << (mindist) << " " << (minang) << " " << (inl) << "/" << (mininls) << endl;
+            refFrame.setTKpts(trans,fq);
             return false;
           }
         }
