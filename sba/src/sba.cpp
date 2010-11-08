@@ -219,7 +219,7 @@ namespace sba
    fake_proj.isValid = false;
 #endif
     
-#if 1
+#if 0
     // Backward: point 1 into camera 0. 
     Vector3d proj_backward;
     //nodes[ci0].projectStereo(pt1, proj_backward);
@@ -242,6 +242,7 @@ namespace sba
       {
         ProjMap &prjs = tracks[i].projections;
         if (prjs.size() == 0) continue;
+
         for(ProjMap::iterator itr = prjs.begin(); itr != prjs.end(); itr++)
           {
             Proj &prj = itr->second;      
@@ -260,6 +261,12 @@ namespace sba
             
             // Update projections
             //nodes[prj.ndi].projectStereo(tracks[prj.plane_point_index].point, prj.kp);
+            Point &pt0 = tracks[i].point;
+            Vector3d &plane_point = prj.plane_point;
+            Vector3d &plane_normal = prj.plane_normal;
+            Vector3d w = pt0.head<3>()-plane_point;
+            Vector3d projpt = pt0.head<3>() - (w.dot(plane_normal))*plane_normal;
+            
           }
       }
   }
@@ -1057,7 +1064,7 @@ void SysSBA::setupSys(double sLambda)
     for(size_t pi=0; pi<tracks.size(); pi++)
       {
         ProjMap &prjs = tracks[pi].projections;
-        if (prjs.size() < 2) continue; // this catches some problems with bad tracks
+        if (prjs.size() < 1) continue; // this catches some problems with bad tracks
 
 	// Jacobian product storage
 	if (prjs.size() > jps.size())
@@ -1281,8 +1288,9 @@ void SysSBA::setupSys(double sLambda)
     
 
     t3 = utime();
-    printf("\n[SetupSparseSys] Block: %0.1f   Cons: %0.1f  CS: %0.1f\n",
-           (t1-t0)*.001, (t2-t1)*.001, (t3-t2)*.001);
+    if (verbose)
+      printf("\n[SetupSparseSys] Block: %0.1f   Cons: %0.1f  CS: %0.1f\n",
+             (t1-t0)*.001, (t2-t1)*.001, (t3-t2)*.001);
 
     int ndc = 0;
     for (int i=0; i<nFree; i++)

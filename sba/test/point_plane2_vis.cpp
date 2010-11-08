@@ -14,7 +14,7 @@ using namespace std;
 const double PI = 3.141592;
 
 #define USE_PPL
-//#define USE_PP
+#define USE_PP
 
 class Plane
 {
