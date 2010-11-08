@@ -1,12 +1,5 @@
 gfortran:
-  ubuntu: 
-    10.04: libgfortran3
-    9.10: libgfortran3
-    9.04: libgfortran3 gfortran-4.3
-    8.04: libgfortran2 gfortran-4.2
+  ubuntu: libgfortran3
 lapack-blas-atlas:
-  ubuntu: 
-    10.04: libatlas3gf-base liblapack-dev libblas-dev
-    9.10: libatlas3gf-base liblapack-dev libblas-dev
-    9.04: libatlas3gf-base liblapack-dev libblas-dev
-    8.04: libatlas3gf-base liblapack-dev libblas-dev
+  ubuntu: libatlas3gf-base liblapack-dev libblas-dev
+
