@@ -194,7 +194,6 @@ namespace vslam
     {
       pointcloud_proc_->match(f0, f1, pose_estimator_->trans, Quaterniond(pose_estimator_->rot), pointcloud_matches_);
       addPointCloudProjections(f0, f1, sba, pointcloud_matches_, f2w_frame0, f2w_frame1, ndi-1, ndi, &ipts);
-      sba.doSBA(2,1.0e-5,0);          // dense version
     }
     
     return true;
@@ -503,9 +502,15 @@ namespace vslam
                       int ndi0, int ndi1, std::vector<int>* ipts)
   {
     // add points and projections
-    double covariance = 0.8;
+    double covariance = 1.0;
     Matrix3d covar;
     covar <<  covariance, 0, 0,
+      0, covariance, 0, 
+      0, 0, covariance;
+
+    covariance = 100.0;
+    Matrix3d cv2;
+    cv2 <<  covariance, 0, 0,
       0, covariance, 0, 
       0, 0, covariance;
 
@@ -524,11 +529,15 @@ namespace vslam
             Vector4d pt;
             pt.head<3>() = f2w_frame0*f0.pl_pts[i0]; // transform to RW coords
             pt(3) = 1.0;
+
+            //            cout << "f0 point: " << pt.transpose() << endl;
+
             sba.addPoint(pt);
             if (ipts)
               ipts->push_back(-1);  // external point index
 
             sba.addStereoProj(ndi0, pti, f0.pl_kpts[i0]);
+            sba.setProjCovariance(ndi0, pti, cv2);
           }
         if (f1.pl_ipts[i1] < 0) // new point
           {
@@ -538,11 +547,15 @@ namespace vslam
             Vector4d pt;
             pt.head<3>() = f2w_frame1*f1.pl_pts[i1]; // transform to RW coords
             pt(3) = 1.0;
+
+            //            cout << "f1 point: " << pt.transpose() << endl;
+
             sba.addPoint(pt);
             if (ipts)
               ipts->push_back(-1);  // external point index
             
             sba.addStereoProj(ndi1, pti, f1.pl_kpts[i1]);
+            sba.setProjCovariance(ndi1, pti, cv2);
           }
         
         // Add point-to-plane projections

@@ -45,8 +45,10 @@ class VslamSystem
     /// \param right Right image.
     /// \param nfrac Fractional disparity. If above 0, then right is an int16_t 
     ///              disparity image.
+    /// \param setPointCloud.  True if point cloud is to be set up from disparities
     bool addFrame(const frame_common::CamParams& camera_parameters,
-                  const cv::Mat& left, const cv::Mat& right, int nfrac = 0);
+                  const cv::Mat& left, const cv::Mat& right, int nfrac = 0,
+                  bool setPointCloud = false);
     
     /// \brief Add a frame to the system.
     /// \param camera_parameters Camera parameters for the cameras.

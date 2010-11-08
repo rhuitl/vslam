@@ -63,16 +63,23 @@ VslamSystem::VslamSystem(const std::string& vocab_tree_file, const std::string& 
 }
 
 bool VslamSystem::addFrame(const frame_common::CamParams& camera_parameters,
-                           const cv::Mat& left, const cv::Mat& right, int nfrac)
+                           const cv::Mat& left, const cv::Mat& right, int nfrac, 
+                           bool setPointCloud)
 {
   // Set up next frame and compute descriptors
   frame_common::Frame next_frame;
   next_frame.setCamParams(camera_parameters); // this sets the projection and reprojection matrices
-  frame_processor_.setStereoFrame(next_frame, left, right, nfrac);
+  frame_processor_.setStereoFrame(next_frame, left, right, nfrac, setPointCloud);
   next_frame.frameId = sba_.nodes.size(); // index
   next_frame.img = cv::Mat();   // remove the images
   next_frame.imgRight = cv::Mat();
   
+  if (setPointCloud && pointcloud_processor_ && doPointPlane)
+    {
+      pointcloud_processor_->setPointcloud(next_frame, next_frame.dense_pointcloud);
+      printf("[Pointcloud] set a pointcloud! %d\n", (int)next_frame.pointcloud.points.size());
+    }
+ 
   // Add frame to visual odometer
   bool is_keyframe = vo_.addFrame(next_frame);
 
@@ -172,7 +179,7 @@ void VslamSystem::addKeyframe(frame_common::Frame& next_frame)
 			     frame_to_world, matched_frame.frameId, transferred_frame.frameId);
 
               // add in point cloud matches, if they exist
-              if (0 && pointcloud_processor_ && doPointPlane)
+              if (pointcloud_processor_ && doPointPlane)
                 {
                   printf("\t[PlaceRec] Adding in point cloud projections\n");
                   Matrix<double,3,4> f2w_transferred;
