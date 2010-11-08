@@ -67,7 +67,6 @@ namespace frame_common
     public:
       /** \brief Point Cloud dataset. Contains: XYZ data + NormalXYZ data + Surface flatness (curvature) measure. */
       pcl::PointCloud<pcl::PointXYZRGBNormal> cloud;
-
       /** \brief Set of point indices that correspond to the data that we care about in \href cloud. */
       pcl::PointIndices indices;
 

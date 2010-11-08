@@ -157,9 +157,9 @@ namespace frame_common
     // check for 
     if (frac > 0)		// set fractional disparities, if we pass in a
       {				//   disparity map
-	      fdisp = frac;		
-	      memcpy(imDisp,rim.data,xim*yim*sizeof(int16_t));
-	      return;
+        fdisp = frac;		
+        memcpy(imDisp,rim.data,xim*yim*sizeof(int16_t));
+        return;
       }
 
 

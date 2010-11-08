@@ -87,14 +87,15 @@ namespace frame_common
     bool isStereo;              ///< True if the frame contains a stereo image pair.
     cv::Mat img;                ///< Image itself, if needed; can be empty.
     CamParams cam;              ///< Camera parameters.
-    Eigen3::Matrix3d iproj;      ///< Camera projection matrix.
+    Eigen3::Matrix3d iproj;     ///< Camera projection matrix.
 
     // feature section: keypoints and corresponding descriptors
     std::vector<cv::KeyPoint> kpts; /// Keypoints detected in the image.
+    std::vector<cv::KeyPoint> tkpts; /// Translated keypoints for initial pose estimate
     cv::Mat dtors;              /// Descriptors for the keypoints.
 
     // stereo
-    cv::Mat imgRight;             ///< Right image (if stereo pair), can be empty.
+    cv::Mat imgRight;           ///< Right or disparity image (if stereo pair), can be empty.
     Eigen3::Matrix4d disp_to_cart; ///< Transformation from disparity to cartesian.
     Eigen3::Matrix4d cart_to_disp; ///< Transformation from cartesian to disparity.
     void setCamParams(const CamParams &c); ///< Set the camera parameters of the frame.
@@ -103,6 +104,9 @@ namespace frame_common
     Eigen3::Vector3d cam2pix(const Eigen3::Vector3d &cam_coord) const;
     Eigen3::Vector3d pix2cam(const Eigen3::Vector3d &pix_coord) const;
     Eigen3::Vector3d pix2cam(const cv::KeyPoint &pix_coord, double disp) const;
+
+    /// \brief transform keypoints by a 6DOF transformation of the frame
+    void setTKpts(Eigen3::Vector4d trans, Eigen3::Quaterniond rot);
 
     /// \brief 3d points, linked to keypoints and SBA points for point-to-point matches.
     std::vector<Eigen3::Vector4d, Eigen3::aligned_allocator<Eigen3::Vector4d> > pts;
@@ -160,7 +164,8 @@ namespace frame_common
     /// \param frame The frame to process.
     /// \param nfrac Fractional disparity. If above 0, then stereo disparities
     ///              have already been passed in.
-    void setStereoPoints(Frame &frame, int nfrac = 0);
+    /// \param setPointCloud.  True if point cloud is to be set up from disparities
+    void setStereoPoints(Frame &frame, int nfrac = 0, bool setPointCloud=false);
     int ndisp;                  ///< Number of disparities to search.
     bool doSparse;              ///< True if using sparse stereo.
 
@@ -168,9 +173,11 @@ namespace frame_common
     /// \param frame The frame to be processed.
     /// \param img   Left camera image.
     /// \param imgr  Right camera image.
-    /// \param nfrac Fractional disparity. If above 0, then imgr is a disparity
-    ///              image instead.
-    void setStereoFrame(Frame &frame, const cv::Mat &img, const cv::Mat &imgr, int nfrac = 0);
+    /// \param nfrac Fractional disparity. If above 0, then imgr is a 16-bit fractional disparity
+    ///              image instead, with <nfrac> counts per pixel disparity
+    /// \param setPointCloud.  True if point cloud is to be set up from disparities
+    void setStereoFrame(Frame &frame, const cv::Mat &img, const cv::Mat &imgr, int nfrac = 0, 
+                        bool setPointCloud=false);
 
     /// \brief Set up stereo frame, assumes frame has camera parameters already set.
     /// \param frame The frame to be processed.
@@ -179,7 +186,10 @@ namespace frame_common
     /// \param nfrac Fractional disparity. If above 0, then imgr is a disparity
     ///              image instead.
     /// \param mask  ROI for left image
-    void setStereoFrame(Frame &frame, const cv::Mat &img, const cv::Mat &imgr, const cv::Mat &left_mask, int nfrac = 0 );
+    /// \param setPointCloud.  True if point cloud is to be set up from disparities
+    void setStereoFrame(Frame &frame, const cv::Mat &img, const cv::Mat &imgr, const cv::Mat &left_mask, int nfrac = 0,
+                        bool setPointCloud=false);
+
   };
   
   class PointcloudProc

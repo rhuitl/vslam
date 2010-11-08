@@ -45,11 +45,8 @@ using namespace std;
 namespace frame_common {
 
   static void drawSmallKeypoints(const cv::Mat& image, const std::vector<cv::KeyPoint>& keypoints,
-                               cv::Mat& display)
+                                 cv::Mat& display, cv::Scalar color)
   {
-    cv::cvtColor(image, display, CV_GRAY2BGR);
-  
-    cv::Scalar color = CV_RGB(255, 0, 0);
     int shift_bits = 4;
     int multiplier = 1 << shift_bits;
     for (std::vector<cv::KeyPoint>::const_iterator i = keypoints.begin(), ie = keypoints.end();
@@ -74,7 +71,11 @@ namespace frame_common {
     const Frame &f0 = frames.back();
 
     // Draw keypoints
-    drawSmallKeypoints(image, f0.kpts, display);
+    cv::cvtColor(image, display, CV_GRAY2BGR);
+    drawSmallKeypoints(image, f0.kpts, display, CV_RGB(255, 0, 0));
+    drawSmallKeypoints(image, f0.tkpts, display, CV_RGB(0, 255, 0));
+
+    return;
 
     if (frames.size() < 2) return;
 
@@ -127,7 +128,8 @@ namespace frame_common {
     const Frame &f0 = frames.back();
 
     // Draw keypoints
-    drawSmallKeypoints(image, f0.kpts, display);
+    cv::cvtColor(image, display, CV_GRAY2BGR);
+    drawSmallKeypoints(image, f0.kpts, display, CV_RGB(255, 0, 0));
 
     if (frames.size() < 2) return;
 

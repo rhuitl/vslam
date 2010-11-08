@@ -111,6 +111,49 @@ namespace frame_common
   }
 
 
+  // translate kpts by 6DOF transformation of frame
+  void Frame::setTKpts(Eigen3::Vector4d trans, Eigen3::Quaterniond rot)
+  {
+    Vector3d tr;
+    tr = trans.head<3>();
+    // set up 3x4 transformation from kpt+disp to kpt
+    Matrix4d Q;
+    Q << 1.0, 0.0, 0.0, -cam.cx, // fy should enter in here somewhere...
+         0.0, 1.0, 0.0, -cam.cy,
+         0.0, 0.0, 0.0, cam.fx,
+         0.0, 0.0, 1.0/cam.tx, 0;
+    Matrix<double,3,4> P;
+    P << cam.fx, 0.0, cam.cx, 0.0,
+         0.0, cam.fx, cam.cy, 0.0,
+         0.0, 0.0, 1.0, 0.0;
+    // 3D point transform - inverse of frame motion
+    Matrix4d T;
+    T.setZero();
+    Matrix3d R = rot.toRotationMatrix();
+    T.block<3,3>(0,0) = R.transpose();
+    T.block<3,1>(0,3) = -R*tr;
+    T(3,3) = 1.0;
+    
+    P = P*T*Q;
+
+    // go through points and set up transformed ones
+    tkpts.resize(kpts.size());
+    Vector4d v(0.0,0.0,0.0,1.0);
+    for (int i=0; i<(int)kpts.size(); i++)
+      {
+        Vector3d vk;
+        v(0) = kpts[i].pt.x;
+        v(1) = kpts[i].pt.y;
+        v(2) = disps[i];
+        vk = P*v;
+        tkpts[i].pt.x = vk(0)/vk(2);
+        tkpts[i].pt.y = vk(1)/vk(2);
+      }
+  }
+
+
+
+
   // frame processor
 
   FrameProc::FrameProc(int v)
@@ -157,27 +200,28 @@ namespace frame_common
 
   // set up stereo frame
   // assumes frame has camera params already set
-  // <nfrac> is nonzero if <imgr> is a dense stereo image
-  void FrameProc::setStereoFrame(Frame &frame, const cv::Mat &img, const cv::Mat &imgr, const cv::Mat &left_mask, int nfrac )
+  // <nfrac> is nonzero if <imgr> is a dense stereo disparity image
+  void FrameProc::setStereoFrame(Frame &frame, const cv::Mat &img, const cv::Mat &imgr, const cv::Mat &left_mask, int nfrac,
+                                 bool setPointCloud)
   {
     setMonoFrame( frame, img, left_mask );
-
     frame.imgRight = imgr;
 
-    // set stereo
-    setStereoPoints( frame, nfrac );
+    // set stereo, optionally with point cloud
+    setStereoPoints( frame, nfrac, setPointCloud );
   }
 
   // set up stereo frame
   // assumes frame has camera params already set
   // <nfrac> is nonzero if <imgr> is a dense stereo image
-  void FrameProc::setStereoFrame(Frame &frame, const cv::Mat &img, const cv::Mat &imgr, int nfrac )
+  void FrameProc::setStereoFrame(Frame &frame, const cv::Mat &img, const cv::Mat &imgr, int nfrac,
+                                 bool setPointCloud)
   {
-    setStereoFrame( frame, img, imgr, cv::Mat(), nfrac );
+    setStereoFrame( frame, img, imgr, cv::Mat(), nfrac, setPointCloud );
   }
 
   // set up stereo points
-  void FrameProc::setStereoPoints(Frame &frame, int nfrac)
+  void FrameProc::setStereoPoints(Frame &frame, int nfrac, bool setPointCloud)
   {
     //  if (img.rows == 0 || imgRight.rows == 0)
     //    return;
@@ -206,22 +250,59 @@ namespace frame_common
     #pragma omp parallel for shared( st )
     for (int i=0; i<nkpts; i++)
       {
-	      double disp = st->lookup_disparity(frame.kpts[i].pt.x,frame.kpts[i].pt.y);
-	      frame.disps[i] = disp;
-	      if (disp > 0.0)           // good disparity
-	        {
-	          frame.goodPts[i] = true;
-	          Vector3d pt(frame.kpts[i].pt.x,frame.kpts[i].pt.y,disp);
-	          frame.pts[i].head(3) = frame.pix2cam(pt);
-	          frame.pts[i](3) = 1.0;
-	          //          cout << pts[i].transpose() << endl;
-	        }
-	      else
-	        frame.goodPts[i] = false;
+        double disp = st->lookup_disparity(frame.kpts[i].pt.x,frame.kpts[i].pt.y);
+        frame.disps[i] = disp;
+        if (disp > 0.0)           // good disparity
+          {
+            frame.goodPts[i] = true;
+            Vector3d pt(frame.kpts[i].pt.x,frame.kpts[i].pt.y,disp);
+            frame.pts[i].head(3) = frame.pix2cam(pt);
+            frame.pts[i](3) = 1.0;
+            //          cout << pts[i].transpose() << endl;
+          }
+        else
+          frame.goodPts[i] = false;
       }
+
+    if (!setPointCloud) return;
+
+    // convert disparities and image to point cloud with luminance/RGB
+    double cx = frame.cam.cx;
+    double cy = frame.cam.cy;
+    double fx = frame.cam.fx;
+    double tx = frame.cam.tx;
+
+    // Fill in sparse point cloud message
+    frame.dense_pointcloud.points.resize(0);
+  
+    for (int v=0; v<(int)frame.img.rows; v++)
+      {
+        const uchar *imrow = frame.img.ptr<uchar>(v);
+        for (int u=0; u<(int)frame.img.cols; u++, imrow++)
+          {
+            double disp = st->lookup_disparity(u,v);
+            if (disp > 0)      // valid point
+              {
+                pcl::PointXYZRGB pt;
+                // x,y,z
+                double w = tx / disp;
+                pt.x = ((double)u - cx)*w;
+                pt.y = ((double)v - cy)*w;
+                pt.z = fx*w;
+
+                // color, as a float (????)
+                uint8_t g = *imrow;
+                int32_t rgb = (g << 16) | (g << 8) | g;
+                pt.rgb = *(float*)(&rgb);
+                frame.dense_pointcloud.points.push_back(pt);
+              }
+          }
+      }
+
     delete st;
   }
   
+
     void PointcloudProc::setPointcloud(Frame &frame, const pcl::PointCloud<pcl::PointXYZRGB>& input_cloud) const
     {
       reduceCloud(input_cloud, frame.pointcloud);
@@ -315,7 +396,7 @@ namespace frame_common
           matches.push_back(cv::DMatch(f0_indices[i], f1_indices[i], dist));
       }
       
-      printf("[FrameExtended] Found %d matches, then converted %d matches.\n", (int)f0_indices.size(), (int)matches.size());
+      printf("[Frame] Found %d matches, then converted %d matches.\n", (int)f0_indices.size(), (int)matches.size());
     }
     
     void PointcloudProc::getMatchingIndices(const PointCloud<PointXYZRGBNormal>& input, 
@@ -382,6 +463,7 @@ namespace frame_common
       VoxelGrid<PointXYZRGB> voxelfilter;
       voxelfilter.setInputCloud (boost::make_shared<const PointCloud<PointXYZRGB> > (cloud_box_filtered));
       voxelfilter.setLeafSize (0.05, 0.05, 0.05);
+      //      voxelfilter.setLeafSize (0.1, 0.1, 0.1);
       voxelfilter.filter (cloud_voxel_reduced);
       
       // Compute normals
@@ -390,6 +472,7 @@ namespace frame_common
       normalest.setSearchMethod (boost::make_shared<KdTreeANN<PointXYZRGB> > ());
       //normalest.setKSearch (10);
       normalest.setRadiusSearch (0.25);
+      //      normalest.setRadiusSearch (0.4);
       normalest.setInputCloud(boost::make_shared<const PointCloud<PointXYZRGB> >(cloud_voxel_reduced));
       normalest.compute(normals);
       
@@ -398,6 +481,7 @@ namespace frame_common
       // Filter based on curvature
       PassThrough<PointXYZRGBNormal> normalfilter;
       normalfilter.setFilterFieldName("curvature");
+      //      normalfilter.setFilterLimits(0.0, 0.2);
       normalfilter.setFilterLimits(0.0, 0.2);
       normalfilter.setInputCloud(boost::make_shared<const PointCloud<PointXYZRGBNormal> >(cloud_normals));
       normalfilter.filter(output);
