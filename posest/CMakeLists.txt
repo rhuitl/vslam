@@ -51,4 +51,11 @@ target_link_libraries(test/run_sequence posest)
 # visualization
 #
 
+######################################################################
+# ESM tracking
+#
+
+rosbuild_add_library(esm src/esm.cpp)
+rosbuild_add_executable(test/run_esm test/run_esm.cpp)
+target_link_libraries(test/run_esm esm)
 
