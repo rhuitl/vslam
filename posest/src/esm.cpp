@@ -31,7 +31,7 @@ void HomoESM::setTemplateImage(const Mat &image)
   {
     for (int x = 0; x < templateImage.cols; x++)
     {
-      templatePoints.at<Vec2f> (y * templateImage.rows + x, 0) = Vec2f(x, y);
+      templatePoints.at<Vec2f> (y * templateImage.cols + x, 0) = Vec2f(x, y);
     }
   }
 }
