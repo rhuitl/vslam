@@ -18,12 +18,18 @@ using namespace Eigen3;
 
 #include <posest/lie_algebra.hpp>
 
+struct HomoESMState
+{
+  cv::Mat H;
+  double error;
+};
+
 class HomoESM
 {
 public:
   void setTemplateImage(const cv::Mat &image);
   void setTestImage(const cv::Mat &image);
-  void track(int nIters, cv::Mat &H, double &rmsError, cv::Ptr<LieAlgebra> lieAlgebra = new LieAlgebraHomography()) const;
+  void track(int nIters, cv::Mat &H, double &rmsError, cv::Ptr<LieAlgebra> lieAlgebra = new LieAlgebraHomography(), bool saveComputations = false, vector<HomoESMState> *computations = 0) const;
   void visualizeTracking(const cv::Mat &H, cv::Mat &visualization) const;
 private:
   cv::Mat testImage;
@@ -34,9 +40,11 @@ private:
 
   vector<cv::Point2f> templateVertices;
 
-  void computeJacobian(const cv::Mat &dx, const cv::Mat &dy, cv::Mat &J, cv::Ptr<LieAlgebra> lieAlgebra) const;
   static void computeGradient(const cv::Mat &image, cv::Mat &dx, cv::Mat &dy);
+  static double computeRMSError( const cv::Mat &error );
+  void computeJacobian(const cv::Mat &dx, const cv::Mat &dy, cv::Mat &J, cv::Ptr<LieAlgebra> lieAlgebra) const;
   void constructImage(const cv::Mat &srcImage, const vector<cv::Point2f> &points, cv::Mat &intensity) const;
+  void projectVertices( const cv::Mat &H, std::vector<cv::Point2f> &vertices ) const;
 };
 
 #endif /* ESM_HPP_ */

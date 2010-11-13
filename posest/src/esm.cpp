@@ -42,8 +42,19 @@ void HomoESM::setTestImage(const Mat &image)
   testImage = image;
 }
 
-void HomoESM::track(int nIters, Mat &H, double &rmsError, Ptr<LieAlgebra> lieAlgebra) const
+double HomoESM::computeRMSError( const Mat &error )
 {
+  return norm(error) / sqrt((double)error.size().area());
+}
+
+void HomoESM::track(int nIters, Mat &H, double &rmsError, Ptr<LieAlgebra> lieAlgebra, bool saveComputations, vector<HomoESMState> *computations ) const
+{
+  if( saveComputations )
+  {
+    assert( computations != 0 );
+    computations->clear();
+  }
+
   for (int iter = 0; iter < nIters; iter++)
   {
     Mat warpedHomogeneousPoints;
@@ -56,9 +67,17 @@ void HomoESM::track(int nIters, Mat &H, double &rmsError, Ptr<LieAlgebra> lieAlg
 
     Mat errorRow = warpedTemplateDouble.reshape(0, 1) - templateImageRowDouble;
 
+    if( saveComputations )
+    {
+      HomoESMState state;
+      H.copyTo( state.H );
+      state.error = computeRMSError( errorRow );
+      computations->push_back( state );
+    }
+
     if (iter == nIters - 1)
     {
-      rmsError = norm(errorRow) / sqrt((double)errorRow.size().area());
+      rmsError = computeRMSError( errorRow );
       break;
     }
 
@@ -79,12 +98,18 @@ void HomoESM::track(int nIters, Mat &H, double &rmsError, Ptr<LieAlgebra> lieAlg
   }
 }
 
-void HomoESM::visualizeTracking(const Mat &H, Mat &visualization) const
+void HomoESM::projectVertices( const cv::Mat &H, std::vector<cv::Point2f> &vertices ) const
 {
+  vertices.clear();
   Mat transformedVertices;
   transform(Mat(templateVertices), transformedVertices, H);
-  vector<Point2f> vertices;
   convertPointsHomogeneous(transformedVertices, vertices);
+}
+
+void HomoESM::visualizeTracking(const Mat &H, Mat &visualization) const
+{
+  vector<Point2f> vertices;
+  projectVertices( H, vertices );
 
   cvtColor(testImage, visualization, CV_GRAY2RGB);
   Scalar color = Scalar(0, 255, 0);
@@ -139,7 +164,8 @@ void HomoESM::constructImage(const Mat &srcImage, const vector<Point2f> &points,
   intensity.create(templateImage.size(), CV_64FC1);
 
   const double defaultValue = 0;
-  //TODO: use bilinear interpolation
+  //Nearest neighbor interpolation
+/*
   for (size_t i = 0; i < points.size(); i++)
   {
     double val;
@@ -150,6 +176,26 @@ void HomoESM::constructImage(const Mat &srcImage, const vector<Point2f> &points,
       val = defaultValue;
     intensity.at<double> (i / templateImage.cols, i % templateImage.cols) = val;
   }
+*/
+
+  //Bilinear interpolation
+  for (size_t i = 0; i < points.size(); i++)
+  {
+    double val;
+    Point2f pt = points[i];
+    if (0 <= pt.x && pt.x < srcImage.cols-1 && 0 <= pt.y && pt.y < srcImage.rows-1)
+    {
+      Point tl = Point( floor( pt.x ), floor( pt.y ) );
+      double x1 = pt.x - tl.x;
+      double y1 = pt.y - tl.y;
+      double y2 = 1 - y2;
+      val = (1-x1)*(1-y1)*srcImage.at<uchar> (tl.y, tl.x) + x1*(1-y1)*srcImage.at<uchar> (tl.y, tl.x + 1) + (1-x1)*y1*srcImage.at<uchar> (tl.y+1, tl.x) + x1*y1*srcImage.at<uchar> (tl.y+1, tl.x+1);
+    }
+    else
+      val = defaultValue;
+    intensity.at<double> (i / templateImage.cols, i % templateImage.cols) = val;
+  }
+
 }
 
 LieAlgebraHomography::LieAlgebraHomography()
