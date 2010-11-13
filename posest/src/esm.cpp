@@ -42,14 +42,15 @@ void HomoESM::setTestImage(const Mat &image)
   testImage = image;
 }
 
-double HomoESM::computeRMSError( const Mat &error )
+double HomoESM::computeRMSError(const Mat &error)
 {
   return norm(error) / sqrt((double)error.size().area());
 }
 
-void HomoESM::track(int nIters, Mat &H, double &rmsError, Ptr<LieAlgebra> lieAlgebra, bool saveComputations, vector<HomoESMState> *computations ) const
+void HomoESM::track(int nIters, Mat &H, double &rmsError, Ptr<LieAlgebra> lieAlgebra, bool saveComputations, vector<
+    HomoESMState> *computations) const
 {
-  if( saveComputations )
+  if (saveComputations)
   {
     assert( computations != 0 );
     computations->clear();
@@ -67,17 +68,17 @@ void HomoESM::track(int nIters, Mat &H, double &rmsError, Ptr<LieAlgebra> lieAlg
 
     Mat errorRow = warpedTemplateDouble.reshape(0, 1) - templateImageRowDouble;
 
-    if( saveComputations )
+    if (saveComputations)
     {
       HomoESMState state;
-      H.copyTo( state.H );
-      state.error = computeRMSError( errorRow );
-      computations->push_back( state );
+      H.copyTo(state.H);
+      state.error = computeRMSError(errorRow);
+      computations->push_back(state);
     }
 
     if (iter == nIters - 1)
     {
-      rmsError = computeRMSError( errorRow );
+      rmsError = computeRMSError(errorRow);
       break;
     }
 
@@ -98,7 +99,7 @@ void HomoESM::track(int nIters, Mat &H, double &rmsError, Ptr<LieAlgebra> lieAlg
   }
 }
 
-void HomoESM::projectVertices( const cv::Mat &H, std::vector<cv::Point2f> &vertices ) const
+void HomoESM::projectVertices(const cv::Mat &H, std::vector<cv::Point2f> &vertices) const
 {
   vertices.clear();
   Mat transformedVertices;
@@ -109,7 +110,7 @@ void HomoESM::projectVertices( const cv::Mat &H, std::vector<cv::Point2f> &verti
 void HomoESM::visualizeTracking(const Mat &H, Mat &visualization) const
 {
   vector<Point2f> vertices;
-  projectVertices( H, vertices );
+  projectVertices(H, vertices);
 
   cvtColor(testImage, visualization, CV_GRAY2RGB);
   Scalar color = Scalar(0, 255, 0);
@@ -165,7 +166,7 @@ void HomoESM::constructImage(const Mat &srcImage, const vector<Point2f> &points,
 
   const double defaultValue = 0;
   //Nearest neighbor interpolation
-/*
+  /*
   for (size_t i = 0; i < points.size(); i++)
   {
     double val;
@@ -176,26 +177,68 @@ void HomoESM::constructImage(const Mat &srcImage, const vector<Point2f> &points,
       val = defaultValue;
     intensity.at<double> (i / templateImage.cols, i % templateImage.cols) = val;
   }
-*/
+  */
 
   //Bilinear interpolation
   for (size_t i = 0; i < points.size(); i++)
   {
     double val;
     Point2f pt = points[i];
-    if (0 <= pt.x && pt.x < srcImage.cols-1 && 0 <= pt.y && pt.y < srcImage.rows-1)
+    if (0 <= pt.x && pt.x < srcImage.cols - 1 && 0 <= pt.y && pt.y < srcImage.rows - 1)
     {
-      Point tl = Point( floor( pt.x ), floor( pt.y ) );
+      Point tl = Point(floor(pt.x), floor(pt.y));
       double x1 = pt.x - tl.x;
       double y1 = pt.y - tl.y;
       double y2 = 1 - y2;
-      val = (1-x1)*(1-y1)*srcImage.at<uchar> (tl.y, tl.x) + x1*(1-y1)*srcImage.at<uchar> (tl.y, tl.x + 1) + (1-x1)*y1*srcImage.at<uchar> (tl.y+1, tl.x) + x1*y1*srcImage.at<uchar> (tl.y+1, tl.x+1);
+      val = (1 - x1) * (1 - y1) * srcImage.at<uchar> (tl.y, tl.x) + x1 * (1 - y1) * srcImage.at<uchar> (tl.y, tl.x + 1)
+          + (1 - x1) * y1 * srcImage.at<uchar> (tl.y + 1, tl.x) + x1 * y1 * srcImage.at<uchar> (tl.y + 1, tl.x + 1);
     }
     else
       val = defaultValue;
     intensity.at<double> (i / templateImage.cols, i % templateImage.cols) = val;
   }
+}
 
+void HomoESM::checkAccuracy(vector<vector<HomoESMState> > &computations, string groundTruthFile, double &meanSSDError,
+                            double &meanSpatialError) const
+{
+  FileStorage fs(groundTruthFile, FileStorage::READ);
+  assert( fs.isOpened() );
+
+  double ssdErrorSum = 0;
+  double spatialErrorSum = 0;
+  const double minSSDError = 1.;
+  int iterationsCount = 0;
+  int errorsCount = 0;
+  for (size_t frameIdx = 0; frameIdx < computations.size(); frameIdx++)
+  {
+    for (size_t iterIdx = 0; iterIdx < computations[frameIdx].size(); iterIdx++)
+    {
+      stringstream frame, iter;
+      frame << "frame_" << frameIdx;
+      iter << "iter_" << iterIdx;
+      double groundTruthError = fs["ESM_results"][frame.str()][iter.str()]["rms_error"];
+      double error = computations[frameIdx][iterIdx].error;
+      if (groundTruthError > minSSDError)
+      {
+        ssdErrorSum += error / groundTruthError;
+        errorsCount++;
+      }
+      Mat groundTruthH;
+      fs["ESM_results"][frame.str()][iter.str()]["warp_p"] >> groundTruthH;
+      Mat H = computations[frameIdx][iterIdx].H;
+      vector<Point2f> groundTruthVertices;
+      vector<Point2f> vertices;
+      projectVertices(groundTruthH, groundTruthVertices);
+      projectVertices(H, vertices);
+      double spatialError = norm(Mat(groundTruthVertices), Mat(vertices));
+      spatialErrorSum += spatialError;
+      iterationsCount++;
+    }
+  }
+  fs.release();
+  meanSSDError = ssdErrorSum / errorsCount;
+  meanSpatialError = spatialErrorSum / iterationsCount;
 }
 
 LieAlgebraHomography::LieAlgebraHomography()
