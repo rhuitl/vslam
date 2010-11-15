@@ -15,7 +15,7 @@ rosbuild_find_ros_package(dynamic_reconfigure)
 include(${dynamic_reconfigure_PACKAGE_PATH}/cmake/cfgbuild.cmake)
 gencfg()
 
-#add_definitions(-pg)
+add_definitions(-pg)
 
 #add_definitions(-Wall -O3 -mfpmath=sse -mmmx -msse -msse2 -msse3)
 
@@ -30,8 +30,8 @@ rosbuild_add_library(vo src/vo.cpp src/place_recognizer.cpp src/vslam.cpp src/vs
 
 rosbuild_add_library(vo_ptcloud src/vo_ptcloud.cpp src/place_recognizer.cpp src/vslam_ptcloud.cpp)
 
-rosbuild_add_compile_flags(vo -O3 -DNDEBUG -Wno-missing-field-initializers -msse3)
-#rosbuild_add_compile_flags(vo -g -O0 -DDEBUG=1 -Wno-missing-field-initializers -msse3)
+#rosbuild_add_compile_flags(vo -O3 -DNDEBUG -Wno-missing-field-initializers -msse3)
+rosbuild_add_compile_flags(vo -g -O0 -DDEBUG=1 -Wno-missing-field-initializers -msse3)
 
 #####################################################################
 # unit tests
@@ -56,6 +56,12 @@ target_link_libraries(run_stereo vo)
 # read stereo sequence from PS device and SBA it
 rosbuild_add_executable(run_ps src/run_ps.cpp)
 target_link_libraries(run_ps vo)
+
+# read stereo sequence from PS device and SBA it
+rosbuild_add_executable(run_ps_bag src/run_ps_bag.cpp)
+target_link_libraries(run_ps_bag vo)
+rosbuild_add_compile_flags(run_ps_bag -O3 -DNDEBUG -Wno-missing-field-initializers -msse3)
+#rosbuild_add_compile_flags(run_ps_bag -g -O0 -DDEBUG=1 -Wno-missing-field-initializers -msse3)
 
 # read stereo sequence for an object and SBA it
 rosbuild_add_executable(run_object src/run_object.cpp)

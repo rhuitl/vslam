@@ -19,6 +19,8 @@
   <depend package="std_msgs"/>
   <depend package="nav_msgs"/>
   <depend package="dynamic_reconfigure"/>
+  <depend package="sensor_msgs"/>
+  <depend package="stereo_msgs"/>
   
   <depend package="sba"/>
   <depend package="posest"/>
