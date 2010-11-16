@@ -41,7 +41,8 @@ void generateVar(vector<char>& mask, RNG& rng)
 
 void pnpTask(const vector<char>& used_points_mask, const Mat& camera_matrix, const Mat& dist_coeffs,
 		const vector<Point3f>& object_points, const vector<Point2f>& image_points, vector<int>& inliers,
-		float max_dist, cv::Mat& rvec, cv::Mat& tvec, tbb::mutex& Mutex)
+		float max_dist, cv::Mat& rvec, cv::Mat& tvec, bool use_extrinsic_guess, const Mat& rvecInit,
+		const Mat& tvecInit, tbb::mutex& Mutex)
 {
   vector<Point3f> model_object_points;
   vector<Point2f> model_image_points;
@@ -55,6 +56,8 @@ void pnpTask(const vector<char>& used_points_mask, const Mat& camera_matrix, con
   }
 
   Mat rvecl, tvecl;
+  rvecInit.copyTo(rvecl);
+  tvecInit.copyTo(tvecl);
 
   //filter same 3d points, hang in solvePnP
   double eps = 1e-10;
@@ -66,7 +69,7 @@ void pnpTask(const vector<char>& used_points_mask, const Mat& camera_matrix, con
   if (num_same_points > 0)
     return;
   
-  solvePnP(Mat(model_object_points), Mat(model_image_points), camera_matrix, dist_coeffs, rvecl, tvecl);
+  solvePnP(Mat(model_object_points), Mat(model_image_points), camera_matrix, dist_coeffs, rvecl, tvecl, use_extrinsic_guess);
 
   vector<Point2f> projected_points;
   projected_points.resize(object_points.size());
@@ -87,23 +90,26 @@ void pnpTask(const vector<char>& used_points_mask, const Mat& camera_matrix, con
   if (inliers_indexes.size() > inliers.size())
   {
     mutex::scoped_lock lock;
-	lock.acquire(Mutex);
+    lock.acquire(Mutex);
+
     inliers.clear();
     inliers.resize(inliers_indexes.size());
     memcpy(&inliers[0], &inliers_indexes[0], sizeof(int) * inliers_indexes.size());
     rvecl.copyTo(rvec);
     tvecl.copyTo(tvec);
-	lock.release();
+
+    lock.release();
   }
 }
 void Iterate(const vector<Point3f>& object_points, const vector<Point2f>& image_points,
-		const Mat& camera_matrix, const Mat& dist_coeffs, Mat& rvecl, Mat& tvecl, const float max_dist, const int min_inlier_num,
-		vector<int>* inliers, RNG& rng, tbb::mutex& Mutex)
+		const Mat& camera_matrix, const Mat& dist_coeffs, Mat& rvec, Mat& tvec, const float max_dist, const int min_inlier_num,
+		vector<int>* inliers, bool use_extrinsic_guess, const Mat& rvecInit, const Mat& tvecInit, RNG& rng, tbb::mutex& Mutex)
 {
 	vector<char> used_points_mask(object_points.size(), 0);
 	memset(&used_points_mask[0], 1, MIN_POINTS_COUNT );
 	generateVar(used_points_mask, rng);
-	pnpTask(used_points_mask, camera_matrix, dist_coeffs, object_points, image_points, *inliers, max_dist, rvecl, tvecl, Mutex);
+	pnpTask(used_points_mask, camera_matrix, dist_coeffs, object_points, image_points,
+	        *inliers, max_dist, rvec, tvec, use_extrinsic_guess, rvecInit, tvecInit, Mutex);
 	if ((int)inliers->size() > min_inlier_num)
 		task::self().cancel_group_execution();
 }
@@ -114,41 +120,58 @@ class Iterator
 	const vector<Point2f>* image_points;
 	const Mat* camera_matrix;
 	const Mat* dist_coeffs;
-	Mat* rvecl;
-	Mat* tvecl;
+	Mat* resultRvec, rvecInit;
+	Mat* resultTvec, tvecInit;
 	const float max_dist;
 	const int min_inlier_num;
 	vector<int>* inliers;
+	bool use_extrinsic_guess;
 	RNG* rng;
 	static mutex ResultsMutex;
 public:
     void operator()( const blocked_range<size_t>& r ) const {
         for( size_t i=r.begin(); i!=r.end(); ++i )
         {
-        	Iterate(*object_points, *image_points, *camera_matrix, *dist_coeffs, *rvecl, *tvecl, max_dist, min_inlier_num, inliers, *rng, ResultsMutex);
+        	Iterate(*object_points, *image_points, *camera_matrix, *dist_coeffs,
+        	        *resultRvec, *resultTvec, max_dist, min_inlier_num,
+        	        inliers, use_extrinsic_guess, rvecInit, tvecInit, *rng, ResultsMutex);
         }
     }
     Iterator(const vector<Point3f>* tobject_points, const vector<Point2f>* timage_points,
-            const Mat* tcamera_matrix, const Mat* tdist_coeffs, Mat* trvecl, Mat* ttvecl, float tmax_dist, int tmin_inlier_num,
-            vector<int>* tinliers, RNG* trng):
+            const Mat* tcamera_matrix, const Mat* tdist_coeffs, Mat* rvec, Mat* tvec,
+            float tmax_dist, int tmin_inlier_num, vector<int>* tinliers,
+            bool tuse_extrinsic_guess, RNG* trng):
             	object_points(tobject_points), image_points(timage_points),
-            	camera_matrix(tcamera_matrix), dist_coeffs(tdist_coeffs), rvecl(trvecl), tvecl(ttvecl),
-            	max_dist(tmax_dist), min_inlier_num(tmin_inlier_num), inliers(tinliers), rng(trng)
-    {}
+            	camera_matrix(tcamera_matrix), dist_coeffs(tdist_coeffs), resultRvec(rvec), resultTvec(tvec),
+            	max_dist(tmax_dist), min_inlier_num(tmin_inlier_num), inliers(tinliers),
+            	use_extrinsic_guess(tuse_extrinsic_guess), rng(trng)
+    {
+      resultRvec->copyTo(rvecInit);
+      resultTvec->copyTo(tvecInit);
+    }
 };
 mutex Iterator::ResultsMutex;
 
 bool solvePnPRansac(const vector<Point3f>& object_points, const vector<Point2f>& image_points,
-                    const Mat& camera_matrix, const Mat& dist_coeffs, Mat& rvec, Mat& tvec, bool use_extrinsic_guess, //don't used now, introduces for compatibility with solvePnP interface
+                    const Mat& camera_matrix, const Mat& dist_coeffs, Mat& rvec, Mat& tvec, bool use_extrinsic_guess,
                     int num_iterations, float max_dist, int min_inlier_num, vector<int>* inliers)
 {
-  assert (object_points.size() == image_points.size());
+  assert(object_points.size() == image_points.size());
 
   if (object_points.size() < MIN_POINTS_COUNT)
     return false;
 
-  rvec.create(3, 1, CV_64FC1);
-  tvec.create(3, 1, CV_64FC1);
+  if (!use_extrinsic_guess)
+  {
+    rvec.create(3, 1, CV_64FC1);
+    tvec.create(3, 1, CV_64FC1);
+  }
+  else
+  {
+    assert(rvec.rows == tvec.rows == 3);
+    assert(rvec.cols == tvec.cols == 1);
+    assert(rvec.type() == CV_64FC1);
+  }
 
   if (min_inlier_num == -1)
     min_inlier_num = object_points.size();
@@ -161,9 +184,13 @@ bool solvePnPRansac(const vector<Point3f>& object_points, const vector<Point2f>&
 
   RNG rng;
   Mat rvecl(3, 1, CV_64FC1), tvecl(3, 1, CV_64FC1);
+  rvec.copyTo(rvecl);
+  tvec.copyTo(tvecl);
 
   task_scheduler_init TBBinit;
-  parallel_for(blocked_range<size_t>(0,num_iterations), Iterator(&object_points, &image_points, &camera_matrix, &dist_coeffs, &rvecl, &tvecl, max_dist, min_inlier_num, inliers, &rng));
+  parallel_for(blocked_range<size_t>(0,num_iterations), Iterator(&object_points, &image_points,
+               &camera_matrix, &dist_coeffs, &rvecl, &tvecl, max_dist,
+               min_inlier_num, inliers, use_extrinsic_guess, &rng));
 
   if ((int)(*inliers).size() >= MIN_POINTS_COUNT)
   {
@@ -184,6 +211,7 @@ bool solvePnPRansac(const vector<Point3f>& object_points, const vector<Point2f>&
   {
     rvec.setTo(Scalar::all(0));
     tvec.setTo(Scalar::all(0));
+    return false;
   }
   return true;
 }
