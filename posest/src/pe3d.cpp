@@ -86,7 +86,7 @@ namespace pe
     int bestinl = 0;
 
     // RANSAC loop
-    #pragma omp parallel for shared( f0, f1, bestinl )
+    #pragma omp parallel for shared( bestinl )
     for (int i=0; i<numRansac; i++) 
       {
         // find a candidate
