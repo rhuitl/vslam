@@ -1,7 +1,7 @@
 all: SparseLib
 
 TARBALL = build/sparselib_1_7.zip
-TARBALL_URL = http://math.nist.gov/sparselib++/sparselib_1_7.zip
+TARBALL_URL = http://pr.willowgarage.com/downloads/sparselib_1_7.zip
 UNPACK_CMD = unzip -qq -o
 # patching doesn't work with 2-level source directory
 # TARBALL_PATCH = sparselib.patch
