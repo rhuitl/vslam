@@ -6,6 +6,10 @@
 
 namespace vt {
 
+#ifdef USE_ORIGINAL_EIGEN3_NAMESPACE
+  namespace Eigen3 = Eigen;
+#endif
+
 /**
  * \brief Meta-function to get the default allocator for a particular feature type.
  *

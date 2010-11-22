@@ -1,5 +1,10 @@
 #include "vocabulary_tree/mutable_tree.h"
 
+#ifdef USE_ORIGINAL_EIGEN3_NAMESPACE
+  namespace Eigen3 = Eigen;
+#endif
+
+
 int main(int argc, char** argv)
 {
   typedef Eigen3::Vector4f Feature;

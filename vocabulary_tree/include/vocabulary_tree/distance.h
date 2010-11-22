@@ -7,6 +7,10 @@
 namespace vt {
 namespace distance {
 
+#ifdef USE_ORIGINAL_EIGEN3_NAMESPACE
+  namespace Eigen3 = Eigen;
+#endif
+
 /**
  * \brief Meta-function returning a type that can be used to accumulate many values of T.
  *

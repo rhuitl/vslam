@@ -7,6 +7,8 @@ static const unsigned int DIMENSION = 176;
 static const uint32_t K = 10;
 static const uint32_t LEVELS = 5;
 
+
+
 int main(int argc, char** argv)
 {
   if (argc < 3) {

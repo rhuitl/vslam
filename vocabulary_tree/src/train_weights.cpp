@@ -7,6 +7,11 @@
 
 static const unsigned int DIMENSION = 176;
 
+#ifdef USE_ORIGINAL_EIGEN3_NAMESPACE
+  namespace Eigen3 = Eigen;
+#endif
+
+
 int main(int argc, char** argv)
 {
   if (argc < 5) {
