@@ -1,4 +1,3 @@
-#Set the project name here once. 
 SET (PROJECT_NAME FrameCommon)
 
 PROJECT(${PROJECT_NAME})
@@ -21,7 +20,7 @@ SET (INCLUDE_DIRS
 "../../opencv2/modules/contrib/include"
 "../include")
 
-LIST(APPEND CMAKE_LIBRARY_PATH ../opencv2/build/lib/)
+LIST(APPEND CMAKE_LIBRARY_PATH ../../opencv2/build/lib/)
 
 SET(CMAKE_CXX_FLAGS_RELEASE  "-O2 -g -Wall  -msse -msse2 -msse3 -mmmx ")
 SET(CMAKE_CXX_FLAGS_DEBUG  "-O0 -g  -Wall -msse -msse2 -msse3 -mmmx")
@@ -53,7 +52,7 @@ FOREACH(lib ${LIB_NAMES})
   LIST(APPEND LIBS ${LIB_${lib}})
 ENDFOREACH(lib)
 
-# Set Sources
+
 SET (SOURCES ../src/stereolib.c
 	     ../src/stereo.cpp
 	     ../include/frame_common/stereo.h
