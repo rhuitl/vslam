@@ -44,7 +44,7 @@
 #include <pcl/point_cloud.h>
 #include <pcl/PointIndices.h>
 #include <pcl/features/normal_3d.h>
-#include <pcl/kdtree/organized_data.h>
+#include <pcl/kdtree/kdtree_flann.h>
 #include <pcl/filters/passthrough.h>
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/filters/filter.h>
@@ -207,7 +207,7 @@ namespace frame_common
         // Compute normals
         NormalEstimation<PointXYZRGB, Normal> normalest;
         normalest.setViewPoint(0, 0, 0);
-        normalest.setSearchMethod (boost::make_shared<KdTreeANN<PointXYZRGB> > ());
+        normalest.setSearchMethod (boost::make_shared<KdTreeFLANN<PointXYZRGB> > ());
         //normalest.setKSearch (10);
         normalest.setRadiusSearch (0.25);
         normalest.setInputCloud(boost::make_shared<const PointCloud<PointXYZRGB> >(cloud_voxel_reduced));
@@ -227,7 +227,7 @@ namespace frame_common
                 std::vector<int>& input_indices, std::vector<int>& output_indices)
       {
         // TODO: Don't calculate the KDTree each time.
-        KdTreeANN<PointXYZRGBNormal> input_tree, output_tree;
+        KdTreeFLANN<PointXYZRGBNormal> input_tree, output_tree;
           
         input_tree.setInputCloud(boost::make_shared<const PointCloud<PointXYZRGBNormal> >(input));
         output_tree.setInputCloud(boost::make_shared<const PointCloud<PointXYZRGBNormal> >(output));

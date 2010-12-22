@@ -53,10 +53,11 @@
 #include <frame_common/camparams.h>
 
 // PCL headers
+#include <pcl/common/common.h>
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
 #include <pcl/features/normal_3d.h>
-#include <pcl/kdtree/organized_data.h>
+#include <pcl/kdtree/kdtree_flann.h>
 #include <pcl/filters/passthrough.h>
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/filters/filter.h>
