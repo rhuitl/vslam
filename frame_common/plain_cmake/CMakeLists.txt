@@ -20,7 +20,7 @@ SET (INCLUDE_DIRS
 "../../opencv2/modules/contrib/include"
 "../include")
 
-LIST(APPEND CMAKE_LIBRARY_PATH ../../opencv2/rv2_build/lib/)
+LIST(APPEND CMAKE_LIBRARY_PATH ../../opencv2/svs_build/lib/)
 
 SET(CMAKE_CXX_FLAGS_RELEASE  "-O2 -g -Wall  -msse -msse2 -msse3 -mmmx ")
 SET(CMAKE_CXX_FLAGS_DEBUG  "-O0 -g  -Wall -msse -msse2 -msse3 -mmmx")
