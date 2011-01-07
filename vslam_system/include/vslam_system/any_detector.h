@@ -17,9 +17,10 @@ public:
   {
   }
 
-  virtual void detect( const cv::Mat& image, vector<cv::KeyPoint>& keypoints, const cv::Mat& mask=cv::Mat() ) const
+  /// @todo Remove detect() overload. This is only for backwards-compatibility with cturtle-era OpenCV.
+  virtual void detect( const cv::Mat& image, std::vector<cv::KeyPoint>& keypoints, const cv::Mat& mask=cv::Mat() ) const
   {
-    active_detector_->detect(image, keypoints, mask);
+    detectImpl(image, keypoints, mask);
   }
 
   template <class Config>
@@ -52,6 +53,12 @@ public:
       active_detector_ = new cv::GridAdaptedFeatureDetector(active_detector_, config.grid_max_keypoints,
                                                             config.grid_rows, config.grid_cols);
     }
+  }
+
+protected:
+  virtual void detectImpl( const cv::Mat& image, std::vector<cv::KeyPoint>& keypoints, const cv::Mat& mask ) const
+  {
+    active_detector_->detect(image, keypoints, mask);
   }
 };
 
