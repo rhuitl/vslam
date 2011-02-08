@@ -4,7 +4,7 @@
 #include <posest/MatrixFunctions>
 namespace Eigen
 {
-using namespace Eigen3;
+using namespace Eigen;
 }
 
 #include <opencv2/core/core.hpp>

@@ -40,7 +40,7 @@
 // Bring in gtest
 #include <gtest/gtest.h>
 
-using namespace Eigen3;
+using namespace Eigen;
 using namespace sba;
 
 #include <iostream>

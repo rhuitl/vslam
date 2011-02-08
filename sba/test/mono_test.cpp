@@ -43,7 +43,7 @@ using namespace std;
 // Bring in gtest
 #include <gtest/gtest.h>
 
-using namespace Eigen3;
+using namespace Eigen;
 using namespace sba;
 
 //
@@ -55,7 +55,7 @@ double tol = 1e-5;
 #define EXPECT_EQ_ABS(a,b,t) { if (fabs((a)-(b)) > (t)) EXPECT_DOUBLE_EQ(a,b); }
 
 
-static Eigen3::Matrix<double,6,6> n2prec, n2vprec, n2aprec, n2bprec, diagprec;
+static Eigen::Matrix<double,6,6> n2prec, n2vprec, n2aprec, n2bprec, diagprec;
 
 
 void initPrecs()
@@ -178,7 +178,7 @@ TEST(TestJacobians, TestJacScale)
   nd2.setTransform();		// set up world2node transform
   nd2.setDr(true);              // local angles
 
-  std::vector<Node, Eigen3::aligned_allocator<Node> > nodes;
+  std::vector<Node, Eigen::aligned_allocator<Node> > nodes;
   nodes.push_back(nd1);
   nodes.push_back(nd2);
 
@@ -287,7 +287,7 @@ TEST(TestMono, TestMonoLocalScale)
   SysSPA spa;
   Node::initDr();               // set up fixed jacobians
 
-  vector<Matrix<double,6,1>,Eigen3::aligned_allocator<Matrix<double,6,1> > > cps;
+  vector<Matrix<double,6,1>,Eigen::aligned_allocator<Matrix<double,6,1> > > cps;
   double kfang = 5.0;
   double kfrad = kfang*M_PI/180.0;
 

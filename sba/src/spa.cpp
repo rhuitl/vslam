@@ -51,9 +51,9 @@
 
 #include <stdio.h>
 #include "sba/sba.h"
-#include <Eigen3/Cholesky>
+#include <Eigen/Cholesky>
 
-using namespace Eigen3;
+using namespace Eigen;
 using namespace std;
 
 #include <iostream>
@@ -116,7 +116,7 @@ namespace sba
          << "  Number of scale constraints: " << nscs << endl;
     
     cout << "Reading in camera data..." << flush;
-    std::vector<Node,Eigen3::aligned_allocator<Node> > &nodes = spa.nodes;
+    std::vector<Node,Eigen::aligned_allocator<Node> > &nodes = spa.nodes;
     Node nd;
 
     for (int i=0; i<ncams; i++)
@@ -144,7 +144,7 @@ namespace sba
 
     // read in p2p constraints
     cout << "Reading in constraint data..." << flush;
-    std::vector<ConP2,Eigen3::aligned_allocator<ConP2> > &cons = spa.p2cons;
+    std::vector<ConP2,Eigen::aligned_allocator<ConP2> > &cons = spa.p2cons;
     ConP2 con;
 
     for (int i=0; i<np2s; i++)
@@ -189,7 +189,7 @@ namespace sba
 
     // read in scale constraints
     cout << "Reading in scale constraint data..." << flush;
-    std::vector<ConScale,Eigen3::aligned_allocator<ConScale> > &scons = spa.scons;
+    std::vector<ConScale,Eigen::aligned_allocator<ConScale> > &scons = spa.scons;
     ConScale scon;
 
     for (int i=0; i<nscs; i++)
@@ -221,7 +221,7 @@ namespace sba
   // set up Jacobians
   // see Konolige RSS 2010 submission for details
 
-  void ConP2::setJacobians(std::vector<Node,Eigen3::aligned_allocator<Node> > &nodes)
+  void ConP2::setJacobians(std::vector<Node,Eigen::aligned_allocator<Node> > &nodes)
   {
     // node references
     Node &nr = nodes[ndr];
@@ -232,7 +232,7 @@ namespace sba
     Quaternion<double> &q1 = n1.qrot;
 
     // first get the second frame in first frame coords
-    Eigen3::Matrix<double,3,1> pc = nr.w2n * t1;
+    Eigen::Matrix<double,3,1> pc = nr.w2n * t1;
 
     // Jacobians wrt first frame parameters
 
@@ -243,11 +243,11 @@ namespace sba
 
     // translational part of 0p1 wrt rotational vars of p0
     // dR'/dq * [pw - t]
-    Eigen3::Matrix<double,3,1> pwt;
+    Eigen::Matrix<double,3,1> pwt;
     pwt = (t1-tr).head(3);   // transform translations
 
     // dx
-    Eigen3::Matrix<double,3,1> dp = nr.dRdx * pwt; // dR'/dq * [pw - t]
+    Eigen::Matrix<double,3,1> dp = nr.dRdx * pwt; // dR'/dq * [pw - t]
     J0.block<3,1>(0,3) = dp;
     // dy
     dp = nr.dRdy * pwt; // dR'/dq * [pw - t]
@@ -263,7 +263,7 @@ namespace sba
     // from 0q1 = qpmean * s0' * q0' * q1
 
     // dqdx
-    Eigen3::Quaternion<double> qr0, qr1, qrn, qrd;
+    Eigen::Quaternion<double> qr0, qr1, qrn, qrd;
     qr1.coeffs() = q1.coeffs();
     qrn.coeffs() = Vector4d(-qpmean.w(),-qpmean.z(),qpmean.y(),qpmean.x());  // qpmean * ds0'/dx
     qr0.coeffs() = Vector4d(-qr.x(),-qr.y(),-qr.z(),qr.w());
@@ -320,7 +320,7 @@ namespace sba
     // rotational part of 0p1 wrt rotational vars of p0
     // from 0q1 = q0'*s1*q1
 
-    Eigen3::Quaternion<double> qrc;
+    Eigen::Quaternion<double> qrc;
     qrc.coeffs() = Vector4d(-qr.x(),-qr.y(),-qr.z(),qr.w());
     qrc = qpmean*qrc*qr1;       // mean' * qr0' * qr1
     qrc.normalize();
@@ -380,7 +380,7 @@ namespace sba
   // set up Jacobians
   // see Konolige RSS 2010 submission for details
 
-  void ConScale::setJacobians(std::vector<Node,Eigen3::aligned_allocator<Node> > &nodes)
+  void ConScale::setJacobians(std::vector<Node,Eigen::aligned_allocator<Node> > &nodes)
   {
     // node references
     Node &n0 = nodes[nd0];
@@ -388,7 +388,7 @@ namespace sba
     Node &n1 = nodes[nd1];
     Matrix<double,4,1> &t1 = n1.trans;
 
-    Eigen3::Matrix<double,3,1> td = (t1-t0).head(3);
+    Eigen::Matrix<double,3,1> td = (t1-t0).head(3);
 
     // Jacobians wrt first frame parameters
     //  (ti - tj)^2 - a*kij
@@ -408,7 +408,7 @@ namespace sba
   // This hasn't been tested, and is probably wrong.
   //
 
-  void ConP3P::setJacobians(std::vector<Node,Eigen3::aligned_allocator<Node> > nodes)
+  void ConP3P::setJacobians(std::vector<Node,Eigen::aligned_allocator<Node> > nodes)
   {
     // node references
     Node nr = nodes[ndr];
@@ -640,8 +640,8 @@ namespace sba
 
   // Adds a node to the system. 
   // \return the index of the node added.
-  int SysSPA::addNode(Eigen3::Matrix<double,4,1> &trans, 
-                      Eigen3::Quaternion<double> &qrot,
+  int SysSPA::addNode(Eigen::Matrix<double,4,1> &trans, 
+                      Eigen::Quaternion<double> &qrot,
                       bool isFixed)
   {
     Node nd;
@@ -663,9 +663,9 @@ namespace sba
   // <prec> is a 3x3 precision matrix (inverse covariance
   // returns true if nodes are found
   bool SysSPA::addConstraint(int nd0, int nd1,
-                             Eigen3::Vector3d &tmean,
-                             Eigen3::Quaterniond &qpmean,
-                             Eigen3::Matrix<double,6,6> &prec)
+                             Eigen::Vector3d &tmean,
+                             Eigen::Quaterniond &qpmean,
+                             Eigen::Matrix<double,6,6> &prec)
   {
     if (nd0 >= (int)nodes.size() || nd1 >= (int)nodes.size()) 
       return false;
@@ -1149,7 +1149,7 @@ namespace sba
       }
     else
       {
-        Eigen3::IOFormat pfmt(16);
+        Eigen::IOFormat pfmt(16);
 
         int nrows = A.rows();
         int ncols = A.cols();

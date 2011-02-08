@@ -1055,7 +1055,7 @@ void reprojectPoints(const Mat& intrinsics, const Mat& R, const Mat& T, const ve
 
 inline double calcNodeErr(sba::Proj& prj, const sba::Node &nd, const sba::Point &pt)
 {
-  Eigen3::Vector3d p1 = nd.w2i * pt;
+  Eigen::Vector3d p1 = nd.w2i * pt;
   prj.err = p1.head(2)/p1(2);
   if (p1(2) <= 0.0)
   {
@@ -1158,7 +1158,7 @@ void sba(const Mat& intrinsics, Mat& rvec, Mat& tvec, vector<Point3f>& points, c
   sba0.doSBA(5,10e-5,false);
 
   //        cout << endl << sba.nodes[1].trans.transpose().start(3) << endl;
-  Eigen3::Vector3d trans = sba0.nodes[1].trans.head(3);
+  Eigen::Vector3d trans = sba0.nodes[1].trans.head(3);
   printf("trans = %f %f %f\n", trans(0), trans(1), trans(2));
   // do the convertion manually as there are
   *sbaTvec.ptr<Point3f>(0) = Point3f(trans(0), trans(1), trans(2));

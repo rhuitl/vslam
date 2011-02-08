@@ -39,7 +39,7 @@
 #include <stdio.h>
 #include "sba/csparse.h"
 
-using namespace Eigen3;
+using namespace Eigen;
 
 #include <iostream>
 #include <iomanip>

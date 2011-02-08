@@ -13,18 +13,18 @@ using namespace std;
 
 const double PI = 3.141592;
 
-int addPointAndProjection(SysSBA& sba, vector<Point, Eigen3::aligned_allocator<Point> >& points, int ndi);
+int addPointAndProjection(SysSBA& sba, vector<Point, Eigen::aligned_allocator<Point> >& points, int ndi);
 void calculateProj(SysSBA& sba, Point& point, int ndi, Vector3d& proj);
 
 class Plane
 {
   public:
-    vector<Point, Eigen3::aligned_allocator<Point> > points;
-    Eigen3::Vector3d normal;
+    vector<Point, Eigen::aligned_allocator<Point> > points;
+    Eigen::Vector3d normal;
     
-    void rotate(const Eigen3::Quaterniond& qrot)
+    void rotate(const Eigen::Quaterniond& qrot)
     {
-      Eigen3::Matrix3d rotmat = qrot.toRotationMatrix();
+      Eigen::Matrix3d rotmat = qrot.toRotationMatrix();
       
       for (unsigned int i = 0; i < points.size(); i++)
       {
@@ -36,11 +36,11 @@ class Plane
     
     void rotate(double angle, double x, double y, double z)
     {
-      Eigen3::AngleAxis<double> angleaxis(angle, Vector3d(x, y, z));
-      rotate(Eigen3::Quaterniond(angleaxis));
+      Eigen::AngleAxis<double> angleaxis(angle, Vector3d(x, y, z));
+      rotate(Eigen::Quaterniond(angleaxis));
     }
          
-    void translate(const Eigen3::Vector3d& trans)
+    void translate(const Eigen::Vector3d& trans)
     {
       for (unsigned int i = 0; i < points.size(); i++)
       {
@@ -203,7 +203,7 @@ void setupSBA(SysSBA &sba)
     }
 }
 
-int addPointAndProjection(SysSBA& sba, vector<Point, Eigen3::aligned_allocator<Point> >& points, int ndi)
+int addPointAndProjection(SysSBA& sba, vector<Point, Eigen::aligned_allocator<Point> >& points, int ndi)
 {
     // Define dimensions of the image.
     int maxx = 640;

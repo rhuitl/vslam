@@ -26,8 +26,6 @@ LIST(APPEND CMAKE_LIBRARY_PATH ../../opencv2/svs_build/lib/)
 SET(CMAKE_CXX_FLAGS_RELEASE  "-O2 -g -Wall  -msse -msse2 -msse3 -mmmx ")
 SET(CMAKE_CXX_FLAGS_DEBUG  "-O0 -g  -Wall -msse -msse2 -msse3 -mmmx")
 
-add_definitions(-DUSE_ORIGINAL_EIGEN3_NAMESPACE)
-
 # override by appending -DCMAKE_BUILD_TYPE=Debug to cmake argument list
 IF( NOT CMAKE_BUILD_TYPE )
    SET( CMAKE_BUILD_TYPE Release )

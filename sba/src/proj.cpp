@@ -2,11 +2,11 @@
 
 namespace sba
 {
-  Proj::Proj(int ci, Eigen3::Vector3d &q, bool stereo)
+  Proj::Proj(int ci, Eigen::Vector3d &q, bool stereo)
       : ndi(ci), kp(q), stereo(stereo), 
         isValid(true), useCovar(false), pointPlane(false) {}
       
-  Proj::Proj(int ci, Eigen3::Vector2d &q) 
+  Proj::Proj(int ci, Eigen::Vector2d &q) 
       : ndi(ci), kp(q(0), q(1), 0), 
         stereo(false), isValid(true), useCovar(false), pointPlane(false) {}
   
@@ -46,7 +46,7 @@ namespace sba
       return err.head<2>().squaredNorm();
   }
   
-  void Proj::setCovariance(const Eigen3::Matrix3d &covar)
+  void Proj::setCovariance(const Eigen::Matrix3d &covar)
   {
     useCovar = true;
     covarmat = covar;
@@ -60,13 +60,13 @@ namespace sba
   void Proj::setJacobiansMono_(const Node &nd, const Point &pt, JacobProds *jpp)
   {
     // first get the world point in camera coords
-    Eigen3::Matrix<double,3,1> pc = nd.w2n * pt;
+    Eigen::Matrix<double,3,1> pc = nd.w2n * pt;
 
     /// jacobian with respect to frame; uses dR'/dq from Node calculation
-    Eigen3::Matrix<double,2,6> jacc;
+    Eigen::Matrix<double,2,6> jacc;
     
     /// jacobian with respect to point
-    Eigen3::Matrix<double,2,3> jacp;
+    Eigen::Matrix<double,2,3> jacp;
 
     // Jacobians wrt camera parameters
     // set d(quat-x) values [ pz*dpx/dx - px*dpz/dx ] / pz^2
@@ -81,13 +81,13 @@ namespace sba
     // scale quaternion derivative to match the translational ones
     double ipz2fxq = qScale*ipz2fx;
     double ipz2fyq = qScale*ipz2fy;
-    Eigen3::Matrix<double,3,1> pwt;
+    Eigen::Matrix<double,3,1> pwt;
 
     // check for local vars
     pwt = (pt-nd.trans).head<3>(); // transform translations, use differential rotation
 
     // dx
-    Eigen3::Matrix<double,3,1> dp = nd.dRdx * pwt; // dR'/dq * [pw - t]
+    Eigen::Matrix<double,3,1> dp = nd.dRdx * pwt; // dR'/dq * [pw - t]
     jacc(0,3) = (pz*dp(0) - px*dp(2))*ipz2fxq;
     jacc(1,3) = (pz*dp(1) - py*dp(2))*ipz2fyq;
     // dy
@@ -142,14 +142,14 @@ namespace sba
   // we should do something about negative Z
   double Proj::calcErrMono_(const Node &nd, const Point &pt, double huber)
   {
-    Eigen3::Vector3d p1 = nd.w2i * pt; err = p1.head(2)/p1(2); 
+    Eigen::Vector3d p1 = nd.w2i * pt; err = p1.head(2)/p1(2); 
     if (p1(2) <= 0.0) 
     {
 #ifdef DEBUG
       printf("[CalcErr] negative Z! Node %d \n",ndi);
       if (isnan(err[0]) || isnan(err[1]) ) printf("[CalcErr] NaN!\n"); 
 #endif
-      err = Eigen3::Vector3d(0.0,0.0,0.0);
+      err = Eigen::Vector3d(0.0,0.0,0.0);
       return 0.0;
     }
     err -= kp;
@@ -186,13 +186,13 @@ namespace sba
   void Proj::setJacobiansStereo_(const Node &nd, const Point &pt, JacobProds *jpp)
   {
     // first get the world point in camera coords
-    Eigen3::Matrix<double,3,1> pc = nd.w2n * pt;
+    Eigen::Matrix<double,3,1> pc = nd.w2n * pt;
 
     /// jacobian with respect to point
-    Eigen3::Matrix<double,3,3> jacp;
+    Eigen::Matrix<double,3,3> jacp;
     
     /// jacobian with respect to frame; uses dR'/dq from Node calculation
-    Eigen3::Matrix<double,3,6> jacc;
+    Eigen::Matrix<double,3,6> jacc;
 
     // Jacobians wrt camera parameters
     // set d(quat-x) values [ pz*dpx/dx - px*dpz/dx ] / pz^2
@@ -208,13 +208,13 @@ namespace sba
     // scale quaternion derivative to match the translational ones
     double ipz2fxq = qScale*ipz2fx;
     double ipz2fyq = qScale*ipz2fy;
-    Eigen3::Matrix<double,3,1> pwt;
+    Eigen::Matrix<double,3,1> pwt;
 
     // check for local vars
     pwt = (pt-nd.trans).head(3); // transform translations, use differential rotation
 
     // dx
-    Eigen3::Matrix<double,3,1> dp = nd.dRdx * pwt; // dR'/dq * [pw - t]
+    Eigen::Matrix<double,3,1> dp = nd.dRdx * pwt; // dR'/dq * [pw - t]
     jacc(0,3) = (pz*dp(0) - px*dp(2))*ipz2fxq;
     jacc(1,3) = (pz*dp(1) - py*dp(2))*ipz2fyq;
     jacc(2,3) = (pz*dp(0) - (px-b)*dp(2))*ipz2fxq; // right image px
@@ -283,23 +283,23 @@ namespace sba
   // we should do something about negative Z
   double Proj::calcErrStereo_(const Node &nd, const Point &pt, double huber)
   { 
-    Eigen3::Vector3d p1 = nd.w2i * pt; 
-    Eigen3::Vector3d p2 = nd.w2n * pt; 
-    Eigen3::Vector3d pb(nd.baseline,0,0);
+    Eigen::Vector3d p1 = nd.w2i * pt; 
+    Eigen::Vector3d p2 = nd.w2n * pt; 
+    Eigen::Vector3d pb(nd.baseline,0,0);
     
     // TODO: Clean this up a bit. 
     if (pointPlane)
     {
       // Project point onto plane.
-      Eigen3::Vector3d w = pt.head<3>()-plane_point;
+      Eigen::Vector3d w = pt.head<3>()-plane_point;
 
       //printf("w: %f %f %f\n", w.x(), w.y(), w.z());
-      //Eigen3::Vector3d projpt = pt.head<3>()+(w.dot(plane_normal))*plane_normal;
-      Eigen3::Vector3d projpt = plane_point+(w.dot(plane_normal))*plane_normal;
-      //      Eigen3::Vector3d projpt = pt.head<3>()+(w.dot(plane_normal))*plane_normal;
+      //Eigen::Vector3d projpt = pt.head<3>()+(w.dot(plane_normal))*plane_normal;
+      Eigen::Vector3d projpt = plane_point+(w.dot(plane_normal))*plane_normal;
+      //      Eigen::Vector3d projpt = pt.head<3>()+(w.dot(plane_normal))*plane_normal;
       //printf("[Proj] Distance to plane: %f\n", w.dot(plane_normal));
-      p1 = nd.w2i*Eigen3::Vector4d(projpt.x(), projpt.y(), projpt.z(), 1.0);
-      p2 = nd.w2n*Eigen3::Vector4d(projpt.x(), projpt.y(), projpt.z(), 1.0);
+      p1 = nd.w2i*Eigen::Vector4d(projpt.x(), projpt.y(), projpt.z(), 1.0);
+      p2 = nd.w2n*Eigen::Vector4d(projpt.x(), projpt.y(), projpt.z(), 1.0);
     }
     
     double invp1 = 1.0/p1(2);

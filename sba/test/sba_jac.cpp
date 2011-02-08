@@ -43,7 +43,7 @@ using namespace std;
 // Bring in gtest
 #include <gtest/gtest.h>
 
-using namespace Eigen3;
+using namespace Eigen;
 using namespace sba;
 using namespace frame_common;
 

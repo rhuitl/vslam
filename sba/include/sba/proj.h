@@ -5,10 +5,10 @@
 #define EIGEN_USE_NEW_STDVECTOR
 #endif // EIGEN_USE_NEW_STDVECTOR
 
-#include <Eigen3/Core>
-#include <Eigen3/Geometry>
-#include <Eigen3/LU>
-#include <Eigen3/StdVector>
+#include <Eigen/Core>
+#include <Eigen/Geometry>
+#include <Eigen/LU>
+#include <Eigen/StdVector>
 #include <map>
 
 #include <sba/node.h>
@@ -30,26 +30,26 @@ namespace sba
     }
 
     /// Point-to-point Hessian (JpT*Jp).
-    Eigen3::Matrix<double,3,3> Hpp;
+    Eigen::Matrix<double,3,3> Hpp;
       
     /// Point-to-camera Hessian (JpT*Jc)
-    Eigen3::Matrix<double,3,6> Hpc;
+    Eigen::Matrix<double,3,6> Hpc;
       
     /// Camera-to-camera Hessian (JcT*Jc)
-    Eigen3::Matrix<double,6,6> Hcc;
+    Eigen::Matrix<double,6,6> Hcc;
       
     /// The B matrix with respect to points (JpT*Err)
-    Eigen3::Matrix<double,3,1> Bp;
+    Eigen::Matrix<double,3,1> Bp;
       
     /// Another matrix with respect to cameras (JcT*Err)
-    Eigen3::Matrix<double,6,1> JcTE;
+    Eigen::Matrix<double,6,1> JcTE;
   };
 
   class Proj; // Forward reference.
   
   /// Obnoxiously long type def for the map type that holds the point 
   /// projections in tracks.
-  typedef std::map<const int, Proj, std::less<int>, Eigen3::aligned_allocator<Proj> > ProjMap;
+  typedef std::map<const int, Proj, std::less<int>, Eigen::aligned_allocator<Proj> > ProjMap;
 
   /// \brief Proj holds a projection measurement of a point onto a
   /// frame. They are a repository for the link between the frame and
@@ -63,12 +63,12 @@ namespace sba
       /// \brief General & stereo constructor. To construct a monocular 
       /// projection, either use stereo = false or the other constructor.
       /// NOTE: sets the projection to be valid.
-      Proj(int ci, Eigen3::Vector3d &q, bool stereo = true);
+      Proj(int ci, Eigen::Vector3d &q, bool stereo = true);
       
       /// \brief Monocular constructor. To construct a stereo projection, 
       /// use other constructor.
       /// NOTE: sets the projection to be valid.
-      Proj(int ci, Eigen3::Vector2d &q);
+      Proj(int ci, Eigen::Vector2d &q);
       
       /// \brief Default constructor. Initializes to default values, 
       /// kp = <0 0 0> and ndi = <0>. Also sets the projection to be invalid.
@@ -78,10 +78,10 @@ namespace sba
       int ndi;
       
       /// Keypoint, u,v,u-d vector
-      Eigen3::Vector3d kp;
+      Eigen::Vector3d kp;
       
       /// Reprojection error.
-      Eigen3::Vector3d err;
+      Eigen::Vector3d err;
       
       /// Whether the projection is Stereo (True) or Monocular (False).
       bool stereo;
@@ -121,7 +121,7 @@ namespace sba
       
       /// Point-to-camera matrix (HpcT*Hpp^-1)
       /// Need to save this
-      Eigen3::Matrix<double,6,3> Tpc;
+      Eigen::Matrix<double,6,3> Tpc;
       
       /// valid or not (could be out of bounds)
       bool isValid;
@@ -134,16 +134,16 @@ namespace sba
       bool useCovar;
       
       /// Covariance matrix for cost calculation.
-      Eigen3::Matrix<double,3,3> covarmat;
+      Eigen::Matrix<double,3,3> covarmat;
       
       /// Whether this is a point-plane match (true) or a point-point match (false).
       bool pointPlane;
       
       /// Normal for point-plane projections
-      Eigen3::Vector3d plane_normal;
+      Eigen::Vector3d plane_normal;
       
       /// Point for point-plane projections
-      Eigen3::Vector3d plane_point;
+      Eigen::Vector3d plane_point;
       
       /// Point-plane match point index in SBA.
       int plane_point_index;
@@ -152,14 +152,14 @@ namespace sba
       int plane_node_index;
       
       /// Original normal in #plane_node_index coordinate's frame.
-      Eigen3::Vector3d plane_local_normal;
+      Eigen::Vector3d plane_local_normal;
 
       /// \brief Set the covariance matrix to use for cost calculation.
       /// Without the covariance matrix, cost is calculated by:
       /// cost = ||err||
       /// With a covariance matrix, the cost is calculated by:
       /// cost = (err)T*covar*(err)
-      void setCovariance(const Eigen3::Matrix3d &covar);
+      void setCovariance(const Eigen::Matrix3d &covar);
       
       /// Clear the covariance matrix and no longer use it.
       void clearCovariance();

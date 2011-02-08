@@ -38,9 +38,9 @@
 
 #include <stdio.h>
 #include "sba/spa2d.h"
-#include <Eigen3/Cholesky>
+#include <Eigen/Cholesky>
 
-using namespace Eigen3;
+using namespace Eigen;
 using namespace std;
 
 #include <iostream>
@@ -87,7 +87,7 @@ namespace sba
 
   // set up Jacobians
 
-  void Con2dP2::setJacobians(std::vector<Node2d,Eigen3::aligned_allocator<Node2d> > &nodes)
+  void Con2dP2::setJacobians(std::vector<Node2d,Eigen::aligned_allocator<Node2d> > &nodes)
   {
     // node references
     Node2d &nr = nodes[ndr];
@@ -96,7 +96,7 @@ namespace sba
     Matrix<double,3,1> &t1 = n1.trans;
 
     // first get the second frame in first frame coords
-    Eigen3::Matrix<double,2,1> pc = nr.w2n * t1;
+    Eigen::Matrix<double,2,1> pc = nr.w2n * t1;
 
     // Jacobians wrt first frame parameters
 
@@ -107,11 +107,11 @@ namespace sba
 
     // translational part of 0p1 wrt rotational vars of p0
     // dR'/dq * [pw - t]
-    Eigen3::Matrix<double,2,1> pwt;
+    Eigen::Matrix<double,2,1> pwt;
     pwt = (t1-tr).head(2);   // transform translations
 
     // dx
-    Eigen3::Matrix<double,2,1> dp = nr.dRdx * pwt; // dR'/dq * [pw - t]
+    Eigen::Matrix<double,2,1> dp = nr.dRdx * pwt; // dR'/dq * [pw - t]
     J0.block<2,1>(0,2) = dp;
 
     // rotational part of 0p1 wrt translation vars of p0 => zero
@@ -650,8 +650,8 @@ namespace sba
     spa.verbose = verbose;
 
     // node, constraint vectors and index mapping
-    std::vector<Node2d,Eigen3::aligned_allocator<Node2d> > &wnodes = spa.nodes;
-    std::vector<Con2dP2,Eigen3::aligned_allocator<Con2dP2> > &wp2cons = spa.p2cons;
+    std::vector<Node2d,Eigen::aligned_allocator<Node2d> > &wnodes = spa.nodes;
+    std::vector<Con2dP2,Eigen::aligned_allocator<Con2dP2> > &wp2cons = spa.p2cons;
     std::map<int,int> inds;
     std::vector<int> rinds;     // reverse indices
 
@@ -952,7 +952,7 @@ namespace sba
       }
     else
       {
-        Eigen3::IOFormat pfmt(16);
+        Eigen::IOFormat pfmt(16);
 
         int nrows = A.rows();
         int ncols = A.cols();

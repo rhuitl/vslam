@@ -57,6 +57,6 @@ cp Makefile-lib ${DISTDIR}/Makefile
 
 # // return cost and nodes
 # double SysSPA2d::getCost()
-# std::vector<Node2d,Eigen3::aligned_allocator<Node2d> > SysSPA2d::getNodes()
+# std::vector<Node2d,Eigen::aligned_allocator<Node2d> > SysSPA2d::getNodes()
 
 

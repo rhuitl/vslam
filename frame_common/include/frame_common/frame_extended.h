@@ -57,7 +57,7 @@
 #include <pcl/io/pcd_io.h>
 
 using namespace pcl;
-using namespace Eigen3;
+using namespace Eigen;
 
 namespace frame_common
 {
@@ -89,7 +89,7 @@ namespace frame_common
       }
       
       /** \brief Match points with previous frame, given an initial pose estimate of trans and rot. */
-      void match(frame_common::FrameExtended& frame, const Eigen3::Vector3d& trans, const Eigen3::Quaterniond& rot, std::vector<cv::DMatch>& matches)
+      void match(frame_common::FrameExtended& frame, const Eigen::Vector3d& trans, const Eigen::Quaterniond& rot, std::vector<cv::DMatch>& matches)
       {
         PointCloud<PointXYZRGBNormal> transformed_cloud;
         
@@ -168,8 +168,8 @@ namespace frame_common
         {
           PointXYZRGBNormal &pt = cloud.points[i];
           
-          pl_pts[i] = Eigen3::Vector4d(pt.x, pt.y, pt.z, 1.0);
-          pl_normals[i] = Eigen3::Vector4d(pt.normal[0], pt.normal[1], pt.normal[2], 1.0);
+          pl_pts[i] = Eigen::Vector4d(pt.x, pt.y, pt.z, 1.0);
+          pl_normals[i] = Eigen::Vector4d(pt.normal[0], pt.normal[1], pt.normal[2], 1.0);
           pl_kpts[i] = projectPoint(pl_pts[i]);
           pl_ipts[i] = -1;
         }
@@ -189,8 +189,8 @@ namespace frame_common
         indices.clear();
         
         // Filter out everything outside a [200x200x200] box.
-        Eigen3::Vector4f min_pt(-100, -100, -100, -100);
-        Eigen3::Vector4f max_pt(100, 100, 100, 100);
+        Eigen::Vector4f min_pt(-100, -100, -100, -100);
+        Eigen::Vector4f max_pt(100, 100, 100, 100);
         getPointsInBox(cloud_nan_filtered, min_pt, max_pt, indices);
         
         ExtractIndices<PointXYZRGB> boxfilter;
@@ -257,9 +257,9 @@ namespace frame_common
         }
       }
       
-      Eigen3::Vector3d projectPoint(Eigen3::Vector4d& point)
+      Eigen::Vector3d projectPoint(Eigen::Vector4d& point)
       {
-        Eigen3::Vector3d keypoint;
+        Eigen::Vector3d keypoint;
         
         keypoint(0) = (cam.fx*point.x()) / point.z() + cam.cx;
         keypoint(1) = (cam.fy*point.y()) / point.z() + cam.cy;
@@ -270,7 +270,7 @@ namespace frame_common
   };
   
   void drawVOtracks(const cv::Mat &image,
-                  const std::vector<FrameExtended, Eigen3::aligned_allocator<FrameExtended> > &frames,
+                  const std::vector<FrameExtended, Eigen::aligned_allocator<FrameExtended> > &frames,
                   cv::Mat &display);
 
 }

@@ -38,7 +38,7 @@
 #include "sba/sba.h"
 #include "sba/sba_setup.h"
 #include "sba/sba_file_io.h"
-using namespace Eigen3;
+using namespace Eigen;
 using namespace sba;
 
 #include <iostream>
@@ -67,7 +67,7 @@ TEST(TestSBA, SpiralSystem_2nodes_A)
   // define a camera and bundle system
   SysSBA sba;
   Node::initDr();
-  vector<Matrix<double,6,1>,Eigen3::aligned_allocator<Matrix<double,6,1> > > cps;
+  vector<Matrix<double,6,1>,Eigen::aligned_allocator<Matrix<double,6,1> > > cps;
 
   double kfang = 5.0;
   CamParams cpars = {300,300,320,240,0}; // 300 pix focal length
@@ -94,7 +94,7 @@ TEST(TestSBA, SpiralSystem_2nodes2_A)
   // define a camera and bundle system
   SysSBA sba;
   Node::initDr();
-  vector<Matrix<double,6,1>,Eigen3::aligned_allocator<Matrix<double,6,1> > > cps;
+  vector<Matrix<double,6,1>,Eigen::aligned_allocator<Matrix<double,6,1> > > cps;
 
   double kfang = 10.0;
   CamParams cpars = {300,300,320,240,0}; // 300 pix focal length
@@ -121,7 +121,7 @@ TEST(TestSBA, SpiralSystem_2nodes3_A)
   // define a camera and bundle system
   SysSBA sba;
   Node::initDr();
-  vector<Matrix<double,6,1>,Eigen3::aligned_allocator<Matrix<double,6,1> > > cps;
+  vector<Matrix<double,6,1>,Eigen::aligned_allocator<Matrix<double,6,1> > > cps;
 
   double kfang = 15.0;
   CamParams cpars = {300,300,320,240,0}; // 300 pix focal length
@@ -148,7 +148,7 @@ TEST(TestSBA, SpiralSystem_2nodes_vert_A)
   // define a camera and bundle system
   SysSBA sba;
   Node::initDr();
-  vector<Matrix<double,6,1>,Eigen3::aligned_allocator<Matrix<double,6,1> > > cps;
+  vector<Matrix<double,6,1>,Eigen::aligned_allocator<Matrix<double,6,1> > > cps;
 
   double kfang = 360.0;
   CamParams cpars = {300,300,320,240,0}; // 300 pix focal length
@@ -180,7 +180,7 @@ TEST(TestSBA, SpiralSystem_init90n)
   // define a camera and bundle system
   SysSBA sba;
   Node::initDr();
-  vector<Matrix<double,6,1>,Eigen3::aligned_allocator<Matrix<double,6,1> > > cps;
+  vector<Matrix<double,6,1>,Eigen::aligned_allocator<Matrix<double,6,1> > > cps;
 
   double kfang = 5.0;
   CamParams cpars = {300,300,320,240,0}; // 300 pix focal length
@@ -245,7 +245,7 @@ TEST(TestSBA, SpiralSystem_init0)
   // define a camera and bundle system
   SysSBA sba;
   Node::initDr();
-  vector<Matrix<double,6,1>,Eigen3::aligned_allocator<Matrix<double,6,1> > > cps;
+  vector<Matrix<double,6,1>,Eigen::aligned_allocator<Matrix<double,6,1> > > cps;
 
   double kfang = 5.0;
   CamParams cpars = {300,300,320,240,0}; // 300 pix focal length
@@ -303,7 +303,7 @@ TEST(TestSBA, SpiralSystem_global_init0)
   // define a camera and bundle system
   SysSBA sba;
   Node::initDr();
-  vector<Matrix<double,6,1>,Eigen3::aligned_allocator<Matrix<double,6,1> > > cps;
+  vector<Matrix<double,6,1>,Eigen::aligned_allocator<Matrix<double,6,1> > > cps;
 
   double kfang = 5.0;
   CamParams cpars = {300,300,320,240,0}; // 300 pix focal length
@@ -366,7 +366,7 @@ TEST(TestSBA, SpiralSystem_init90)
   // define a camera and bundle system
   SysSBA sba;
   Node::initDr();
-  vector<Matrix<double,6,1>,Eigen3::aligned_allocator<Matrix<double,6,1> > > cps;
+  vector<Matrix<double,6,1>,Eigen::aligned_allocator<Matrix<double,6,1> > > cps;
 
   double kfang = 5.0;
   CamParams cpars = {300,300,320,240,0}; // 300 pix focal length
@@ -430,7 +430,7 @@ TEST(TestSBA, SpiralSystem_init180)
   // define a camera and bundle system
   SysSBA sba;
   Node::initDr();
-  vector<Matrix<double,6,1>,Eigen3::aligned_allocator<Matrix<double,6,1> > > cps;
+  vector<Matrix<double,6,1>,Eigen::aligned_allocator<Matrix<double,6,1> > > cps;
 
   double kfang = 5.0;
   CamParams cpars = {300,300,320,240,0}; // 300 pix focal length
@@ -490,7 +490,7 @@ TEST(TestSBA, SpiralSystem_global_init180)
   // define a camera and bundle system
   SysSBA sba;
   Node::initDr();
-  vector<Matrix<double,6,1>,Eigen3::aligned_allocator<Matrix<double,6,1> > > cps;
+  vector<Matrix<double,6,1>,Eigen::aligned_allocator<Matrix<double,6,1> > > cps;
 
   double kfang = 5.0;
   CamParams cpars = {300,300,320,240,0}; // 300 pix focal length
@@ -553,7 +553,7 @@ TEST(TestSBA, SpiralSystem_global_init90n)
   // define a camera and bundle system
   SysSBA sba;
   Node::initDr();
-  vector<Matrix<double,6,1>,Eigen3::aligned_allocator<Matrix<double,6,1> > > cps;
+  vector<Matrix<double,6,1>,Eigen::aligned_allocator<Matrix<double,6,1> > > cps;
 
   double kfang = 5.0;
   CamParams cpars = {300,300,320,240,0}; // 300 pix focal length
@@ -623,7 +623,7 @@ TEST(TestSBA, SpiralSystem_global_400)
   // define a camera and bundle system
   SysSBA sba;
   Node::initDr();
-  vector<Matrix<double,6,1>,Eigen3::aligned_allocator<Matrix<double,6,1> > > cps;
+  vector<Matrix<double,6,1>,Eigen::aligned_allocator<Matrix<double,6,1> > > cps;
 
   double kfang = 5.0;
   CamParams cpars = {300,300,320,240,0}; // 300 pix focal length
@@ -700,7 +700,7 @@ TEST(TestSBA, SpiralSystem_54)
   // define a camera and bundle system
   SysSBA sba;
   Node::initDr();
-  vector<Matrix<double,6,1>,Eigen3::aligned_allocator<Matrix<double,6,1> > > cps;
+  vector<Matrix<double,6,1>,Eigen::aligned_allocator<Matrix<double,6,1> > > cps;
 
   double kfang = 10.0;
   CamParams cpars = {300,300,320,240,0}; // 300 pix focal length
@@ -783,7 +783,7 @@ TEST(TestSBA, SpiralSystem_400)
   // define a camera and bundle system
   SysSBA sba;
   Node::initDr();
-  vector<Matrix<double,6,1>,Eigen3::aligned_allocator<Matrix<double,6,1> > > cps;
+  vector<Matrix<double,6,1>,Eigen::aligned_allocator<Matrix<double,6,1> > > cps;
 
   double kfang = 5.0;
   CamParams cpars = {300,300,320,240,0}; // 300 pix focal length

@@ -116,7 +116,7 @@ void SBANode::addProj(const sba::Projection& msg)
   Vector3d keypoint(msg.u, msg.v, msg.d);
   bool stereo = msg.stereo;
   bool usecovariance = msg.usecovariance;
-  Eigen3::Matrix3d covariance;
+  Eigen::Matrix3d covariance;
   covariance << msg.covariance[0], msg.covariance[1], msg.covariance[2],
                 msg.covariance[3], msg.covariance[4], msg.covariance[5],
                 msg.covariance[6], msg.covariance[7], msg.covariance[8];

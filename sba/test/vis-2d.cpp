@@ -47,9 +47,9 @@
 #include "sba/read_spa.h"
 #include "sba/sba.h"
 #include "sba/spa2d.h"
-#include <Eigen3/Cholesky>
+#include <Eigen/Cholesky>
 
-using namespace Eigen3;
+using namespace Eigen;
 using namespace std;
 using namespace sba;
 
@@ -70,7 +70,7 @@ static long long utime()
 static int useInit = 0;
 
 
-void buildConstraintCache(std::multimap<int,int>& constraintCache, std::vector< Eigen3::Vector2i, Eigen3::aligned_allocator<Eigen3::Vector2i> >& cind){
+void buildConstraintCache(std::multimap<int,int>& constraintCache, std::vector< Eigen::Vector2i, Eigen::aligned_allocator<Eigen::Vector2i> >& cind){
   for (size_t i=0; i<cind.size(); i++){
     int idx_a=cind[i].x();
     int idx_b=cind[i].y();
@@ -89,12 +89,12 @@ void buildConstraintCache(std::multimap<int,int>& constraintCache, std::vector< 
 
 int 
 addnode(SysSPA2d &spa, int n, 
-        std::vector< Eigen3::Vector2d, Eigen3::aligned_allocator<Eigen3::Vector2d> > &ntrans,
+        std::vector< Eigen::Vector2d, Eigen::aligned_allocator<Eigen::Vector2d> > &ntrans,
         std::vector< double > &arots,
-        std::vector< Eigen3::Vector2i, Eigen3::aligned_allocator<Eigen3::Vector2i> > &cind,
-        std::vector< Eigen3::Vector2d, Eigen3::aligned_allocator<Eigen3::Vector2d> > &ctrans,
+        std::vector< Eigen::Vector2i, Eigen::aligned_allocator<Eigen::Vector2i> > &cind,
+        std::vector< Eigen::Vector2d, Eigen::aligned_allocator<Eigen::Vector2d> > &ctrans,
         std::vector< double > &carot,
-        std::vector< Eigen3::Matrix<double,3,3>, Eigen3::aligned_allocator<Eigen3::Matrix<double,3,3> > > &cvar,
+        std::vector< Eigen::Matrix<double,3,3>, Eigen::aligned_allocator<Eigen::Matrix<double,3,3> > > &cvar,
         std::multimap<int,int>& constraintCache)
 {
   Node2d &nd0 = spa.nodes[n-1];
@@ -294,7 +294,7 @@ drawgraph(SysSPA2d &spa, ros::Publisher &marker_pub, ros::Publisher &marker2_pub
     // draw points
     for (int i=0; i<nscans; i++)
       {
-        std::vector< Eigen3::Vector2d, Eigen3::aligned_allocator<Eigen3::Vector2d> > &scan = spa.scans[i];
+        std::vector< Eigen::Vector2d, Eigen::aligned_allocator<Eigen::Vector2d> > &scan = spa.scans[i];
         Node2d &nd = spa.nodes[i];
         Matrix<double,2,3> n2w;
         n2w.col(2) = nd.trans.head(2);
@@ -351,19 +351,19 @@ int main(int argc, char **argv)
   fin = argv[1];
 
   // node translation
-  std::vector< Eigen3::Vector2d, Eigen3::aligned_allocator<Eigen3::Vector2d> > ntrans;
+  std::vector< Eigen::Vector2d, Eigen::aligned_allocator<Eigen::Vector2d> > ntrans;
   // node rotation
   std::vector< double > arots;
   // constraint indices
-  std::vector< Eigen3::Vector2i, Eigen3::aligned_allocator<Eigen3::Vector2i> > cind;
+  std::vector< Eigen::Vector2i, Eigen::aligned_allocator<Eigen::Vector2i> > cind;
   // constraint local translation 
-  std::vector< Eigen3::Vector2d, Eigen3::aligned_allocator<Eigen3::Vector2d> > ctrans;
+  std::vector< Eigen::Vector2d, Eigen::aligned_allocator<Eigen::Vector2d> > ctrans;
   // constraint local rotation as quaternion
   std::vector< double > carot;
   // constraint precision
-  std::vector< Eigen3::Matrix<double,3,3>, Eigen3::aligned_allocator<Eigen3::Matrix<double,3,3> > > cvar;
+  std::vector< Eigen::Matrix<double,3,3>, Eigen::aligned_allocator<Eigen::Matrix<double,3,3> > > cvar;
   // scans
-  std::vector< std::vector< Eigen3::Vector2d, Eigen3::aligned_allocator<Eigen3::Vector2d> > > scans;
+  std::vector< std::vector< Eigen::Vector2d, Eigen::aligned_allocator<Eigen::Vector2d> > > scans;
 
   ReadSPA2dFile(fin,ntrans,arots,cind,ctrans,carot,cvar,scans);
   int npts = 0;

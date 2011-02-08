@@ -6,8 +6,8 @@
 #include <fstream>
 
 static const unsigned int DIMENSION = 176;
-typedef Eigen3::Matrix<float, 1, DIMENSION> Feature;
-typedef std::vector<Feature, Eigen3::aligned_allocator<Feature> > FeatureVector;
+typedef Eigen::Matrix<float, 1, DIMENSION> Feature;
+typedef std::vector<Feature, Eigen::aligned_allocator<Feature> > FeatureVector;
 
 int main(int argc, char** argv)
 {

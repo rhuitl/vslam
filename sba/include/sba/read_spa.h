@@ -41,8 +41,8 @@
 #define EIGEN_USE_NEW_STDVECTOR
 #endif // EIGEN_USE_NEW_STDVECTOR
 
-#define EIGEN_DEFAULT_IO_FORMAT Eigen3::IOFormat(10)
-#include <Eigen3/Eigen>
+#define EIGEN_DEFAULT_IO_FORMAT Eigen::IOFormat(10)
+#include <Eigen/Eigen>
 #include <vector>
 
 struct tinfo
@@ -57,17 +57,17 @@ struct tinfo
 int 
 ReadSPAFile(char *fin,          // input file
             // node translation
-            std::vector< Eigen3::Vector3d, Eigen3::aligned_allocator<Eigen3::Vector3d> > &ntrans,
+            std::vector< Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d> > &ntrans,
             // node rotation
-            std::vector< Eigen3::Vector4d, Eigen3::aligned_allocator<Eigen3::Vector4d> > &nqrot,
+            std::vector< Eigen::Vector4d, Eigen::aligned_allocator<Eigen::Vector4d> > &nqrot,
             // constraint indices
-            std::vector< Eigen3::Vector2i, Eigen3::aligned_allocator<Eigen3::Vector2i> > &cind,
+            std::vector< Eigen::Vector2i, Eigen::aligned_allocator<Eigen::Vector2i> > &cind,
             // constraint local translation 
-            std::vector< Eigen3::Vector3d, Eigen3::aligned_allocator<Eigen3::Vector3d> > &ctrans,
+            std::vector< Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d> > &ctrans,
             // constraint local rotation as quaternion
-            std::vector< Eigen3::Vector4d, Eigen3::aligned_allocator<Eigen3::Vector4d> > &cqrot,
+            std::vector< Eigen::Vector4d, Eigen::aligned_allocator<Eigen::Vector4d> > &cqrot,
             // constraint covariance
-            std::vector< Eigen3::Matrix<double,6,6>, Eigen3::aligned_allocator<Eigen3::Matrix<double,6,6> > > &cvar,
+            std::vector< Eigen::Matrix<double,6,6>, Eigen::aligned_allocator<Eigen::Matrix<double,6,6> > > &cvar,
             // track info: point projections, see format description in IntelSeattle files
             std::vector<struct tinfo> &tracks
   );
@@ -75,19 +75,19 @@ ReadSPAFile(char *fin,          // input file
 int 
 ReadSPA2dFile(char *fin,          // input file
             // node translation
-            std::vector< Eigen3::Vector2d, Eigen3::aligned_allocator<Eigen3::Vector2d> > &ntrans,
+            std::vector< Eigen::Vector2d, Eigen::aligned_allocator<Eigen::Vector2d> > &ntrans,
             // node rotation
             std::vector< double > &nqrot,
             // constraint indices
-            std::vector< Eigen3::Vector2i, Eigen3::aligned_allocator<Eigen3::Vector2i> > &cind,
+            std::vector< Eigen::Vector2i, Eigen::aligned_allocator<Eigen::Vector2i> > &cind,
             // constraint local translation 
-            std::vector< Eigen3::Vector2d, Eigen3::aligned_allocator<Eigen3::Vector2d> > &ctrans,
+            std::vector< Eigen::Vector2d, Eigen::aligned_allocator<Eigen::Vector2d> > &ctrans,
             // constraint local rotation as quaternion
             std::vector< double > &cqrot,
             // constraint covariance
-            std::vector< Eigen3::Matrix<double,3,3>, Eigen3::aligned_allocator<Eigen3::Matrix<double,3,3> > > &cvar,
+            std::vector< Eigen::Matrix<double,3,3>, Eigen::aligned_allocator<Eigen::Matrix<double,3,3> > > &cvar,
             // scan points
-            std::vector< std::vector< Eigen3::Vector2d, Eigen3::aligned_allocator<Eigen3::Vector2d> > > &scans
+            std::vector< std::vector< Eigen::Vector2d, Eigen::aligned_allocator<Eigen::Vector2d> > > &scans
   );
 
 #endif

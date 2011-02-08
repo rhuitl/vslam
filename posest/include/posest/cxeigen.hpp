@@ -46,13 +46,13 @@
 #ifdef __cplusplus
 
 #include "cxcore.h"
-#include <Eigen3/Core>
+#include <Eigen/Core>
 
 namespace cv
 {
 
 template<typename _Tp, int _rows, int _cols, int _options, int _maxRows, int _maxCols>
-void eigen2cv( const Eigen3::Matrix<_Tp, _rows, _cols, _options, _maxRows, _maxCols>& src,
+void eigen2cv( const Eigen::Matrix<_Tp, _rows, _cols, _options, _maxRows, _maxCols>& src,
                Mat& dst, bool _copyData=true )
 {
     Mat _src(src.rows(), src.cols(), DataType<_Tp>::type,
@@ -65,7 +65,7 @@ void eigen2cv( const Eigen3::Matrix<_Tp, _rows, _cols, _options, _maxRows, _maxC
     
 template<typename _Tp, int _rows, int _cols, int _options, int _maxRows, int _maxCols>
 void cv2eigen( const Mat& src,
-               Eigen3::Matrix<_Tp, _rows, _cols, _options, _maxRows, _maxCols>& dst )
+               Eigen::Matrix<_Tp, _rows, _cols, _options, _maxRows, _maxCols>& dst )
 {
     CV_Assert(src.rows == _rows && src.cols == _cols);
     Mat _dst(_rows, _cols, DataType<_Tp>::type,
@@ -76,7 +76,7 @@ void cv2eigen( const Mat& src,
 
 template<typename _Tp>
 void cv2eigen( const Mat& src,
-               Eigen3::Matrix<_Tp, Eigen3::Dynamic, Eigen3::Dynamic>& dst )
+               Eigen::Matrix<_Tp, Eigen::Dynamic, Eigen::Dynamic>& dst )
 {
     dst.resize(src.rows, src.cols);
     Mat _dst(src.rows, src.cols, DataType<_Tp>::type,
@@ -88,7 +88,7 @@ void cv2eigen( const Mat& src,
     
 template<typename _Tp>
 void cv2eigen( const Mat& src,
-               Eigen3::Matrix<_Tp, Eigen3::Dynamic, 1>& dst )
+               Eigen::Matrix<_Tp, Eigen::Dynamic, 1>& dst )
 {
     CV_Assert(src.cols == 1);
     dst.resize(src.rows);
@@ -101,7 +101,7 @@ void cv2eigen( const Mat& src,
 
 template<typename _Tp>
 void cv2eigen( const Mat& src,
-               Eigen3::Matrix<_Tp, 1, Eigen3::Dynamic>& dst )
+               Eigen::Matrix<_Tp, 1, Eigen::Dynamic>& dst )
 {
     CV_Assert(src.rows == 1);
     dst.resize(src.cols);

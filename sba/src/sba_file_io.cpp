@@ -2,19 +2,19 @@
 #include <map>
 
 using namespace sba;
-using namespace Eigen3;
+using namespace Eigen;
 using namespace frame_common;
 using namespace std;
 
 int sba::readBundlerFile(const char *filename, SysSBA& sbaout)
 { 
     // Create vectors to hold the data from the bundler file. 
-    vector< Vector3d, Eigen3::aligned_allocator<Vector3d> > camps;	// cam params <f d1 d2>
-    vector< Matrix3d, Eigen3::aligned_allocator<Matrix3d> > camRs;	// cam rotation matrix
-    vector< Vector3d, Eigen3::aligned_allocator<Vector3d> > camts;	// cam translation
-    vector< Vector3d, Eigen3::aligned_allocator<Vector3d> > ptps;	// point position
-    vector< Vector3i, Eigen3::aligned_allocator<Vector3i> > ptcs;	// point color
-    vector< vector< Vector4d, Eigen3::aligned_allocator<Vector4d> > > ptts; // point tracks - each vector is <camera_index kp_idex u v>
+    vector< Vector3d, Eigen::aligned_allocator<Vector3d> > camps;	// cam params <f d1 d2>
+    vector< Matrix3d, Eigen::aligned_allocator<Matrix3d> > camRs;	// cam rotation matrix
+    vector< Vector3d, Eigen::aligned_allocator<Vector3d> > camts;	// cam translation
+    vector< Vector3d, Eigen::aligned_allocator<Vector3d> > ptps;	// point position
+    vector< Vector3i, Eigen::aligned_allocator<Vector3i> > ptcs;	// point color
+    vector< vector< Vector4d, Eigen::aligned_allocator<Vector4d> > > ptts; // point tracks - each vector is <camera_index kp_idex u v>
 
     int ret = ParseBundlerFile(filename, camps, camRs, camts, ptps, ptcs, ptts);
     if (ret < 0)
@@ -91,7 +91,7 @@ int sba::readBundlerFile(const char *filename, SysSBA& sbaout)
     for (int i=0; i<npts; i++)
     {
       // track
-      vector<Vector4d, Eigen3::aligned_allocator<Vector4d> > &ptt = ptts[i];
+      vector<Vector4d, Eigen::aligned_allocator<Vector4d> > &ptt = ptts[i];
       int nprjs = ptt.size();
       for (int j=0; j<nprjs; j++)
         {
@@ -195,12 +195,12 @@ int sba::writeBundlerFile(const char *filename, SysSBA& sbain)
 } 
 
 int  sba::ParseBundlerFile(const char *fin,	// input file
-		vector< Vector3d, Eigen3::aligned_allocator<Vector3d> > &camp, // cam params <f d1 d2>
-		vector< Matrix3d, Eigen3::aligned_allocator<Matrix3d> > &camR, // cam rotation matrix
-		vector< Vector3d, Eigen3::aligned_allocator<Vector3d> > &camt, // cam translation
-		vector< Vector3d, Eigen3::aligned_allocator<Vector3d> > &ptp, // point position
-		vector< Vector3i, Eigen3::aligned_allocator<Vector3i> > &ptc, // point color
-		vector< vector< Vector4d, Eigen3::aligned_allocator<Vector4d> > > &ptt // point tracks - each vector is <camera_index u v>
+		vector< Vector3d, Eigen::aligned_allocator<Vector3d> > &camp, // cam params <f d1 d2>
+		vector< Matrix3d, Eigen::aligned_allocator<Matrix3d> > &camR, // cam rotation matrix
+		vector< Vector3d, Eigen::aligned_allocator<Vector3d> > &camt, // cam translation
+		vector< Vector3d, Eigen::aligned_allocator<Vector3d> > &ptp, // point position
+		vector< Vector3i, Eigen::aligned_allocator<Vector3i> > &ptc, // point color
+		vector< vector< Vector4d, Eigen::aligned_allocator<Vector4d> > > &ptt // point tracks - each vector is <camera_index u v>
 		)
 {
     ifstream ifs(fin);
@@ -289,7 +289,7 @@ int  sba::ParseBundlerFile(const char *fin,	// input file
 	  }
         int nprjs = i1;
 
-        vector<Vector4d, Eigen3::aligned_allocator<Vector4d> > &prjs = ptt[i];
+        vector<Vector4d, Eigen::aligned_allocator<Vector4d> > &prjs = ptt[i];
         for (int j=0; j<nprjs; j++)
 	  {
 	    if (!(ifs >> i1 >> i2 >> v1 >> v2))
@@ -408,7 +408,7 @@ void sba::writeA(const char *fname, SysSBA& sba)
       }
 
     // cameras
-    Eigen3::IOFormat pfmt(16);
+    Eigen::IOFormat pfmt(16);
     ofs << sba.A.format(pfmt) << endl;
     ofs.close();
 }
@@ -429,7 +429,7 @@ void sba::writeSparseA(const char *fname, SysSBA& sba)
         }
 
       // cameras
-      Eigen3::IOFormat pfmt(16);
+      Eigen::IOFormat pfmt(16);
 
       int nrows = sba.A.rows();
       int ncols = sba.A.cols();
@@ -469,7 +469,7 @@ void sba::writeSparseA(const char *fname, SysSBA& sba)
         }
 
       // cameras
-      Eigen3::IOFormat pfmt(16);
+      Eigen::IOFormat pfmt(16);
 
       int nrows = sba.B.rows();
     
@@ -488,11 +488,11 @@ void sba::writeSparseA(const char *fname, SysSBA& sba)
 int sba::readGraphFile(const char *filename, SysSBA& sbaout)
 { 
     // Create vectors to hold the data from the graph file. 
-    vector< Vector5d, Eigen3::aligned_allocator<Vector5d> > camps;	// cam params <f d1 d2>
-    vector< Vector4d, Eigen3::aligned_allocator<Vector4d> > camqs;	// cam rotation matrix
-    vector< Vector3d, Eigen3::aligned_allocator<Vector3d> > camts;	// cam translation
-    vector< Vector3d, Eigen3::aligned_allocator<Vector3d> > ptps;	// point position
-    vector< vector< Vector11d, Eigen3::aligned_allocator<Vector11d> > > ptts; // point tracks - each vector is <camera_index kp_idex u v>
+    vector< Vector5d, Eigen::aligned_allocator<Vector5d> > camps;	// cam params <f d1 d2>
+    vector< Vector4d, Eigen::aligned_allocator<Vector4d> > camqs;	// cam rotation matrix
+    vector< Vector3d, Eigen::aligned_allocator<Vector3d> > camts;	// cam translation
+    vector< Vector3d, Eigen::aligned_allocator<Vector3d> > ptps;	// point position
+    vector< vector< Vector11d, Eigen::aligned_allocator<Vector11d> > > ptts; // point tracks - each vector is <camera_index kp_idex u v>
 
     int ret = ParseGraphFile(filename, camps, camqs, camts, ptps, ptts);
     if (ret < 0)
@@ -563,7 +563,7 @@ int sba::readGraphFile(const char *filename, SysSBA& sbaout)
     for (int i=0; i<npts; i++)
     {
         // track
-        vector<Vector11d, Eigen3::aligned_allocator<Vector11d> > &ptt = ptts[i];
+        vector<Vector11d, Eigen::aligned_allocator<Vector11d> > &ptt = ptts[i];
         int nprjs = ptt.size();
         for (int j=0; j<nprjs; j++)
         {
@@ -609,13 +609,13 @@ static void make_qrot(double rr, double rp, double ry, Vector4d &v)
 }
 
 int  sba::ParseGraphFile(const char *fin,	// input file
-  vector< Vector5d, Eigen3::aligned_allocator<Vector5d> > &camp, // cam params <fx fy cx cy>
-  vector< Vector4d, Eigen3::aligned_allocator<Vector4d> > &camq, // cam rotation quaternion
-  vector< Vector3d, Eigen3::aligned_allocator<Vector3d> > &camt, // cam translation
-  vector< Vector3d, Eigen3::aligned_allocator<Vector3d> > &ptp, // point position
+  vector< Vector5d, Eigen::aligned_allocator<Vector5d> > &camp, // cam params <fx fy cx cy>
+  vector< Vector4d, Eigen::aligned_allocator<Vector4d> > &camq, // cam rotation quaternion
+  vector< Vector3d, Eigen::aligned_allocator<Vector3d> > &camt, // cam translation
+  vector< Vector3d, Eigen::aligned_allocator<Vector3d> > &ptp, // point position
   // point tracks - each vector is <camera_index point_index u v d>; 
   // point index is redundant, d is 0 for mono, >0 for stereo
-  vector< vector< Vector11d, Eigen3::aligned_allocator<Vector11d> > > &ptts 
+  vector< vector< Vector11d, Eigen::aligned_allocator<Vector11d> > > &ptts 
 		)
 {
   // input stream
@@ -746,7 +746,7 @@ int  sba::ParseGraphFile(const char *fin,	// input file
 	  // get point track
 	  if (ptts.size() < (size_t)pi+1)
 	    ptts.resize(pi+1);
-	  vector< Vector11d, Eigen3::aligned_allocator<Vector11d> > &trk = ptts[pi];
+	  vector< Vector11d, Eigen::aligned_allocator<Vector11d> > &trk = ptts[pi];
 	  Vector11d tv;
 	  tv << ci,pi,u,v,d,cv0,cv1,cv2,cv3,cv4,cv5;
 	  trk.push_back(tv);
@@ -868,12 +868,12 @@ int sba::writeGraphFile(const char *filename, SysSBA& sba, bool mono)
 
 void 
 addnode(SysSPA &spa, int n, 
- std::vector< Eigen3::Vector3d, Eigen3::aligned_allocator<Eigen3::Vector3d> > ntrans, 	// node translation
- std::vector< Eigen3::Vector4d, Eigen3::aligned_allocator<Eigen3::Vector4d> > nqrot,	// node rotation
- std::vector< Eigen3::Vector2i, Eigen3::aligned_allocator<Eigen3::Vector2i> > cind,	// constraint indices
- std::vector< Eigen3::Vector3d, Eigen3::aligned_allocator<Eigen3::Vector3d> > ctrans,	// constraint local translation 
- std::vector< Eigen3::Vector4d, Eigen3::aligned_allocator<Eigen3::Vector4d> > cqrot,	// constraint local rotation as quaternion
- std::vector< Eigen3::Matrix<double,6,6>, Eigen3::aligned_allocator<Eigen3::Matrix<double,6,6> > > prec) // constraint covariance
+ std::vector< Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d> > ntrans, 	// node translation
+ std::vector< Eigen::Vector4d, Eigen::aligned_allocator<Eigen::Vector4d> > nqrot,	// node rotation
+ std::vector< Eigen::Vector2i, Eigen::aligned_allocator<Eigen::Vector2i> > cind,	// constraint indices
+ std::vector< Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d> > ctrans,	// constraint local translation 
+ std::vector< Eigen::Vector4d, Eigen::aligned_allocator<Eigen::Vector4d> > cqrot,	// constraint local rotation as quaternion
+ std::vector< Eigen::Matrix<double,6,6>, Eigen::aligned_allocator<Eigen::Matrix<double,6,6> > > prec) // constraint covariance
 {
   Node nd;
 
@@ -929,12 +929,12 @@ addnode(SysSPA &spa, int n,
 int sba::readSPAGraphFile(const char *filename, SysSPA& spaout)
 { 
   // Create vectors to hold the data from the graph file. 
-  std::vector< Eigen3::Vector3d, Eigen3::aligned_allocator<Eigen3::Vector3d> > ntrans; 	// node translation
-  std::vector< Eigen3::Vector4d, Eigen3::aligned_allocator<Eigen3::Vector4d> > nqrot;	// node rotation
-  std::vector< Eigen3::Vector2i, Eigen3::aligned_allocator<Eigen3::Vector2i> > cind;	// constraint indices
-  std::vector< Eigen3::Vector3d, Eigen3::aligned_allocator<Eigen3::Vector3d> > ctrans;	// constraint local translation 
-  std::vector< Eigen3::Vector4d, Eigen3::aligned_allocator<Eigen3::Vector4d> > cqrot;	// constraint local rotation as quaternion
-  std::vector< Eigen3::Matrix<double,6,6>, Eigen3::aligned_allocator<Eigen3::Matrix<double,6,6> > > prec; // constraint covariance
+  std::vector< Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d> > ntrans; 	// node translation
+  std::vector< Eigen::Vector4d, Eigen::aligned_allocator<Eigen::Vector4d> > nqrot;	// node rotation
+  std::vector< Eigen::Vector2i, Eigen::aligned_allocator<Eigen::Vector2i> > cind;	// constraint indices
+  std::vector< Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d> > ctrans;	// constraint local translation 
+  std::vector< Eigen::Vector4d, Eigen::aligned_allocator<Eigen::Vector4d> > cqrot;	// constraint local rotation as quaternion
+  std::vector< Eigen::Matrix<double,6,6>, Eigen::aligned_allocator<Eigen::Matrix<double,6,6> > > prec; // constraint covariance
 
   int ret = ParseSPAGraphFile(filename, ntrans, nqrot, cind, ctrans, cqrot, prec);
   if (ret < 0)
@@ -994,12 +994,12 @@ void make_covar(double *cv, Matrix<double,6,6> &m)
 
 int
 sba::ParseSPAGraphFile(const char *fin, // input file
-   std::vector< Eigen3::Vector3d, Eigen3::aligned_allocator<Eigen3::Vector3d> > &ntrans, // node translation
-   std::vector< Eigen3::Vector4d, Eigen3::aligned_allocator<Eigen3::Vector4d> > &nqrot,  // node rotation
-   std::vector< Eigen3::Vector2i, Eigen3::aligned_allocator<Eigen3::Vector2i> > &cind,   // constraint indices
-   std::vector< Eigen3::Vector3d, Eigen3::aligned_allocator<Eigen3::Vector3d> > &ctrans, // constraint local translation 
-   std::vector< Eigen3::Vector4d, Eigen3::aligned_allocator<Eigen3::Vector4d> > &cqrot,  // constraint local rotation as quaternion
-   std::vector< Eigen3::Matrix<double,6,6>, Eigen3::aligned_allocator<Eigen3::Matrix<double,6,6> > > &prec) // constraint covariance
+   std::vector< Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d> > &ntrans, // node translation
+   std::vector< Eigen::Vector4d, Eigen::aligned_allocator<Eigen::Vector4d> > &nqrot,  // node rotation
+   std::vector< Eigen::Vector2i, Eigen::aligned_allocator<Eigen::Vector2i> > &cind,   // constraint indices
+   std::vector< Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d> > &ctrans, // constraint local translation 
+   std::vector< Eigen::Vector4d, Eigen::aligned_allocator<Eigen::Vector4d> > &cqrot,  // constraint local rotation as quaternion
+   std::vector< Eigen::Matrix<double,6,6>, Eigen::aligned_allocator<Eigen::Matrix<double,6,6> > > &prec) // constraint covariance
 {
   ifstream ifs(fin);
   if (ifs == NULL)

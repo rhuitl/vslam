@@ -9,7 +9,7 @@ int main(int argc, char** argv)
     return 0;
   }
 
-  typedef Eigen3::Vector4f Feature;
+  typedef Eigen::Vector4f Feature;
   vt::VocabularyTree<Feature> vtree;
   vtree.load(argv[1]);
 

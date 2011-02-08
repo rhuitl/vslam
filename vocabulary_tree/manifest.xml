@@ -11,7 +11,7 @@
   <url>http://ros.org/wiki/vocabulary_tree</url>
   <depend package="roscpp"/>
   <depend package="opencv2"/>
-  <depend package="eigen3"/>
+  <depend package="eigen"/>
 
   <export>
     <cpp cflags="-I${prefix}/include" lflags="-L${prefix}/lib -Wl,-rpath,${prefix}/lib -lvocabulary_tree" />

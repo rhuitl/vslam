@@ -36,7 +36,7 @@
 // setup fns for spiral trajectory
 
 #include "sba/sba_setup.h"
-using namespace Eigen3;
+using namespace Eigen;
 using namespace sba;
 using namespace frame_common;
 
@@ -56,7 +56,7 @@ static double far = 10.0;
 static int camn = 0;
 static int camp = -1;
 
-int mark_points(SysSBA &sba, Node& ci, vector< Point,Eigen3::aligned_allocator<Point>  >& Wpts, vector<int> &Wptref, 
+int mark_points(SysSBA &sba, Node& ci, vector< Point,Eigen::aligned_allocator<Point>  >& Wpts, vector<int> &Wptref, 
                 vector<int> &Wptind)
 {
   int ntot = 0;
@@ -105,7 +105,7 @@ int mark_points(SysSBA &sba, Node& ci, vector< Point,Eigen3::aligned_allocator<P
 // add measurements, assuming ref counts present
 // <cind> is the camera/node index
 int add_points(SysSBA &sba, double inoise, int cind, 
-               vector< Vector4d,Eigen3::aligned_allocator<Vector4d> >& Wpts, vector<int> &Wptref,
+               vector< Vector4d,Eigen::aligned_allocator<Vector4d> >& Wpts, vector<int> &Wptref,
                vector<int> &Wptind)
 {
   int ntot = 0;
@@ -152,7 +152,7 @@ long long utime()
 
 // set up spiral camera/point system
 void
-spiral_setup(SysSBA &sba, CamParams &cpars, vector<Matrix<double,6,1>, Eigen3::aligned_allocator<Matrix<double,6,1> > > &cps,
+spiral_setup(SysSBA &sba, CamParams &cpars, vector<Matrix<double,6,1>, Eigen::aligned_allocator<Matrix<double,6,1> > > &cps,
              double s_near, double s_far,
              double ptsize, double kfang, double initang, double cycles, 
              double inoise, double pnoise, double qnoise)
@@ -168,7 +168,7 @@ spiral_setup(SysSBA &sba, CamParams &cpars, vector<Matrix<double,6,1>, Eigen3::a
   const double Wsize2 = Wsize * 0.5;
   int Wvol = (int)(Wsize*Wsize*Wsize+0.5);
   int Npts = Wvol * ptsize;
-  vector< Point, Eigen3::aligned_allocator<Point> > Wpts; // list of world points
+  vector< Point, Eigen::aligned_allocator<Point> > Wpts; // list of world points
   vector< int > Wptref;         // ref count for points
   vector< int > Wptind;         // index from SBA pts to Wpts
   Wpts.resize(Npts);            // 10K points
@@ -307,7 +307,7 @@ spiral_setup(SysSBA &sba, CamParams &cpars, vector<Matrix<double,6,1>, Eigen3::a
 //
 
 int add_p2con(SysSPA &spa, int i, int j, 
-              Eigen3::Matrix<double,6,6> prec,
+              Eigen::Matrix<double,6,6> prec,
               double mpnoise, double mqnoise)
 {
   ConP2 con;
@@ -338,7 +338,7 @@ int add_p2con(SysSPA &spa, int i, int j,
 // set up spiral frame/frame system
 void
 spa_spiral_setup(SysSPA &spa, bool use_cross_links,
-                 vector<Matrix<double,6,1>, Eigen3::aligned_allocator<Matrix<double,6,1> > > &cps,
+                 vector<Matrix<double,6,1>, Eigen::aligned_allocator<Matrix<double,6,1> > > &cps,
                  Matrix<double,6,6> prec, Matrix<double,6,6> vprec,
                  Matrix<double,6,6> a10prec, Matrix<double,6,6> a15prec,
                  double kfang, double initang, double cycles, 
@@ -518,7 +518,7 @@ spa_spiral_setup(SysSPA &spa, bool use_cross_links,
 //
 
 int add_p2con2d(SysSPA2d &spa, int i, int j, 
-                Eigen3::Matrix<double,3,3> prec,
+                Eigen::Matrix<double,3,3> prec,
                 double mpnoise, double mqnoise)
 {
   Con2dP2 con;
@@ -550,7 +550,7 @@ int add_p2con2d(SysSPA2d &spa, int i, int j,
 // set up spiral frame/frame system
 void
 spa2d_spiral_setup(SysSPA2d &spa, 
-                 vector<Matrix<double,3,1>, Eigen3::aligned_allocator<Matrix<double,3,1> > > &cps,
+                 vector<Matrix<double,3,1>, Eigen::aligned_allocator<Matrix<double,3,1> > > &cps,
                  Matrix<double,3,3> prec, Matrix<double,3,3> vprec,
                  Matrix<double,3,3> a10prec, Matrix<double,3,3> a15prec,
                  double kfang, double initang, double cycles, 
@@ -781,7 +781,7 @@ find_cams(SysSBA &sba, int ci, set<int> &cinds, int nconns)
 }
 
 void
-sphere_setup(SysSBA &sba, CamParams &cpars, vector<Matrix<double,6,1>, Eigen3::aligned_allocator<Matrix<double,6,1> > > &cps,
+sphere_setup(SysSBA &sba, CamParams &cpars, vector<Matrix<double,6,1>, Eigen::aligned_allocator<Matrix<double,6,1> > > &cps,
 	     int ncams,		// number of cameras
 	     int ncpts,		// number of new pts per camera
 	     int nccs,		// number of camera connections per camera

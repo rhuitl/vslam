@@ -81,7 +81,7 @@ void extractPnPData(const fc::Frame& frame1, const fc::Frame& frame2, const std:
     if (frame1.goodPts[i1] == false)
       continue;
 
-    const Eigen3::Vector4d& p = frame1.pts[i1];
+    const Eigen::Vector4d& p = frame1.pts[i1];
 
     //printf("i1 = %d i2 = %d\n", i1, i2);
     //printf("%f %f %f\n", p(0), p(1), p(2));
@@ -362,7 +362,7 @@ int PoseEstimator2d::estimate(const fc::Frame& frame1, const fc::Frame& frame2, 
 
     if(getMethod() == SFM)
     {
-      _frame1.pts[i1] = Eigen3::Vector4d(cloud[i].x, cloud[i].y, cloud[i].z, 1.0);
+      _frame1.pts[i1] = Eigen::Vector4d(cloud[i].x, cloud[i].y, cloud[i].z, 1.0);
       _frame1.goodPts[i1] = true;
     }
 
@@ -378,7 +378,7 @@ int PoseEstimator2d::estimate(const fc::Frame& frame1, const fc::Frame& frame2, 
 
     Point3f _r = *r.ptr<Point3f> (0);
     //printf("assigning point %d to %f,%f,%f\n", i2, _r.x, _r.y, _r.z);
-    _frame2.pts[i2] = Eigen3::Vector4d(_r.x, _r.y, _r.z, 1.0);
+    _frame2.pts[i2] = Eigen::Vector4d(_r.x, _r.y, _r.z, 1.0);
     goodCount++;
 
     assert(cloud[i].z >= 0 && _r.z >= 0);

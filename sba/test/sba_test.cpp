@@ -41,7 +41,7 @@
 // Bring in gtest
 #include <gtest/gtest.h>
 
-using namespace Eigen3;
+using namespace Eigen;
 using namespace sba;
 using namespace frame_common;
 
@@ -308,10 +308,10 @@ TEST(SBAtest, SimpleSystem)
 
   // set up projections onto nodes
   ind = 0;
-  for(vector<Point,Eigen3::aligned_allocator<Point> >::iterator itr = sys.points.begin(); itr!=sys.points.end(); itr++)
+  for(vector<Point,Eigen::aligned_allocator<Point> >::iterator itr = sys.points.begin(); itr!=sys.points.end(); itr++)
     {
       Point pt = *itr;      
-      vector<Proj,Eigen3::aligned_allocator<Proj> > prjs;	// new point track
+      vector<Proj,Eigen::aligned_allocator<Proj> > prjs;	// new point track
       Proj prj;
       prj.isValid = true;
       prj.pti = ind;

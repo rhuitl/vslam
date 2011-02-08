@@ -46,12 +46,12 @@
 
 #include <vector>
 #include <map>
-#include <Eigen3/Core>
-#include <Eigen3/Geometry>
-#include <Eigen3/LU>
-#include <Eigen3/StdVector>
+#include <Eigen/Core>
+#include <Eigen/Geometry>
+#include <Eigen/LU>
+#include <Eigen/StdVector>
 
-using namespace Eigen3;
+using namespace Eigen;
 using namespace std;
 
 //typedef Matrix<double,6,1> Vector6d;

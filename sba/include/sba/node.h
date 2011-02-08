@@ -5,8 +5,8 @@
 
 #include <stdio.h>
 #include <iostream>
-#include <Eigen3/Core>
-#include <Eigen3/Geometry>
+#include <Eigen/Core>
+#include <Eigen/Geometry>
 
 // needed for camera params
 #ifndef _CAMPARAMS_H_
@@ -34,13 +34,13 @@ namespace sba
 
   /// \brief Keypoints - subpixel using floats.
   /// u,v are pixel coordinates, d is disparity (if stereo)
-  typedef Eigen3::Vector3d Keypoint;
+  typedef Eigen::Vector3d Keypoint;
 
 
   /// \brief Point holds 3D points using in world coordinates.
   /// Currently we just represent these as 4-vectors, with a final
   /// "1.0".
-  typedef Eigen3::Vector4d Point;
+  typedef Eigen::Vector4d Point;
 
 
   /// \brief NODE holds graph nodes corresponding to frames, for use in
@@ -66,8 +66,8 @@ namespace sba
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW // needed for 16B alignment
 
     // 6DOF pose as a unit quaternion and translation vector
-    Eigen3::Matrix<double,4,1> trans; ///< Translation in homogeneous coordinates, last element is 1.0.
-    Eigen3::Quaternion<double> qrot;  ///< Rotation of the node expressed as a Quaternion.
+    Eigen::Matrix<double,4,1> trans; ///< Translation in homogeneous coordinates, last element is 1.0.
+    Eigen::Quaternion<double> qrot;  ///< Rotation of the node expressed as a Quaternion.
     
     /// \brief Normalize quaternion to unit. 
     /// Problem with global derivatives near w=0, solved by a hack for now.
@@ -77,7 +77,7 @@ namespace sba
     void normRotLocal();
 
     /// Resultant transform from world to node coordinates.
-    Eigen3::Matrix<double,3,4> w2n; 
+    Eigen::Matrix<double,3,4> w2n; 
     
     /// \brief Sets the transform matrices of the node.
     void setTransform();
@@ -85,11 +85,11 @@ namespace sba
     // Covariance matrix, 6x6.  Variables are [trans,rot], with the
     // rotational part being the xyz parameters of the unit
     // quaternion
-    //    Eigen3::Matrix<double,6,6> covar;
+    //    Eigen::Matrix<double,6,6> covar;
 
     /// \brief Projection to frame image coordinates.
     /// pre-multiply by the frame camera matrix.
-    Eigen3::Matrix<double,3,3> Kcam; 
+    Eigen::Matrix<double,3,3> Kcam; 
     double baseline;                    ///< baseline for stereo
     
     
@@ -108,13 +108,13 @@ namespace sba
     }
 
     /// \brief The transform from world to image coordinates.
-    Eigen3::Matrix<double,3,4> w2i;
+    Eigen::Matrix<double,3,4> w2i;
     
     /// Project a point into image coordinates.
     /// \param pi The u, v projection of the point into image coordinates.
     /// \param p The 3D point in world coordinates to be projected.
-    void project2im(Eigen3::Vector2d &pi, const Point &p) const
-          { Eigen3::Vector3d p1 = w2i * p; pi = p1.head(2)/p1(2); }
+    void project2im(Eigen::Vector2d &pi, const Point &p) const
+          { Eigen::Vector3d p1 = w2i * p; pi = p1.head(2)/p1(2); }
 
     /// Set up world-to-image projection matrix (w2i), assumes camera parameters
     /// are filled.
@@ -123,10 +123,10 @@ namespace sba
 
     /// \brief Derivatives of the rotation matrix transpose wrt quaternion xyz, 
     /// used for calculating Jacobian wrt pose of a projection.
-    Eigen3::Matrix<double,3,3> dRdx, dRdy, dRdz;
+    Eigen::Matrix<double,3,3> dRdx, dRdy, dRdz;
     
     /// \brief Constant matrices for derivatives.
-    static Eigen3::Matrix3d dRidx, dRidy, dRidz; // these are constant
+    static Eigen::Matrix3d dRidx, dRidy, dRidz; // these are constant
     
     /// \brief Sets up constant matrices for derivatives.
     static void initDr();       // call this to set up constant matrices
@@ -141,16 +141,16 @@ namespace sba
     bool isFixed;
 
     /// Previous translation, saved for downdating within LM.
-    Eigen3::Matrix<double,4,1> oldtrans;
+    Eigen::Matrix<double,4,1> oldtrans;
     
     /// Previous quaternion rotation, saved for downdating within LM.
-    Eigen3::Quaternion<double> oldqrot;
+    Eigen::Quaternion<double> oldqrot;
     
     /// \brief Project a 3D point into the image frame as a monocular point.
-    void projectMono(const Point& pt, Eigen3::Vector3d& proj);
+    void projectMono(const Point& pt, Eigen::Vector3d& proj);
     
     /// \brief Project a 3D point into the image frame as a stereo point.
-    void projectStereo(const Point& pt, Eigen3::Vector3d& proj);
+    void projectStereo(const Point& pt, Eigen::Vector3d& proj);
   };
   
   
@@ -161,22 +161,22 @@ namespace sba
   /// Based on translation vector and unit quaternion rotation, which
   /// gives the frame's pose in world coordinates.  Assumes quaternion
   /// is normalized (unit).  
-  void transformW2F(Eigen3::Matrix<double,3,4> &m, 
-                    const Eigen3::Matrix<double,4,1> &trans, 
-                    const Eigen3::Quaternion<double> &qrot);
+  void transformW2F(Eigen::Matrix<double,3,4> &m, 
+                    const Eigen::Matrix<double,4,1> &trans, 
+                    const Eigen::Quaternion<double> &qrot);
 
 
   /// Projection matrix from Frame to World coordinates: [R t]
   ///
-  void transformF2W(Eigen3::Matrix<double,3,4> &m, 
-                    const Eigen3::Matrix<double,4,1> &trans, 
-                    const Eigen3::Quaternion<double> &qrot);
+  void transformF2W(Eigen::Matrix<double,3,4> &m, 
+                    const Eigen::Matrix<double,4,1> &trans, 
+                    const Eigen::Quaternion<double> &qrot);
 
 
   /// Transform of one node in another's coords
   ///
-  void transformN2N(Eigen3::Matrix<double,4,1> &trans, 
-                    Eigen3::Quaternion<double> &qrot,
+  void transformN2N(Eigen::Matrix<double,4,1> &trans, 
+                    Eigen::Quaternion<double> &qrot,
                     Node &nd0, Node &nd1);
 
 } // sba namespace

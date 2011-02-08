@@ -45,13 +45,13 @@
 
 #include <stdio.h>
 #include <iostream>
-#include <Eigen3/Core>
-#include <Eigen3/Geometry>
-#include <Eigen3/LU>
-#include <Eigen3/StdVector>
+#include <Eigen/Core>
+#include <Eigen/Geometry>
+#include <Eigen/LU>
+#include <Eigen/StdVector>
 #include <vector>
 #include <algorithm>
-#include <Eigen3/Cholesky>
+#include <Eigen/Cholesky>
 
 #include <sba/node.h>
 #include <sba/proj.h>
@@ -86,13 +86,13 @@ namespace sba
           verbose = 1; huber = 0.0; }
 
       /// \brief Set of nodes (camera frames) for SBA system, indexed by node number.
-      std::vector<Node, Eigen3::aligned_allocator<Node> > nodes;
+      std::vector<Node, Eigen::aligned_allocator<Node> > nodes;
 
       /// \brief Number of fixed nodes (nodes with known poses) from the first node.
       int nFixed;               
 
       /// \brief Set of tracks for each point P (projections onto camera frames).
-      std::vector<Track, Eigen3::aligned_allocator<Track> > tracks;
+      std::vector<Track, Eigen::aligned_allocator<Track> > tracks;
 
       /// \brief Return total number of projections
       int countProjs();
@@ -168,8 +168,8 @@ namespace sba
       /// baseline and other camera parameters.
       /// \param isFixed Whether this camera is fixed in space or not, for sba.
       /// \return the index of the node added.
-      int addNode(Eigen3::Matrix<double,4,1> &trans, 
-                      Eigen3::Quaternion<double> &qrot,
+      int addNode(Eigen::Matrix<double,4,1> &trans, 
+                      Eigen::Quaternion<double> &qrot,
                       const fc::CamParams &cp,
                       bool isFixed = false);
 
@@ -189,7 +189,7 @@ namespace sba
       /// Should only fail if the projection is a duplicate of an existing one
       /// with a different keypoint (i.e., same point projected to 2 locations
       /// in an image).
-      bool addProj(int ci, int pi, Eigen3::Vector3d &q, bool stereo=true);
+      bool addProj(int ci, int pi, Eigen::Vector3d &q, bool stereo=true);
       
       /// \brief Add a projection between point and camera, in setting up the 
       /// system.
@@ -200,7 +200,7 @@ namespace sba
       /// Should only fail if the projection is a duplicate of an existing one
       /// with a different keypoint (i.e., same point projected to 2 locations
       /// in an image).
-      bool addMonoProj(int ci, int pi, Eigen3::Vector2d &q);
+      bool addMonoProj(int ci, int pi, Eigen::Vector2d &q);
       
       /// \brief Add a projection between point and camera, in setting up the 
       /// system.
@@ -211,7 +211,7 @@ namespace sba
       /// Should only fail if the projection is a duplicate of an existing one
       /// with a different keypoint (i.e., same point projected to 2 locations
       /// in an image).
-      bool addStereoProj(int ci, int pi, Eigen3::Vector3d &q);
+      bool addStereoProj(int ci, int pi, Eigen::Vector3d &q);
       
       /// \brief Sets the covariance matrix of a projection.
       /// \param ci camera/node index (same as in nodes structure).
@@ -219,7 +219,7 @@ namespace sba
       /// \param covar 3x3 covariance matrix that affects the cost of the
       /// projection. Instead of the cost being ||err||, the cost is now
       /// (err)T*covar*(err).
-      void setProjCovariance(int ci, int pi, Eigen3::Matrix3d &covar);
+      void setProjCovariance(int ci, int pi, Eigen::Matrix3d &covar);
       
       /// \brief Adds a pair of point-plane projection matches. 
       /// Assumes the points have already been added to the system with 
@@ -231,14 +231,14 @@ namespace sba
       /// \param ci1 Camera index of the second point in the match.
       /// \param pi1 Point index of the second point in the match.
       /// \param normal1 3D normal for the second point in camera1's coordinate frame.
-      void addPointPlaneMatch(int ci0, int pi0, Eigen3::Vector3d normal0, int ci1, int pi1, Eigen3::Vector3d normal1);
+      void addPointPlaneMatch(int ci0, int pi0, Eigen::Vector3d normal0, int ci1, int pi1, Eigen::Vector3d normal1);
       
       /// \brief Update normals in point-plane matches, if any.
       void updateNormals();
       
       /// linear system matrix and vector
-      Eigen3::MatrixXd A;
-      Eigen3::VectorXd B;
+      Eigen::MatrixXd A;
+      Eigen::VectorXd B;
 
       /// sparse connectivity matrix
       /// for each node, holds vector of connecting nodes
@@ -279,13 +279,13 @@ namespace sba
       void tsplit(int tri, int len);
       
       /// Storage for old points, for checking LM step and reverting 
-      std::vector<Point, Eigen3::aligned_allocator<Point> > oldpoints;
+      std::vector<Point, Eigen::aligned_allocator<Point> > oldpoints;
       
       /// variables for each track
-      std::vector<Eigen3::Vector3d, Eigen3::aligned_allocator<Eigen3::Vector3d> > tps;
+      std::vector<Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d> > tps;
 
       /// storage for Jacobian products
-        std::vector<JacobProds, Eigen3::aligned_allocator<JacobProds> > jps;
+        std::vector<JacobProds, Eigen::aligned_allocator<JacobProds> > jps;
 
     };
 
@@ -306,13 +306,13 @@ namespace sba
     int nd1;
 
     /// Mean vector, quaternion (inverse) and precision matrix for this constraint
-    Eigen3::Vector3d tmean;
-    Eigen3::Quaternion<double> qpmean;
-    Eigen3::Matrix<double,6,6> prec;
+    Eigen::Vector3d tmean;
+    Eigen::Quaternion<double> qpmean;
+    Eigen::Matrix<double,6,6> prec;
 
 
     /// error
-    Eigen3::Matrix<double,6,1> err;
+    Eigen::Matrix<double,6,1> err;
     /// calculates projection error and stores it in <err>
     inline double calcErr(const Node &nd0, const Node &nd1);
 
@@ -321,7 +321,7 @@ namespace sba
 
 
     /// jacobian with respect to frames; uses dR'/dq from Node calculation
-    Eigen3::Matrix<double,6,6> J0,J0t,J1,J1t;
+    Eigen::Matrix<double,6,6> J0,J0t,J1,J1t;
 
     /// scaling factor for quaternion derivatives relative to translational ones;
     /// not sure if this is needed, it's close to 1.0
@@ -336,7 +336,7 @@ namespace sba
     /// d(px/pz)/du = [ pz dpx/du - px dpz/du ] / pz^2,
     /// works for all variables
     ///
-    void setJacobians(std::vector<Node,Eigen3::aligned_allocator<Node> > &nodes);
+    void setJacobians(std::vector<Node,Eigen::aligned_allocator<Node> > &nodes);
 
     /// valid or not (could be out of bounds)
     bool isValid;
@@ -373,14 +373,14 @@ namespace sba
 
     /// jacobian with respect to reference frame:
     ///   -2(t1 - t0)
-    Eigen3::Vector3d J0;
+    Eigen::Vector3d J0;
 
     /// jacobian with respect to second frame:
     ///    2(t1 - t0)
-    Eigen3::Vector3d J1;
+    Eigen::Vector3d J1;
 
     /// jacobians are computed from (ti - tj)^2 - a*kij = 0
-    void setJacobians(std::vector<Node,Eigen3::aligned_allocator<Node> > &nodes);
+    void setJacobians(std::vector<Node,Eigen::aligned_allocator<Node> > &nodes);
 
     /// valid or not (could be out of bounds)
     bool isValid;
@@ -403,16 +403,16 @@ namespace sba
     int nd1, nd2;
 
     /// Mean vector and precision matrix for this constraint
-    Eigen3::Matrix<double,12,1> mean;
-    Eigen3::Matrix<double,12,12> prec;
+    Eigen::Matrix<double,12,1> mean;
+    Eigen::Matrix<double,12,12> prec;
 
     /// error
-    Eigen3::Matrix<double,12,1> err;
+    Eigen::Matrix<double,12,1> err;
     /// calculates projection error and stores it in <err>
-    Eigen3::Matrix<double,12,1> calcErr(const Node &nd, const Point &pt);
+    Eigen::Matrix<double,12,1> calcErr(const Node &nd, const Point &pt);
 
     /// Jacobians of 0p1,0p2 with respect to global p0, p1, p2
-    Eigen3::Matrix<double,6,6> J10, J11, J20, J22;
+    Eigen::Matrix<double,6,6> J10, J11, J20, J22;
 
     /// dpc/dq = dR'/dq [pw-t], in homogeneous form, with q a quaternion param
     /// 
@@ -423,11 +423,11 @@ namespace sba
     /// d(px/pz)/du = [ pz dpx/du - px dpz/du ] / pz^2,
     /// works for all variables
     ///
-    void setJacobians(std::vector<Node,Eigen3::aligned_allocator<Node> > nodes);
+    void setJacobians(std::vector<Node,Eigen::aligned_allocator<Node> > nodes);
 
     /// temp storage for Hpc, Tpc matrices in SBA
-    Eigen3::Matrix<double,3,6> Hpc;
-    Eigen3::Matrix<double,6,3> Tpc;
+    Eigen::Matrix<double,3,6> Hpc;
+    Eigen::Matrix<double,6,3> Tpc;
 
     /// valid or not (could be out of bounds)
     bool isValid;
@@ -454,8 +454,8 @@ namespace sba
       /// \param qrot A Quaternion containing the rotatin of the camera.
       /// \param isFixed Whether this camera is fixed in space or not, for spa.
       /// \return the index of the node added.
-      int addNode(Eigen3::Matrix<double,4,1> &trans, 
-                      Eigen3::Quaternion<double> &qrot,
+      int addNode(Eigen::Matrix<double,4,1> &trans, 
+                      Eigen::Quaternion<double> &qrot,
                       bool isFixed = false);
 
       /// \brief Adds a pose constraint to the system.
@@ -466,12 +466,12 @@ namespace sba
       /// \param prec A 6x6 matrix, precision matrix for this link
       /// \return true if constraint added, false if nd0 or nd1 not found
       bool addConstraint(int nd0, int nd1,
-                        Eigen3::Vector3d &tmean,
-                        Eigen3::Quaterniond &qpmean,
-                        Eigen3::Matrix<double,6,6> &prec);
+                        Eigen::Vector3d &tmean,
+                        Eigen::Quaterniond &qpmean,
+                        Eigen::Matrix<double,6,6> &prec);
 
       /// set of nodes (camera frames) for SPA system, indexed by position;
-      std::vector<Node,Eigen3::aligned_allocator<Node> > nodes;
+      std::vector<Node,Eigen::aligned_allocator<Node> > nodes;
 
       /// set of scale for SPA system, indexed by position;
       std::vector<double> scales;
@@ -480,10 +480,10 @@ namespace sba
       int nFixed;               
 
       /// Set of P2 constraints
-      std::vector<ConP2,Eigen3::aligned_allocator<ConP2> >  p2cons;
+      std::vector<ConP2,Eigen::aligned_allocator<ConP2> >  p2cons;
 
       /// Set of scale constraints
-      std::vector<ConScale,Eigen3::aligned_allocator<ConScale> >  scons;
+      std::vector<ConScale,Eigen::aligned_allocator<ConScale> >  scons;
 
       /// local or global angle coordinates
       bool useLocalAngles;
@@ -519,19 +519,19 @@ namespace sba
 
       /// Add a constraint between two poses, in a given pose frame.
       /// <pr> is reference pose, <p0> and <p1> are the pose constraints.
-      void addConstraint(int pr, int p0, int p1, Eigen3::Matrix<double,12,1> &mean, Eigen3::Matrix<double,12,12> &prec);
+      void addConstraint(int pr, int p0, int p1, Eigen::Matrix<double,12,1> &mean, Eigen::Matrix<double,12,12> &prec);
 
       /// linear system matrix and vector
-      Eigen3::MatrixXd A;
-      Eigen3::VectorXd B;
+      Eigen::MatrixXd A;
+      Eigen::VectorXd B;
 
       /// sparse matrix object
       CSparse csp;
 
       /// 6DOF pose as a unit quaternion and translation vector, saving
       /// for LM step
-      Eigen3::Matrix<double,4,1> oldtrans; // homogeneous coordinates, last element is 1.0
-      Eigen3::Matrix<double,4,1> oldqrot;  // this is the quaternion as coefficients, note xyzw order
+      Eigen::Matrix<double,4,1> oldtrans; // homogeneous coordinates, last element is 1.0
+      Eigen::Matrix<double,4,1> oldqrot;  // this is the quaternion as coefficients, note xyzw order
 
     };
 

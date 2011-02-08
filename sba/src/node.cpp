@@ -1,7 +1,7 @@
 #include <sba/node.h>
 
 using namespace std;
-using namespace Eigen3;
+using namespace Eigen;
 
 namespace sba
 {
@@ -18,7 +18,7 @@ namespace sba
 
   // constant derivative matrices
   // these are the derivatives of the *inverse* rotation
-  Eigen3::Matrix3d Node::dRidx, Node::dRidy, Node::dRidz;
+  Eigen::Matrix3d Node::dRidx, Node::dRidy, Node::dRidz;
 
   void Node::initDr()
   {
@@ -131,7 +131,7 @@ namespace sba
       //      std::cout << "[NormRot] qrot end   = " << qrot.transpose() << std::endl;
   }
    
-  void Node::projectMono(const Point& point, Eigen3::Vector3d& proj)
+  void Node::projectMono(const Point& point, Eigen::Vector3d& proj)
   {
     Vector2d proj2d;
     project2im(proj2d, point);
@@ -139,7 +139,7 @@ namespace sba
     proj.head<2>() = proj2d;
   }
   
-  void Node::projectStereo(const Point& point, Eigen3::Vector3d& proj)
+  void Node::projectStereo(const Point& point, Eigen::Vector3d& proj)
   {
     Vector2d proj2d;
     Vector3d pc, baseline_vect;
@@ -154,18 +154,18 @@ namespace sba
   
   
   // transforms
-  void transformW2F(Eigen3::Matrix<double,3,4> &m, 
-                    const Eigen3::Matrix<double,4,1> &trans, 
-                    const Eigen3::Quaternion<double> &qrot)
+  void transformW2F(Eigen::Matrix<double,3,4> &m, 
+                    const Eigen::Matrix<double,4,1> &trans, 
+                    const Eigen::Quaternion<double> &qrot)
   {
     m.block<3,3>(0,0) = qrot.toRotationMatrix().transpose();
     m.col(3).setZero();         // make sure there's no translation
     m.col(3) = -m*trans;
   };
 
-  void transformF2W(Eigen3::Matrix<double,3,4> &m, 
-                    const Eigen3::Matrix<double,4,1> &trans, 
-                    const Eigen3::Quaternion<double> &qrot)
+  void transformF2W(Eigen::Matrix<double,3,4> &m, 
+                    const Eigen::Matrix<double,4,1> &trans, 
+                    const Eigen::Quaternion<double> &qrot)
   {
     m.block<3,3>(0,0) = qrot.toRotationMatrix();
     m.col(3) = trans.head(3);
@@ -174,8 +174,8 @@ namespace sba
 
   // returns the local R,t in nd0 that produces nd1
   // NOTE: returns a postfix rotation; should return a prefix
-  void transformN2N(Eigen3::Matrix<double,4,1> &trans, 
-                    Eigen3::Quaternion<double> &qr,
+  void transformN2N(Eigen::Matrix<double,4,1> &trans, 
+                    Eigen::Quaternion<double> &qr,
                     Node &nd0, Node &nd1)
   {
     Matrix<double,3,4> tfm;

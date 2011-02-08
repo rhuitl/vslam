@@ -35,12 +35,12 @@
 
 #include <posest/pe3d.h>
 #include <sba/sba.h>
-#include <Eigen3/SVD>
-#include <Eigen3/LU>
+#include <Eigen/SVD>
+#include <Eigen/LU>
 #include <iostream>
 
 
-using namespace Eigen3;
+using namespace Eigen;
 using namespace sba;
 using namespace frame_common;
 using namespace std;
