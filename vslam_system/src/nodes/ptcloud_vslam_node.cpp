@@ -16,11 +16,11 @@
 
 using namespace sba;
 using namespace pcl;
-using namespace Eigen3;
+using namespace Eigen;
 
 void publishPointclouds(SysSBA& sba, ros::Publisher& pub);
 void publishRegisteredPointclouds(sba::SysSBA& sba, 
-    std::vector<frame_common::Frame, Eigen3::aligned_allocator<frame_common::Frame> >& frames, 
+    std::vector<frame_common::Frame, Eigen::aligned_allocator<frame_common::Frame> >& frames, 
     ros::Publisher& pub);
 void colorizePointcloud(pcl::PointCloud<pcl::PointXYZRGB>& cloud, cv::Mat& image);
 
@@ -205,7 +205,7 @@ void colorizePointcloud(pcl::PointCloud<pcl::PointXYZRGB>& cloud, cv::Mat& img)
 }
 
 void publishRegisteredPointclouds(sba::SysSBA& sba, 
-    std::vector<frame_common::Frame, Eigen3::aligned_allocator<frame_common::Frame> >& frames, 
+    std::vector<frame_common::Frame, Eigen::aligned_allocator<frame_common::Frame> >& frames, 
     ros::Publisher& pub)
 {
   pcl::PointCloud<pcl::PointXYZRGB> cloud;
@@ -217,8 +217,8 @@ void publishRegisteredPointclouds(sba::SysSBA& sba,
       break;
     if (frames[i].dense_pointcloud.points.size() <= 0)
       continue;
-    Eigen3::Quaterniond rot = sba.nodes[i].qrot;
-    Eigen3::Vector3d trans = sba.nodes[i].trans.head<3>();
+    Eigen::Quaterniond rot = sba.nodes[i].qrot;
+    Eigen::Vector3d trans = sba.nodes[i].trans.head<3>();
     
     transformPointCloud<PointXYZRGB>(frames[i].dense_pointcloud, cloud, Vector3f(0,0,0), rot.cast<float>());
     transformPointCloud<PointXYZRGB>(cloud, cloud, trans.cast<float>(), Quaternionf(1, 0, 0, 0));

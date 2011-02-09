@@ -52,7 +52,7 @@ private:
 
   frame_common::FrameProc frame_processor_;
   /// stereo image key frames in system
-  std::vector<frame_common::Frame, Eigen3::aligned_allocator<frame_common::Frame> > frames_;
+  std::vector<frame_common::Frame, Eigen::aligned_allocator<frame_common::Frame> > frames_;
   vslam::voSt vo_; /// VO processor
   
   int numframes;
@@ -251,8 +251,8 @@ public:
     sba_frames_pub_.publish(msg);
   }
   
-  int publishNode(Eigen3::Matrix<double,4,1> trans, 
-                      Eigen3::Quaternion<double> fq,
+  int publishNode(Eigen::Matrix<double,4,1> trans, 
+                      Eigen::Quaternion<double> fq,
                       const frame_common::CamParams &cp,
                       bool isFixed)
   {
@@ -298,7 +298,7 @@ public:
     //sba_points_pub_.publish(msg);
   }
   
-  void publishProjection(int ci, int pi, Eigen3::Vector3d &q, bool stereo)
+  void publishProjection(int ci, int pi, Eigen::Vector3d &q, bool stereo)
   {
     sba::Projection msg;
     msg.camindex = ci;

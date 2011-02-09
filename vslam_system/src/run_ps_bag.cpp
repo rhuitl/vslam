@@ -64,7 +64,7 @@
 using namespace std;
 using namespace sba;
 using namespace frame_common;
-using namespace Eigen3;
+using namespace Eigen;
 using namespace vslam;
 using namespace pcl;
 
@@ -146,8 +146,8 @@ void VisBundler::publishRegisteredPointclouds( ) const
       break;
     if (vslam_.vo_.frames[i].dense_pointcloud.points.size() <= 0)
       continue;
-    Eigen3::Quaterniond rot = vslam_.vo_.sba.nodes[i].qrot;
-    Eigen3::Vector3d trans = vslam_.vo_.sba.nodes[i].trans.head<3>();
+    Eigen::Quaterniond rot = vslam_.vo_.sba.nodes[i].qrot;
+    Eigen::Vector3d trans = vslam_.vo_.sba.nodes[i].trans.head<3>();
 
     transformPointCloud<PointXYZRGB>(vslam_.vo_.frames[i].dense_pointcloud, cloud, Vector3f(0,0,0), rot.cast<float>());
     transformPointCloud<PointXYZRGB>(cloud, cloud, trans.cast<float>(), Quaternionf(1, 0, 0, 0));
@@ -281,9 +281,9 @@ void VisBundler::drawgraph( int dec ) const
               Point pt0 = vslam_.vo_.sba.tracks[i].point;
               Vector3d plane_point = prj.plane_point;
               Vector3d plane_normal = prj.plane_normal;
-              Eigen3::Vector3d w = pt0.head<3>()-plane_point;
-              //              Eigen3::Vector3d projpt = plane_point+(w.dot(plane_normal))*plane_normal;
-              Eigen3::Vector3d projpt = pt0.head<3>() - (w.dot(plane_normal))*plane_normal;
+              Eigen::Vector3d w = pt0.head<3>()-plane_point;
+              //              Eigen::Vector3d projpt = plane_point+(w.dot(plane_normal))*plane_normal;
+              Eigen::Vector3d projpt = pt0.head<3>() - (w.dot(plane_normal))*plane_normal;
               //              Vector3d pt1 = pt0.head<3>()+0.1*plane_normal;
               Vector3d pt1 = projpt;
 	          

@@ -63,7 +63,7 @@ using namespace std;
 using namespace sba;
 using namespace vslam;
 using namespace frame_common;
-using namespace Eigen3;
+using namespace Eigen;
 
 // elapsed time in milliseconds
 #include <sys/time.h>
@@ -317,7 +317,7 @@ int main(int argc, char** argv)
   cout << "Setting up frame processing..." << flush;
   FrameProc fp(30);//18);             // can be slow, setting up Calonder tree
   cout << "done" << endl;
-  vector<Frame, Eigen3::aligned_allocator<Frame> > frames; // stereo image frames in system
+  vector<Frame, Eigen::aligned_allocator<Frame> > frames; // stereo image frames in system
 
   SysSBA sba;			// SBA system
   sba.useCholmod(false);

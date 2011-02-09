@@ -41,7 +41,7 @@
 
 namespace vslam {
 
-typedef std::vector<frame_common::Frame, Eigen3::aligned_allocator<frame_common::Frame> > FrameVector;
+typedef std::vector<frame_common::Frame, Eigen::aligned_allocator<frame_common::Frame> > FrameVector;
 
 /**
  * \brief Recognizes previously seen frames.

@@ -16,7 +16,7 @@ class VslamSystem
   public: /// @todo Leave these protected
     frame_common::FrameProc frame_processor_; ///< Frame processor for new frames.
     /// \brief Image frames in system.
-    std::vector<frame_common::Frame, Eigen3::aligned_allocator<frame_common::Frame> > frames_;
+    std::vector<frame_common::Frame, Eigen::aligned_allocator<frame_common::Frame> > frames_;
     sba::SysSBA sba_;	 ///< Large-scale SBA system.
     vslam::voSt vo_;   ///< Visual odometry processor.
     vslam::PlaceRecognizer place_recognizer_; ///< Place recognizer

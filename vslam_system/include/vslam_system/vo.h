@@ -94,7 +94,7 @@ namespace vslam
     /// \brief Transfers frames to external sba system.
     /// \param eframes A vector of external frames. The last frame in this will be transferred.
     /// \param esba    External SBA system to add the frame to.
-    void transferLatestFrame(std::vector<fc::Frame, Eigen3::aligned_allocator<fc::Frame> > &eframes,
+    void transferLatestFrame(std::vector<fc::Frame, Eigen::aligned_allocator<fc::Frame> > &eframes,
                              sba::SysSBA &esba);
 
     /// \brief Gets the transform between frames.
@@ -109,7 +109,7 @@ namespace vslam
     int findNode(int frameId);
 
     /// Previous frames in the system.
-    std::vector<fc::Frame, Eigen3::aligned_allocator<fc::Frame> > frames;
+    std::vector<fc::Frame, Eigen::aligned_allocator<fc::Frame> > frames;
 
     /// Pointer to pose estimator object.
     boost::shared_ptr<pe::PoseEstimator> pose_estimator_;
@@ -140,7 +140,7 @@ namespace vslam
   /// \param ipts    Optional parameter for a mapping between internal and 
   ///                external indices.
   void addProjections(fc::Frame &f0, fc::Frame &f1, 
-                      std::vector<fc::Frame, Eigen3::aligned_allocator<fc::Frame> > &frames,
+                      std::vector<fc::Frame, Eigen::aligned_allocator<fc::Frame> > &frames,
                       sba::SysSBA &sba, const std::vector<cv::DMatch> &inliers,
                       const Matrix<double,3,4>& f2w, int ndi0, int ndi1, std::vector<int>* ipts = NULL);
   
