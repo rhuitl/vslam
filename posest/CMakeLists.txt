@@ -1,10 +1,13 @@
 cmake_minimum_required(VERSION 2.4.6)
 include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
+set(ROS_BUILT_TYPE RelWithDebInfo)
 rosbuild_init(posest)
 
 rosbuild_add_boost_directories()
 
-add_definitions(-Wall -O3 -mfpmath=sse -mmmx -msse -msse2 -msse3 -fopenmp)
+rosbuild_check_for_sse()
+
+add_definitions(-Wall -Wno-missing-field-initializers -fopenmp)
 
 find_package(PythonLibs)
 include_directories(${PYTHON_INCLUDE_PATH})
@@ -12,11 +15,7 @@ include_directories(${PYTHON_INCLUDE_PATH})
 #####################################################################
 # PE library
 rosbuild_add_library(posest src/pe.cpp src/pe3d.cpp src/planarSFM.cpp src/pe2d.cpp src/pnp_ransac.cpp)
-
-# various compile flags.  -O3 doesn't seem to help; -DNDEBUG seemst to hurt(???)
-rosbuild_add_compile_flags(posest -O3 -DNDEBUG -Wno-missing-field-initializers -msse3)
-#rosbuild_add_compile_flags(posest -g -O0 -DDEBUG=1 -Wno-missing-field-initializers -msse3)
-#rosbuild_add_compile_flags(posest -O3 -DNDEBUG -Wno-missing-field-initializers )
+target_link_libraries(posest tbb) # Intel Thread Building Blocks
 
 #####################################################################
 # PE test library: artificial data generation
