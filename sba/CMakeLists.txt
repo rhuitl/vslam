@@ -1,10 +1,13 @@
 cmake_minimum_required(VERSION 2.4.6)
 include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
-rosbuild_init(sba)
+set(ROS_BUILT_TYPE RelWithDebInfo)
+rosbuild_init()
 
 rosbuild_add_boost_directories()
 
-add_definitions(-Wall -O3 -mfpmath=sse -mmmx -msse -msse2 -msse3)
+rosbuild_check_for_sse()
+
+add_definitions(-Wall -Wno-missing-field-initializers)
 ##
 ## NOTE: if you include these, you must make sure the manifest 
 ## exports them!!!
@@ -19,16 +22,10 @@ rosbuild_genmsg()
 #####################################################################
 # SBA library
 rosbuild_add_library(sba src/sba.cpp src/spa.cpp src/spa2d.cpp src/csparse.cpp src/proj.cpp src/node.cpp src/sba_file_io.cpp)
-target_link_libraries(sba blas lapack cholmod amd camd colamd ccolamd csparse)
+target_link_libraries(sba blas lapack)
 
 # SBA library with ROS & utilities, including reading from file and visualization.
 rosbuild_add_library(sba_vis src/visualization.cpp)
-
-# various compile flags.  -O3 doesn't seem to help; -DNDEBUG seemst to hurt(???)
-rosbuild_add_compile_flags(sba -O3 -DNDEBUG -Wno-missing-field-initializers -msse3)
-#rosbuild_add_compile_flags(sba -g -O0 -DDEBUG=1 -Wno-missing-field-initializers -msse3)
-#rosbuild_add_compile_flags(sba -O3 -DNDEBUG -Wno-missing-field-initializers )
-
 
 #####################################################################
 # unit tests

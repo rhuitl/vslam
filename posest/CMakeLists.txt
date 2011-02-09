@@ -1,16 +1,13 @@
 cmake_minimum_required(VERSION 2.4.6)
 include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
 set(ROS_BUILT_TYPE RelWithDebInfo)
-rosbuild_init(posest)
+rosbuild_init()
 
 rosbuild_add_boost_directories()
 
 rosbuild_check_for_sse()
 
 add_definitions(-Wall -Wno-missing-field-initializers -fopenmp)
-
-find_package(PythonLibs)
-include_directories(${PYTHON_INCLUDE_PATH})
 
 #####################################################################
 # PE library
