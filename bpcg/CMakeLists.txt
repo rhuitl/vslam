@@ -5,7 +5,7 @@ rosbuild_init()
 
 rosbuild_add_boost_directories()
 
-rosbuild_check_for_sse()
+#rosbuild_check_for_sse()
 
 add_definitions(-Wall)
 

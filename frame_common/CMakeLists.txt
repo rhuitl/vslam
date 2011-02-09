@@ -12,6 +12,7 @@ add_definitions(-Wall -Wno-missing-field-initializers -fopenmp)
 #####################################################################
 # library
 rosbuild_add_library(frame_common src/frame.cpp src/stereo.cpp src/draw.cpp src/stereolib.c)
+rosbuild_add_compile_flags(frame_common ${SSE_FLAGS})
 
 #####################################################################
 # unit tests

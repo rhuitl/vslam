@@ -12,11 +12,13 @@ add_definitions(-Wall -Wno-missing-field-initializers -fopenmp)
 #####################################################################
 # PE library
 rosbuild_add_library(posest src/pe.cpp src/pe3d.cpp src/planarSFM.cpp src/pe2d.cpp src/pnp_ransac.cpp)
+rosbuild_add_compile_flags(posest ${SSE_FLAGS})
 target_link_libraries(posest tbb) # Intel Thread Building Blocks
 
 #####################################################################
 # PE test library: artificial data generation
 rosbuild_add_library(pe_simulated test/simulated.cpp)
+rosbuild_add_compile_flags(pe_simulated ${SSE_FLAGS})
 target_link_libraries(pe_simulated posest)
 
 #####################################################################
@@ -52,6 +54,7 @@ target_link_libraries(test/run_sequence posest)
 #
 
 rosbuild_add_library(esm src/esm.cpp)
+rosbuild_add_compile_flags(esm ${SSE_FLAGS})
+
 rosbuild_add_executable(test/run_esm test/run_esm.cpp)
 target_link_libraries(test/run_esm esm)
-

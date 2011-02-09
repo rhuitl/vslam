@@ -27,8 +27,10 @@ rosbuild_download_data(http://pr.willowgarage.com/data/calonder_descriptor/curre
 #####################################################################
 # libraries
 rosbuild_add_library(vo src/vo.cpp src/place_recognizer.cpp src/vslam.cpp src/vslam_mono.cpp)
+rosbuild_add_compile_flags(vo ${SSE_FLAGS})
 
 rosbuild_add_library(vo_ptcloud src/vo_ptcloud.cpp src/place_recognizer.cpp src/vslam_ptcloud.cpp)
+rosbuild_add_compile_flags(vo_ptcloud ${SSE_FLAGS})
 
 #####################################################################
 # unit tests
