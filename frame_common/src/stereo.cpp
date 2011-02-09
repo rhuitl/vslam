@@ -33,6 +33,7 @@
 *********************************************************************/
 
 #include <frame_common/stereo.h>
+#include <xmmintrin.h>
 
 namespace frame_common
 {
