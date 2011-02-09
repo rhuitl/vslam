@@ -5,11 +5,16 @@
   <author>Kurt Konolige</author>
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
+
   <depend package="opencv2"/>
   <depend package="eigen"/>
   <depend package="frame_common"/>
   <depend package="sba"/>
+
+  <rosdep name="libtbb" />
+
   <export>
     <cpp cflags="-I${prefix}/include -I${prefix}/msg/cpp" lflags="-L${prefix}/lib -Wl,-rpath,${prefix}/lib -lposest -lpe_simulated" />
   </export>
+
 </package>
