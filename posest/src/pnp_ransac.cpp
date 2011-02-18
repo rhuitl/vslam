@@ -168,8 +168,10 @@ bool solvePnPRansac(const vector<Point3f>& object_points, const vector<Point2f>&
   }
   else
   {
-    assert(rvec.rows == tvec.rows == 3);
-    assert(rvec.cols == tvec.cols == 1);
+    assert(rvec.rows == 3);
+    assert(tvec.rows == 3);
+    assert(rvec.cols == 1);
+    assert(tvec.cols == 1);
     assert(rvec.type() == CV_64FC1);
   }
 
