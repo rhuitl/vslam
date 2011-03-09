@@ -29,9 +29,9 @@ public:
   void setTemplateImage(const cv::Mat &image);
   void setTestImage(const cv::Mat &image);
   void track(int nIters, cv::Mat &H, double &rmsError, cv::Ptr<LieAlgebra> lieAlgebra = new LieAlgebraHomography(),
-             bool saveComputations = false, vector<HomoESMState> *computations = 0) const;
+             bool saveComputations = false, std::vector<HomoESMState> *computations = 0) const;
   void visualizeTracking(const cv::Mat &H, cv::Mat &visualization) const;
-  void checkAccuracy(vector<vector<HomoESMState> > &computations, string groundTruthFile, double &meanSSDError,
+  void checkAccuracy(std::vector<std::vector<HomoESMState> > &computations, std::string groundTruthFile, double &meanSSDError,
                      double &meanSpatialError) const;
 private:
   cv::Mat testImage;
@@ -40,12 +40,12 @@ private:
   cv::Mat templatePoints;
   cv::Mat xx, yy;
 
-  vector<cv::Point2f> templateVertices;
+  std::vector<cv::Point2f> templateVertices;
 
   static void computeGradient(const cv::Mat &image, cv::Mat &dx, cv::Mat &dy);
   static double computeRMSError(const cv::Mat &error);
   void computeJacobian(const cv::Mat &dx, const cv::Mat &dy, cv::Mat &J, cv::Ptr<LieAlgebra> lieAlgebra) const;
-  void constructImage(const cv::Mat &srcImage, const vector<cv::Point2f> &points, cv::Mat &intensity) const;
+  void constructImage(const cv::Mat &srcImage, const std::vector<cv::Point2f> &points, cv::Mat &intensity) const;
   void projectVertices(const cv::Mat &H, std::vector<cv::Point2f> &vertices) const;
 };
 

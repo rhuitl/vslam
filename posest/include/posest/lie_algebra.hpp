@@ -34,13 +34,13 @@ protected:
     void dot(const cv::Mat &src, cv::Mat dst) const;
     cv::Mat vector2mat(double coordinate) const;
   private:
-    vector<int> positives;
-    vector<int> negatives;
+    std::vector<int> positives;
+    std::vector<int> negatives;
   };
 
   static cv::Mat matrixExp(const cv::Mat &mat);
 
-  vector<LieAlgebraBasisVector> basis;
+  std::vector<LieAlgebraBasisVector> basis;
 };
 
 class LieAlgebraHomography : public LieAlgebra

@@ -214,7 +214,7 @@ void HomoESM::checkAccuracy(vector<vector<HomoESMState> > &computations, string 
   {
     for (size_t iterIdx = 0; iterIdx < computations[frameIdx].size(); iterIdx++)
     {
-      stringstream frame, iter;
+      std::stringstream frame, iter;
       frame << "frame_" << frameIdx;
       iter << "iter_" << iterIdx;
       double groundTruthError = fs["ESM_results"][frame.str()][iter.str()]["rms_error"];
