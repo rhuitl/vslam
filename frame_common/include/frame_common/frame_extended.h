@@ -195,7 +195,7 @@ namespace frame_common
         
         ExtractIndices<PointXYZRGB> boxfilter;
         boxfilter.setInputCloud(boost::make_shared<const PointCloud<PointXYZRGB> >(cloud_nan_filtered));
-        boxfilter.setIndices (boost::make_shared<vector<int> > (indices));
+        boxfilter.setIndices (boost::make_shared<std::vector<int> > (indices));
         boxfilter.filter(cloud_box_filtered);
         
         // Reduce pointcloud
