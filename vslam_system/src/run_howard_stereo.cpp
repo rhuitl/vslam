@@ -1,4 +1,4 @@
-#include <ros/ros.h>
+/*#include <ros/ros.h>
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
 #include <geometry_msgs/Point.h>
@@ -15,7 +15,30 @@
 
 using namespace std;
 using namespace cv;
+using namespace frame_common;*/
+#include <ros/ros.h>
+#include <visualization_msgs/Marker.h>
+#include <visualization_msgs/MarkerArray.h>
+#include <geometry_msgs/Point.h>
+
+#include <vslam_system/vslam.h>
+#include <posest/pe3d.h>
+#include <sba/sba.h>
+#include <sba/sba_file_io.h>
+#include <frame_common/frame.h>
+#include <boost/shared_ptr.hpp>
+#include <cstdio>
+#include <fstream>
+#include <dirent.h>
+#include <fnmatch.h>
+
+#include <opencv/highgui.h>
+
+using namespace std;
+using namespace sba;
 using namespace frame_common;
+using namespace cv;
+using namespace vslam;
 
 // Names of left and right files in directory (with wildcards)
 char *lreg, *rreg, *dreg;
@@ -138,17 +161,17 @@ private:
 
   void calculateCrossCheckMatches(const Mat& scoreMatrix, vector<DMatch>& matches)
   {
-    Point minIndex;
+    cv::Point minIndex;
     vector<int> matches1to2(scoreMatrix.rows);
     for (int row = 0; row < scoreMatrix.rows; row++)
     {
-      minMaxLoc(scoreMatrix.row(row), 0, 0, &minIndex, 0, Mat());
+      cv::minMaxLoc(scoreMatrix.row(row), 0, 0, &minIndex, 0, Mat());
       matches1to2[row] = minIndex.x;
     }
     vector<int> matches2to1(scoreMatrix.cols);
     for (int col = 0; col < scoreMatrix.cols; col++)
     {
-      minMaxLoc(scoreMatrix.col(col), 0, 0, &minIndex, 0, Mat());
+      cv::minMaxLoc(scoreMatrix.col(col), 0, 0, &minIndex, 0, Mat());
       matches2to1[col] = minIndex.y;
     }
 
@@ -212,8 +235,8 @@ private:
     Mat sums(1, consistMatrix.rows, CV_32S);
     for (int row = 0; row < consistMatrix.rows; row++)
       sums.at<int>(0, row) = cv::sum(consistMatrix.row(row))[0];
-    Point maxIndex;
-    minMaxLoc(sums, 0, 0, 0, &maxIndex, Mat());
+    cv::Point maxIndex;
+    cv::minMaxLoc(sums, 0, 0, 0, &maxIndex, Mat());
     indices.push_back(maxIndex.x);
 
     int lastAddedIndex = maxIndex.x;
@@ -281,6 +304,7 @@ private:
 struct Pose
 {
   Point3f center, x, y, z;
+  Mat rvec, tvec;
 };
 
 void project3dPoint(const Point3f& point, const Mat& rvec, const Mat& tvec, Point3f& modif_point)
@@ -293,6 +317,76 @@ void project3dPoint(const Point3f& point, const Mat& rvec, const Mat& tvec, Poin
      * point.z + tvec.at<double> (1, 0);
   modif_point.z = R.at<double> (2, 0) * point.x + R.at<double> (2, 1) * point.y + R.at<double> (2, 2)
      * point.z + tvec.at<double> (2, 0);
+}
+
+// draw the graph on rviz
+void stereodrawgraph(const SysSBA &sba, const ros::Publisher &cam_pub)
+{
+  visualization_msgs::Marker cammark;
+  cammark.header.frame_id = "/pgraph";
+  cammark.header.stamp = ros::Time();
+  cammark.ns = "pgraph";
+  cammark.id = 0;
+  cammark.action = visualization_msgs::Marker::ADD;
+  cammark.pose.position.x = 0;
+  cammark.pose.position.y = 0;
+  cammark.pose.position.z = 0;
+  cammark.pose.orientation.x = 0.0;
+  cammark.pose.orientation.y = 0.0;
+  cammark.pose.orientation.z = 0.0;
+  cammark.pose.orientation.w = 1.0;
+  cammark.scale.x = 0.02;
+  cammark.scale.y = 0.02;
+  cammark.scale.z = 0.02;
+  cammark.color.r = 1.0f;
+  cammark.color.g = 0.0f;
+  cammark.color.b = 1.0f;
+  cammark.color.a = 1.0f;
+  cammark.lifetime = ros::Duration();
+  cammark.type = visualization_msgs::Marker::LINE_LIST;
+
+  int npts = sba.tracks.size();
+
+  cout << "Number of points to draw: " << npts << endl;
+  if (npts <= 0) return;
+
+
+  // draw cameras
+  int ncams = sba.nodes.size();
+  cammark.points.resize(ncams*6);
+  for (int i=0, ii=0; i<ncams; i++)
+    {
+      const Node &nd = sba.nodes[i];
+      Vector3d opt;
+      Matrix<double,3,4> tr;
+      transformF2W(tr,nd.trans,Quaternion<double>(nd.qrot));
+
+      cammark.points[ii].x = nd.trans.x();
+      cammark.points[ii].y = nd.trans.z();
+      cammark.points[ii++].z = -nd.trans.y();
+      opt = tr*Vector4d(0,0,0.3,1);
+      cammark.points[ii].x = opt.x();
+      cammark.points[ii].y = opt.z();
+      cammark.points[ii++].z = -opt.y();
+
+      cammark.points[ii].x = nd.trans.x();
+      cammark.points[ii].y = nd.trans.z();
+      cammark.points[ii++].z = -nd.trans.y();
+      opt = tr*Vector4d(0.2,0,0,1);
+      cammark.points[ii].x = opt.x();
+      cammark.points[ii].y = opt.z();
+      cammark.points[ii++].z = -opt.y();
+
+      cammark.points[ii].x = nd.trans.x();
+      cammark.points[ii].y = nd.trans.z();
+      cammark.points[ii++].z = -nd.trans.y();
+      opt = tr*Vector4d(0,0.1,0,1);
+      cammark.points[ii].x = opt.x();
+      cammark.points[ii].y = opt.z();
+      cammark.points[ii++].z = -opt.y();
+    }
+
+  cam_pub.publish(cammark);
 }
 
 // draw the graph on rviz
@@ -348,7 +442,7 @@ int main(int argc, char** argv)
   if (argc < 5)
   {
     printf("Args are: <param file> <image dir> <left image file template> <right image file template>\n");
-    exit(0);
+    //exit(0);
   }
 
   // get camera parameters, in the form: fx fy cx cy tx
@@ -391,10 +485,29 @@ int main(int argc, char** argv)
   printf("Found %d directories\n", ndirs);
   printf("%s\n", dirs[0]->d_name);
 
+  ////////////////////////////////////
+  // set up structures
+  vslam::VslamSystem vslam(argv[5],argv[6]);
+  typedef cv::CalonderDescriptorExtractor<float> Calonder;
+  vslam.frame_processor_.setFrameDescriptor(new Calonder(argv[7]));
+
+  // parameters
+  vslam.setKeyDist(0.4);        // meters
+  vslam.setKeyAngle(0.2);       // radians
+  vslam.setKeyInliers(300);
+  vslam.setHuber(2.0);          // Huber cost function cutoff
+  //  vslam.vo_.pose_estimator_->wy = 64;
+  //  vslam.vo_.pose_estimator_->wx = 64;
+  //  vslam.vo_.pose_estimator_->numRansac = 1000;
+  vslam.vo_.sba.verbose = false;
+  vslam.sba_.verbose = false;
+  ////////////////////////////////////
+
   // set up markers for visualization
   ros::init(argc, argv, "VisBundler");
   ros::NodeHandle nh("~");
   ros::Publisher cam_pub = nh.advertise<visualization_msgs::Marker> ("cameras", 0);
+  ros::Publisher stereo_cam_pub = nh.advertise<visualization_msgs::Marker> ("stereo_cameras", 0);
 
   const std::string window_name = "matches";
   cv::namedWindow(window_name, 0);
@@ -428,7 +541,7 @@ int main(int argc, char** argv)
 
     frame_common::Frame prevFrame;
     frame_common::FrameProc frameProcessor(10);
-    Ptr<DescriptorExtractor> extractor = new HowardDescriptorExtractor(19);
+    Ptr<DescriptorExtractor> extractor = new HowardDescriptorExtractor(17);
     Ptr<FeatureDetector> detector = new FastFeatureDetector(20, true);
     frameProcessor.setFrameDescriptor(extractor);
     frameProcessor.setFrameDetector(detector);
@@ -440,14 +553,17 @@ int main(int argc, char** argv)
     pose.x = Point3f(len, 0, 0);
     pose.y = Point3f(0, len, 0);
     pose.z = Point3f(0, 0, len);
+    Mat Rotation = Mat::ones(Size(3, 3), CV_64F);
+    Mat rvec, tvec(3, 1, CV_64F, 0.0);
+    Rodrigues(Rotation, rvec);
+    pose.rvec = rvec;
+    pose.tvec = tvec;
     cameras.push_back(pose);
 
     bool matched = true;
     // loop over each stereo pair, adding it to the system
     for (int ii = 0; ii < nlim; iter++, ii++)
     {
-      if (ii%3 != 0 && matched)
-        continue;
       // Load images
       char fn[2048];
       sprintf(fn, "%s/%s", dir, lims[ii]->d_name);
@@ -458,6 +574,38 @@ int main(int argc, char** argv)
       cv::Mat image1r = cv::imread(fn, 0);
       if (image1.rows == 0 || image1r.rows == 0)
          exit(0);
+
+      ////////////////////////////////////////////////////////////
+      bool is_keyframe = vslam.addFrame(camp, image1, image1r);
+
+      if (is_keyframe)
+      {
+          int n = vslam.sba_.nodes.size();
+          int np = vslam.sba_.tracks.size();
+
+          // draw graph
+          cout << "drawing with " << n << " nodes and " << np << " points..." << endl << endl;
+          if (n%2 == 0)
+            stereodrawgraph(vslam.sba_, stereo_cam_pub);
+
+          // write file out
+          if (n > 10 && n%500 == 0)
+          {
+              char fn[1024];
+              sprintf(fn,"newcollege%d.g2o", n);
+              sba::writeGraphFile(fn,vslam.sba_);
+              sprintf(fn,"newcollege%dm.g2o", n);
+              sba::writeGraphFile(fn,vslam.sba_,true);
+          }
+
+          int nnsba = 10;
+          if (n > 4 && n%nnsba == 0)
+          {
+            cout << "Running large SBA" << endl;
+            vslam.refine();
+          }
+      }
+      ////////////////////////////////////////////////////////////
 
       Mat im; image1.copyTo(im);
       //bilateralFilter(im, image1, -1, 1, 1);
@@ -483,13 +631,13 @@ int main(int argc, char** argv)
         frame.img.copyTo(right);
         for (size_t i = 0; i < prevFrame.kpts.size(); ++i)
         {
-          Point pt1 = prevFrame.kpts[i].pt;
-          circle(display, pt1, 3, Scalar(255));
+          cv::Point pt1 = prevFrame.kpts[i].pt;
+          cv::circle(display, pt1, 3, Scalar(255));
         }
         for (size_t i = 0; i < frame.kpts.size(); ++i)
         {
-          Point pt1(frame.kpts[i].pt.x+prevFrame.img.cols,frame.kpts[i].pt.y);
-          circle(display, pt1, 3, Scalar(255));
+          cv::Point pt1(frame.kpts[i].pt.x+prevFrame.img.cols,frame.kpts[i].pt.y);
+          cv::circle(display, pt1, 3, Scalar(255));
         }
 
         cout << "Matches size = " << matches.size() << endl;
@@ -497,13 +645,13 @@ int main(int argc, char** argv)
         {
           if (prevFrame.goodPts[matches[i].trainIdx] && frame.goodPts[matches[i].queryIdx])
           {
-            Point pt1(prevFrame.kpts[matches[i].trainIdx].pt.x,prevFrame.kpts[matches[i].trainIdx].pt.y);
-            Point pt2(frame.kpts[matches[i].queryIdx].pt.x+prevFrame.img.cols,frame.kpts[matches[i].queryIdx].pt.y);
+            cv::Point pt1(prevFrame.kpts[matches[i].trainIdx].pt.x,prevFrame.kpts[matches[i].trainIdx].pt.y);
+            cv::Point pt2(frame.kpts[matches[i].queryIdx].pt.x+prevFrame.img.cols,frame.kpts[matches[i].queryIdx].pt.y);
             ipoints.push_back(frame.kpts[matches[i].queryIdx].pt);
             Eigen::Vector4d vec = prevFrame.pts[matches[i].trainIdx];
             Point3f op(vec(0), vec(1), vec(2));
             opoints.push_back(op);
-            line(display, pt1, pt2, Scalar(0, 255));
+            cv::line(display, pt1, pt2, Scalar(0, 255));
           }
         }
 
@@ -520,7 +668,7 @@ int main(int argc, char** argv)
         cv::waitKey(2);
       }
 
-      matched = (matches.size() > 40);
+      matched = (matches.size() > 10);
 
       if (prevFrame.img.empty() || matched)
       {
@@ -528,21 +676,38 @@ int main(int argc, char** argv)
         {
           Mat rvec, tvec;
           solvePnP(Mat(opoints), Mat(ipoints), intrinsic, Mat::zeros(Size(1, 5), CV_64F), rvec, tvec, false);
-          cout << rvec << endl << tvec << endl;
-          Pose pose;
-          rvec *= -1.0;
-          tvec *= -1.0;
-          const Pose& lastPose = cameras[cameras.size()-1];
-          project3dPoint(lastPose.center, rvec, tvec, pose.center);
-          project3dPoint(lastPose.x, rvec, tvec, pose.x);
-          project3dPoint(lastPose.y, rvec, tvec, pose.y);
-          project3dPoint(lastPose.z, rvec, tvec, pose.z);
-          cameras.push_back(pose);
-          drawgraph(cam_pub, cameras);
+
+          vector<Point2f> projectedPoints;
+          projectPoints(Mat(opoints), rvec, tvec, intrinsic, Mat::zeros(Size(1, 5), CV_64F), projectedPoints);
+          float reprojectionError = 0;
+          for (size_t pointInd = 0; pointInd < projectedPoints.size(); pointInd++)
+          {
+            float error = norm(projectedPoints[pointInd] - ipoints[pointInd]);
+            if (error > reprojectionError)
+              reprojectionError = error;
+          }
+          cout << "Reprojection error = " << reprojectionError << endl;
+          if (reprojectionError > 1.3)
+          {
+            matched = false;
+          }
+          else
+          {
+            cout << rvec << endl << tvec << endl;
+            Pose pose;
+            const Pose& lastPose = cameras[cameras.size()-1];
+            project3dPoint(lastPose.center, rvec, tvec, pose.center);
+            project3dPoint(lastPose.x, rvec, tvec, pose.x);
+            project3dPoint(lastPose.y, rvec, tvec, pose.y);
+            project3dPoint(lastPose.z, rvec, tvec, pose.z);
+            cameras.push_back(pose);
+            drawgraph(cam_pub, cameras);
+          }
         }
 
       }
-      prevFrame = frame;
+      //if (matched || prevFrame.img.empty())
+        prevFrame = frame;
       if (!nh.ok())
         return -1;
     }
