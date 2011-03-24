@@ -13,13 +13,13 @@ add_definitions(-Wall -Wno-missing-field-initializers -fopenmp)
 # PE library
 rosbuild_add_library(posest src/pe.cpp src/pe3d.cpp src/planarSFM.cpp src/pe2d.cpp src/pnp_ransac.cpp)
 rosbuild_add_compile_flags(posest ${SSE_FLAGS})
-target_link_libraries(posest tbb) # Intel Thread Building Blocks
+target_link_libraries(posest tbb gomp) # Intel Thread Building Blocks
 
 #####################################################################
 # PE test library: artificial data generation
 rosbuild_add_library(pe_simulated test/simulated.cpp)
 rosbuild_add_compile_flags(pe_simulated ${SSE_FLAGS})
-target_link_libraries(pe_simulated posest)
+target_link_libraries(pe_simulated posest gomp)
 
 #####################################################################
 # unit tests
@@ -33,15 +33,15 @@ target_link_libraries(pe_simulated posest)
 
 # test pose estimation
 rosbuild_add_executable(test/run_posest test/run_posest.cpp)
-target_link_libraries(test/run_posest posest)
+target_link_libraries(test/run_posest posest gomp)
 
 # test pose estimation for mono camera
 rosbuild_add_executable(test/run_simulated2d test/run_simulated2d.cpp)
-target_link_libraries(test/run_simulated2d pe_simulated)
+target_link_libraries(test/run_simulated2d pe_simulated gomp)
 
 # read sequence and SBA it
 rosbuild_add_executable(test/run_sequence test/run_sequence.cpp)
-target_link_libraries(test/run_sequence posest)
+target_link_libraries(test/run_sequence posest gomp)
 
 
 
@@ -57,4 +57,4 @@ rosbuild_add_library(esm src/esm.cpp)
 rosbuild_add_compile_flags(esm ${SSE_FLAGS})
 
 rosbuild_add_executable(test/run_esm test/run_esm.cpp)
-target_link_libraries(test/run_esm esm)
+target_link_libraries(test/run_esm esm gomp)
