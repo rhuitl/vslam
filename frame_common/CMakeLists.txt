@@ -24,7 +24,7 @@ rosbuild_add_compile_flags(frame_common ${SSE_FLAGS})
 # executables
 #
 rosbuild_add_executable (test_frame src/test_frame.cpp)
-
+target_link_libraries (test_frame gomp)
 ######################################################################
 # visualization
 #
