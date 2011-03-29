@@ -4,6 +4,7 @@
 #include <vslam_system/vo.h>
 #include <vslam_system/place_recognizer.h>
 #include <posest/pe3d.h>
+#include <posest/peh.h>
 #include <sba/sba.h>
 #include <frame_common/frame.h>
 

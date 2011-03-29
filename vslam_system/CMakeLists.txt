@@ -50,8 +50,8 @@ target_link_libraries(run_simulated_mono vo)
 rosbuild_add_executable(run_stereo src/run_stereo.cpp)
 target_link_libraries(run_stereo vo)
 
-rosbuild_add_executable(run_howard_stereo src/run_howard_stereo.cpp)
-target_link_libraries(run_howard_stereo vo)
+rosbuild_add_executable(comp src/po_comparison.cpp)
+target_link_libraries(comp vo)
 
 # read stereo sequence from PS device and SBA it
 rosbuild_add_executable(run_ps src/run_ps.cpp)

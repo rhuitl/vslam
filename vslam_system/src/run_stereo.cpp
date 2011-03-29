@@ -318,7 +318,11 @@ int main(int argc, char** argv)
   // parameters
   vslam.setKeyDist(0.4);	// meters
   vslam.setKeyAngle(0.2);	// radians
+  #ifdef HOWARD
+  vslam.setKeyInliers(50);
+  #else
   vslam.setKeyInliers(300);
+  #endif
   vslam.setHuber(2.0);          // Huber cost function cutoff
   //  vslam.vo_.pose_estimator_->wy = 64;
   //  vslam.vo_.pose_estimator_->wx = 64;
