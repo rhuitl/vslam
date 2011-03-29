@@ -11,7 +11,7 @@ add_definitions(-Wall -Wno-missing-field-initializers -fopenmp)
 
 #####################################################################
 # PE library
-rosbuild_add_library(posest src/pe.cpp src/pe3d.cpp src/planarSFM.cpp src/pe2d.cpp src/pnp_ransac.cpp)
+rosbuild_add_library(posest src/pe.cpp src/peh.cpp src/pe3d.cpp src/planarSFM.cpp src/pe2d.cpp src/pnp_ransac.cpp)
 rosbuild_add_compile_flags(posest ${SSE_FLAGS})
 target_link_libraries(posest tbb gomp) # Intel Thread Building Blocks
 
