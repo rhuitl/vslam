@@ -31,10 +31,11 @@ namespace pe
     inliers.clear();
     cout << "Kpt size frame 1 = " << frame1.kpts.size() << endl;
     cout << "Kpt size frame 2 = " << frame2.kpts.size() << endl;
+
     Mat mask;
     if (windowed)
       mask = cv::windowedMatchingMask(frame1.kpts, frame2.kpts, wx, wy);
-    howardMatcher->match(frame1, frame2, matches, mask);
+    howardMatcher->match(frame1, frame2, matches, filteredIndices, mask);
     return estimate(frame1, frame2, matches);
   }
 
@@ -73,15 +74,15 @@ namespace pe
   int PoseEstimatorH::estimate(const Frame& f0, const Frame& f1,
                                 const std::vector<cv::DMatch> &peMatches)
   {
-    cout << "Matches size = " << peMatches.size() << endl;
+    cout << "Filtered matches size = " << filteredIndices.size() << endl;
     std::vector<cv::DMatch> matches;
     int nmatch = peMatches.size();
-    for (int i=0; i<nmatch; i++)
+    for (size_t i=0; i<filteredIndices.size(); i++)
     {
-      if (f0.disps[peMatches[i].queryIdx] > minMatchDisp &&
-            f1.disps[peMatches[i].trainIdx] > minMatchDisp)
+      if (f0.disps[peMatches[filteredIndices[i]].queryIdx] > minMatchDisp &&
+            f1.disps[peMatches[filteredIndices[i]].trainIdx] > minMatchDisp)
         {
-          matches.push_back(peMatches[i]);
+          matches.push_back(peMatches[filteredIndices[i]]);
         }
     }
     cout << "Matches size after disparity filtering = " << matches.size() << endl;
@@ -136,7 +137,7 @@ namespace pe
           inliersIpoints.push_back(ipoints[pointInd]);
           inliersOpoints.push_back(opoints[pointInd]);
           inliersOpointsFrame2.push_back(opointsFrame2[pointInd]);
-          inls.push_back(matches[indices[pointInd]]);
+          //inls.push_back(matches[indices[pointInd]]);
         }
       }
       cout << "Inliers matches size = " << inliersIpoints.size() << endl;
@@ -145,9 +146,9 @@ namespace pe
         solvePnP(Mat(inliersOpoints), Mat(inliersIpoints), intrinsic, Mat::zeros(Size(1, 5), CV_64F), rvec, tvec, true);
         vector<Point3f> rotatedPoints;
         project3dPoints(Mat(inliersOpoints), rvec, tvec, rotatedPoints);
-        Mat tvecAdditional = calcTranslation(rotatedPoints, inliersOpointsFrame2);
-        tvec += tvecAdditional;
-        cout << "tvecAdditional = " << tvecAdditional << endl;
+        //Mat tvecAdditional = calcTranslation(rotatedPoints, inliersOpointsFrame2);
+        //tvec += tvecAdditional;
+        //cout << "tvecAdditional = " << tvecAdditional << endl;
 
         vector<Point2f> projectedPoints;
         projectPoints(Mat(inliersOpoints), rvec, tvec, intrinsic, Mat::zeros(Size(1, 5), CV_64F), projectedPoints);
@@ -162,10 +163,10 @@ namespace pe
           }
         }
         cout << "Reprojection error = " << reprojectionError << endl;
-        if (reprojectionError > 2.5)
-        {
-          matched = false;
-        }
+        //if (reprojectionError > 2.5)
+        //{
+        //  matched = false;
+        //}
       }
       else
       {
@@ -175,6 +176,37 @@ namespace pe
 
       if (matched)
       {
+       /////////////
+        vector<Point3f> mopoints;
+        vector<Point2f> mipoints;
+        vector<int> mindices;
+        for (size_t i = 0; i < peMatches.size(); ++i)
+        {
+          if (f0.goodPts[peMatches[i].queryIdx] && f1.goodPts[peMatches[i].trainIdx])
+          {
+            mipoints.push_back(f1.kpts[peMatches[i].trainIdx].pt);
+            Eigen::Vector4d vec = f0.pts[peMatches[i].queryIdx];
+            Point3f op(vec(0), vec(1), vec(2));
+            mopoints.push_back(op);
+            mindices.push_back(i);
+          }
+        }
+        vector<Point2f> mprojectedPoints;
+        projectPoints(Mat(mopoints), rvec, tvec, intrinsic, Mat::zeros(Size(1, 5), CV_64F), mprojectedPoints);
+        for (size_t pointInd = 0; pointInd < mprojectedPoints.size(); pointInd++)
+        {
+          double dx = mipoints[pointInd].x - mprojectedPoints[pointInd].x;
+          double dy = mipoints[pointInd].y - mprojectedPoints[pointInd].y;
+          double dd = f1.disps[peMatches[mindices[pointInd]].trainIdx] - f1.cam.fx*f1.cam.tx/mopoints[pointInd].z;
+
+          if (dx*dx < maxInlierXDist2 && dy*dy < maxInlierXDist2 &&
+                       dd*dd < maxInlierDDist2)
+          {
+            inls.push_back(peMatches[mindices[pointInd]]);
+          }
+        }
+        cout << "inls size = " << inls.size() << endl;
+
         if (norm(tvec) > 1.0)
         {
           inls.clear();

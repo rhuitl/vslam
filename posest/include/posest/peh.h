@@ -87,7 +87,7 @@ public:
   }
 
   void match(const frame_common::Frame& prevFrame, const frame_common::Frame& frame,
-             vector<cv::DMatch>& matches, const cv::Mat& mask)
+             vector<cv::DMatch>& matches, vector<int>& filteredIndices, const cv::Mat& mask)
   {
     if (mask.empty())
     {
@@ -106,13 +106,15 @@ public:
     cv::Mat scoreMatrix;
     calculateScoreMatrix(scoreMatrix);
     calculateCrossCheckMatches(scoreMatrix, matches);
+
     cout << "After crosscheck = " << matches.size() << endl;
     if (matches.size())
     {
       cv::Mat consistMatrix;
       calculateConsistMatrix(matches, prevFrame, frame, consistMatrix);
-      filterMatches(consistMatrix, matches);
+      filterMatches(consistMatrix, filteredIndices);
     }
+    cout << "After filtering = " << filteredIndices.size() << endl;
   }
 
 private:
@@ -217,7 +219,7 @@ private:
     }
   }
 
-  void filterMatches(const cv::Mat& consistMatrix, vector<cv::DMatch>& matches)
+  void filterMatches(const cv::Mat& consistMatrix, vector<int>& filteredIndices)
   {
     std::vector<int> indices;
     //initialize clique
@@ -281,10 +283,7 @@ private:
       sizes.erase(maxSizeIter);
     }
 
-    vector<cv::DMatch> filteredMatches;
-    for (size_t i = 0; i < indices.size(); i++)
-      filteredMatches.push_back(matches[indices[i]]);
-    matches = filteredMatches;
+    filteredIndices = indices;
   }
 
 private:
@@ -318,6 +317,7 @@ public:
 private:
   cv::Ptr<HowardStereoMatcher> howardMatcher;
   int minMatchesCount;
+  std::vector<int> filteredIndices;
 };
 
 } // ends namespace pe
