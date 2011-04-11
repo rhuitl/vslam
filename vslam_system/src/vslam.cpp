@@ -45,7 +45,7 @@ VslamSystem::VslamSystem(const std::string& vocab_tree_file, const std::string& 
   int min_keyframe_inliers, double min_keyframe_distance, double min_keyframe_angle)
   : frame_processor_(10),
   #ifdef HOWARD
-  vo_(boost::shared_ptr<pe::PoseEstimator>(new pe::PoseEstimatorH(1000, true, 10.0, 2.0, 2.0, 0.01, 20, 17)),
+  vo_(boost::shared_ptr<pe::PoseEstimator>(new pe::PoseEstimatorH(1000, true, 3.0, 4.0, 4.0, 0.025, 40, 17)),
   #else
   vo_(boost::shared_ptr<pe::PoseEstimator>(new pe::PoseEstimator3d(1000,true,6.0,8.0,8.0)),
   #endif
