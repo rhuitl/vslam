@@ -159,14 +159,14 @@ int main(int argc, char** argv)
     }
 
     frame_common::Frame prevFrame;
-    frame_common::FrameProc frameProcessor(10);
+    frame_common::FrameProc frameProcessor(5);
     typedef cv::CalonderDescriptorExtractor<float> Calonder;
     frameProcessor.setFrameDescriptor(new Calonder(argv[7]));
 
     pe::HowardStereoMatcher matcherError(0.01, 17);
 
     pe::PoseEstimator3d po(5000, true, 10.0, 3.0, 3.0);
-    pe::PoseEstimatorH poh(5000, true, 10.0, 0.7, 0.7, 0.01, 40, 17);
+    pe::PoseEstimatorH poh(5000, true, 10.0, 3.0, 3.0, 0.1, 40, 13);
 
     po.wx = poh.wx = 92;
     po.wy = poh.wy = 48;
@@ -201,10 +201,9 @@ int main(int argc, char** argv)
       frame.setCamParams(camp);
       frame.frameId = ii;
 
-      vector<DMatch> matches;
       vector<DMatch> matchesError;
-      vector<Point3f> opoints, opointsError;
-      vector<Point2f> ipoints, ipointsError;
+      vector<Point3f> opointsError;
+      vector<Point2f> ipointsError;
       if (!prevFrame.img.empty())
       {
         display.create(prevFrame.img.rows, prevFrame.img.cols + frame.img.cols, CV_8UC3);
@@ -225,41 +224,38 @@ int main(int argc, char** argv)
 
         howMeter.start();
         matched = poh.estimate(prevFrame, frame);
+        cout << "Inliers = " << poh.inliers.size() << endl;
         howMeter.stop();
 
         cout << "Matcher error" << endl;
         Mat mask = cv::windowedMatchingMask(prevFrame.kpts, frame.kpts, 92, 48);
-        matcherError.match(prevFrame, frame, matchesError, mask);
-        cout << "poh.matches.size() = " << poh.matches.size() << endl;
-        cout << "Matches size = " << poh.matches.size() << endl;
+        vector<int> filteredInidices;
+        matcherError.match(prevFrame, frame, matchesError, filteredInidices, mask);
+        cout << "Matches error size = " << filteredInidices.size() << endl;
 
         if (matched)
         {
-          for (size_t i = 0; i < poh.matches.size(); ++i)
+          for (size_t i = 0; i < poh.inliers.size(); ++i)
           {
-            if (prevFrame.goodPts[poh.matches[i].queryIdx] && frame.goodPts[poh.matches[i].trainIdx])
+            if (prevFrame.goodPts[poh.inliers[i].queryIdx] && frame.goodPts[poh.inliers[i].trainIdx])
             {
-              cv::Point pt1(prevFrame.kpts[poh.matches[i].queryIdx].pt.x,prevFrame.kpts[poh.matches[i].queryIdx].pt.y);
-              cv::Point pt2(frame.kpts[poh.matches[i].trainIdx].pt.x+prevFrame.img.cols,frame.kpts[poh.matches[i].trainIdx].pt.y);
-              ipoints.push_back(frame.kpts[poh.matches[i].trainIdx].pt);
-              Eigen::Vector4d vec = prevFrame.pts[poh.matches[i].queryIdx];
-              Point3f op(vec(0), vec(1), vec(2));
-              opoints.push_back(op);
-              //cv::line(display, pt1, pt2, Scalar(0, 255));
+              cv::Point pt1(prevFrame.kpts[poh.inliers[i].queryIdx].pt.x,prevFrame.kpts[poh.inliers[i].queryIdx].pt.y);
+              cv::Point pt2(frame.kpts[poh.inliers[i].trainIdx].pt.x+prevFrame.img.cols,frame.kpts[poh.inliers[i].trainIdx].pt.y);
+              cv::line(display, pt1, pt2, Scalar(0, 255));
             }
           }
 
-          cout << "Matches Error size = " << matchesError.size() << endl;
-          for (size_t i = 0; i < matchesError.size(); ++i)
+          cout << "Matches Error size = " << filteredInidices.size() << endl;
+          for (size_t i = 0; i < filteredInidices.size(); ++i)
           {
-            if (prevFrame.goodPts[matchesError[i].queryIdx] && frame.goodPts[matchesError[i].trainIdx])
+            if (prevFrame.goodPts[matchesError[filteredInidices[i]].queryIdx] && frame.goodPts[matchesError[filteredInidices[i]].trainIdx])
             {
-              ipointsError.push_back(frame.kpts[matchesError[i].trainIdx].pt);
-              Eigen::Vector4d vec = prevFrame.pts[matchesError[i].queryIdx];
+              ipointsError.push_back(frame.kpts[matchesError[filteredInidices[i]].trainIdx].pt);
+              Eigen::Vector4d vec = prevFrame.pts[matchesError[filteredInidices[i]].queryIdx];
               Point3f op(vec(0), vec(1), vec(2));
               opointsError.push_back(op);
-              cv::line(display, frame.kpts[matchesError[i].trainIdx].pt, cv::Point(prevFrame.kpts[matchesError[i].queryIdx].pt.x+prevFrame.img.cols,
-                                          prevFrame.kpts[matchesError[i].queryIdx].pt.y), Scalar(0, 255));
+              //cv::line(display, frame.kpts[matchesError[filteredInidices[i]].trainIdx].pt, cv::Point(prevFrame.kpts[matchesError[filteredInidices[i]].queryIdx].pt.x+prevFrame.img.cols,
+                //                          prevFrame.kpts[matchesError[filteredInidices[i]].queryIdx].pt.y), Scalar(0, 255));
             }
           }
         }
@@ -289,6 +285,7 @@ int main(int argc, char** argv)
         }
         cout << endl << "Howard pose estimator" << endl;
         cout << "Reprojection error = " << reprojectionError << endl;
+        cout << "Inliers size = " << poh.inliers.size() << endl;
         Mat Rinv;
         Rodrigues(rvec, Rinv);
         cout << Rinv << endl << tvec << endl;
@@ -297,15 +294,15 @@ int main(int argc, char** argv)
         poMeter.start();
         po.estimate(prevFrame, frame);
         poMeter.stop();
-        for (size_t i = 0; i < po.matches.size(); ++i)
-        {
-           if (prevFrame.goodPts[po.matches[i].queryIdx] && frame.goodPts[po.matches[i].trainIdx])
-           {
-             cv::Point pt1(prevFrame.kpts[po.matches[i].queryIdx].pt.x,prevFrame.kpts[po.matches[i].queryIdx].pt.y);
-             cv::Point pt2(frame.kpts[po.matches[i].trainIdx].pt.x+prevFrame.img.cols,frame.kpts[po.matches[i].trainIdx].pt.y);
-             //cv::line(display, pt1, pt2, Scalar(0,0,255));
-           }
-        }
+//        for (size_t i = 0; i < po.matches.size(); ++i)
+//        {
+//           if (prevFrame.goodPts[po.matches[i].queryIdx] && frame.goodPts[po.matches[i].trainIdx])
+//           {
+//             cv::Point pt1(prevFrame.kpts[po.matches[i].queryIdx].pt.x,prevFrame.kpts[po.matches[i].queryIdx].pt.y);
+//             cv::Point pt2(frame.kpts[po.matches[i].trainIdx].pt.x+prevFrame.img.cols,frame.kpts[po.matches[i].trainIdx].pt.y);
+//             //cv::line(display, pt1, pt2, Scalar(0,0,255));
+//           }
+//        }
         Mat poR;
         R.copyTo(poR);
         for (int j=0; j<po.rot.cols(); ++j)
@@ -328,6 +325,7 @@ int main(int argc, char** argv)
         }
         cout << endl << "3d pose estimator" << endl;
         cout << "Reprojection error = " << reprojectionError3d << endl;
+        cout << "Inliers size = " << po.inliers.size() << ", matches = " << po.matches.size() << endl;
         Mat RR;
         Rodrigues(r, RR);
         cout << RR << endl << t << endl;
@@ -340,25 +338,25 @@ int main(int argc, char** argv)
         cout << "tdiff = " << norm(tvec-t, NORM_INF) << endl;
         ofstream f;
         f.open("statistic.txt", fstream::app);
-        f << ii << " " << rdiff << " " <<  norm(tvec-t, NORM_INF) << " " <<  reprojectionError << " " << reprojectionError3d << " " << rdiff << " " << norm(tvec-t, NORM_INF) << endl;
+        f << ii << " " << rdiff << " " <<  norm(tvec-t, NORM_INF) << " " <<  reprojectionError << " " << reprojectionError3d << " " << poh.inliers.size() << " " << po.inliers.size() << endl;
         f.close();
 
 
         cv::imshow(window_name, display);
         cout << "How time = " << howMeter.getTimeMilli() / (float)(ii+1) << endl;
         cout << "Po time = " << poMeter.getTimeMilli() / (float)(ii+1) << endl;
-//        char key;
-//        while (true)
-//        {
-//          key = cv::waitKey(1);
-//          if (key == 32)
-//          {
-//            break;
-//          }
-//          else if (key == 27)
-//            return -1;
-//        }
-        cv::waitKey(30);
+        char key;
+        while (true)
+        {
+          key = cv::waitKey(1);
+          if (key == 32)
+          {
+            break;
+          }
+          else if (key == 27)
+            return -1;
+        }
+        //cv::waitKey(30);
 
       }
       prevFrame = frame;
