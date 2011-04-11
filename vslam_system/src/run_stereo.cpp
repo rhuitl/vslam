@@ -319,7 +319,7 @@ int main(int argc, char** argv)
   vslam.setKeyDist(0.4);	// meters
   vslam.setKeyAngle(0.2);	// radians
   #ifdef HOWARD
-  vslam.setKeyInliers(50);
+  vslam.setKeyInliers(300);
   #else
   vslam.setKeyInliers(300);
   #endif
