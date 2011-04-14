@@ -142,7 +142,8 @@ namespace sba
   // we should do something about negative Z
   double Proj::calcErrMono_(const Node &nd, const Point &pt, double huber)
   {
-    Eigen::Vector3d p1 = nd.w2i * pt; err = p1.head(2)/p1(2); 
+    Eigen::Vector3d p1 = nd.w2i * pt; 
+    err(2) = 0.0;
     if (p1(2) <= 0.0) 
     {
 #ifdef DEBUG
@@ -152,6 +153,9 @@ namespace sba
       err = Eigen::Vector3d(0.0,0.0,0.0);
       return 0.0;
     }
+    else
+      err.head<2>() = p1.head<2>()/p1(2); 
+
     err -= kp;
 
     // pseudo-Huber weighting

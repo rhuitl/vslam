@@ -323,6 +323,7 @@ namespace sba
         b.nrow = csize;
         b.ncol = 1;
         b.d = csize;                // leading dimension (???)
+        b.nzmax = csize;
         b.xtype = CHOLMOD_REAL;
         b.dtype = CHOLMOD_DOUBLE;
         b.x = B.data();
@@ -675,6 +676,7 @@ namespace sba
         b.nrow = csize;
         b.ncol = 1;
         b.d = csize;                // leading dimension (???)
+        b.nzmax = csize;
         b.xtype = CHOLMOD_REAL;
         b.dtype = CHOLMOD_DOUBLE;
         b.x = B.data();
