@@ -1,16 +1,16 @@
 <stack>
   <description brief="vslam">Visual SLAM with sparse bundle adjustment</description>
   <author>Kurt Konolige, Patrick Mihelich, Helen Oleynikova</author>
-  <license>Public Domain,BSD,LGPL,LGPL/GPL</license>  
+  <license>BSD,Public Domain,LGPL,LGPL/GPL</license>  
   <review status="experimental" notes=""/>
   <url>http://ros.org/wiki/vslam</url>
-  <depend stack="common_msgs" /> <!-- nav_msgs, sensor_msgs, geometry_msgs, stereo_msgs, visualization_msgs -->
+  <depend stack="common_msgs" /> <!-- nav_msgs, geometry_msgs, sensor_msgs, stereo_msgs, visualization_msgs -->
   <depend stack="driver_common" /> <!-- dynamic_reconfigure -->
   <depend stack="geometry" /> <!-- tf, eigen -->
   <depend stack="image_common" /> <!-- image_transport -->
   <depend stack="perception_pcl" /> <!-- pcl -->
   <depend stack="ros" />
-  <depend stack="ros_comm" /> <!-- roscpp, message_filters, std_msgs -->
-  <depend stack="vision_opencv" /> <!-- opencv2, image_geometry, cv_bridge -->
+  <depend stack="ros_comm" /> <!-- std_msgs, roscpp, message_filters -->
+  <depend stack="vision_opencv" /> <!-- image_geometry, opencv2, cv_bridge -->
 
 </stack>
