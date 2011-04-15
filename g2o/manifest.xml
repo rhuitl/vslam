@@ -1,0 +1,23 @@
+<package>
+  <description brief="Generalized Graph Optimizer (G2O)">
+
+    A general system for graph optimization.
+
+  </description>
+  <author>Rainer Kummerle, Giorgio Grisetti, Cyril Stachniss, Hauke Strasdat, Kurt Konolige</author>
+  <license>LGPL</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://openslam.org/g2o.html</url>
+
+  <depend package="eigen"/>
+  <depend package="suitesparse"/>
+  <depend package="csparse"/>
+
+  <export>
+    <cpp cflags="-I${prefix}/include/" lflags="-L${prefix}/lib/ -lcsparse -Wl,-rpath,${prefix}/lib/" />
+  </export>
+
+  <platform os="ubuntu" version="9.04"/>
+  <platform os="ubuntu" version="9.10"/>
+  <platform os="ubuntu" version="10.04"/>
+</package>
