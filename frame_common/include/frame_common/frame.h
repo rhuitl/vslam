@@ -49,6 +49,7 @@
 #include <Eigen/StdVector>
 #include <vector>
 #include <boost/shared_ptr.hpp>
+#include <boost/make_shared.hpp>
 #include <frame_common/stereo.h>
 #include <frame_common/camparams.h>
 
