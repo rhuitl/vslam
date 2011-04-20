@@ -13,6 +13,8 @@
   <depend package="suitesparse"/>
   <depend package="csparse"/>
 
+  <rosdep name="suitesparse"/>
+
   <export>
     <cpp cflags="-I${prefix}/include/" lflags="-L${prefix}/lib/ -lcsparse -Wl,-rpath,${prefix}/lib/" />
   </export>
