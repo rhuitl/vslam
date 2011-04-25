@@ -23,7 +23,7 @@ rosbuild_genmsg()
 # SBA library
 rosbuild_add_library(sba src/sba.cpp src/spa.cpp src/spa2d.cpp src/csparse.cpp src/proj.cpp src/node.cpp src/sba_file_io.cpp)
 rosbuild_add_compile_flags(sba ${SSE_FLAGS})
-target_link_libraries(sba blas lapack)
+target_link_libraries(sba blas lapack cholmod cxsparse)
 
 # SBA library with ROS & utilities, including reading from file and visualization.
 rosbuild_add_library(sba_vis src/visualization.cpp)

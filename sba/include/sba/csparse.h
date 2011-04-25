@@ -52,14 +52,14 @@
 
 // CSparse header
 extern "C" {
-#include "CSparse/cs.h"
+#include "suitesparse/cs.h"
 }
 #include <vector>
 #include <map>
 
 // Cholmod header, other header files brought in
 #ifdef SBA_CHOLMOD
-#include "SuiteSparse/cholmod.h"
+#include "suitesparse/cholmod.h"
 #endif
 
 // these are for SparseLib and IML, testing the Delayed State Filter

@@ -10,9 +10,6 @@
   <url>http://openslam.org/g2o.html</url>
 
   <depend package="eigen"/>
-  <depend package="suitesparse"/>
-  <depend package="csparse"/>
-
   <rosdep name="suitesparse"/>
 
   <export>

@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#include "SuiteSparse/cholmod.h"
+#include "suitesparse/cholmod.h"
 #include "sba/sba.h"
 #include <time.h>
 #define CPUTIME ((double) (clock ( )) / CLOCKS_PER_SEC)
