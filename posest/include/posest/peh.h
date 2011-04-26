@@ -165,19 +165,40 @@ private:
       cv::minMaxLoc(scoreMatrix.col(col), 0, 0, &minIndex, 0, windowedMask.col(col));
       matches2to1[col] = minIndex.y;
     }
-
+#if 0
     for (size_t mIndex = 0; mIndex < matches1to2.size(); mIndex++)
     {
       if (matches2to1[matches1to2[mIndex]] == (int)mIndex)
       {
-        cv::DMatch match;
-        match.trainIdx = matches1to2[mIndex];
-        match.queryIdx = mIndex;
-        matches.push_back(match);
+        matches.push_back(cv::DMatch(mIndex, matches1to2[mIndex], 0.f));
       }
+    }
+#endif
+
+    for (size_t mIndex = 0; mIndex < matches1to2.size(); mIndex++)
+    {
+      matches.push_back(cv::DMatch(mIndex, matches1to2[mIndex], 0.f));
+    }
+
+    for (size_t mIndex = 0; mIndex < matches2to1.size(); mIndex++)
+    {
+      if (matches1to2[matches2to1[mIndex]] != mIndex)
+        matches.push_back(cv::DMatch(matches2to1[mIndex], mIndex, 0.f));
     }
   }
 
+  double calcDeltaL(const cv::Point3f& p11, const cv::Point3f& p21, double t, double f, double threshold)
+  {
+    double A = pow( (p11.x - p21.x)*(t - p11.x) - (p11.y - p21.y)*p11.y - (p11.z - p21.z)*p11.z, 2);
+    double B = pow( (p11.x - p21.x)*p11.x - (p11.y - p21.y)*p11.y - (p11.z - p21.z)*p11.z, 2);
+    double C = 0.5*pow(t* (p11.y - p21.y), 2);
+    double D = pow( (p11.x - p21.x)*(t - p21.x) - (p11.y - p21.y)*p21.y - (p11.z - p21.z)*p21.z, 2);
+    double E = pow( (p11.x - p21.x)*p21.x - (p11.y - p21.y)*p21.y - (p11.z - p21.z)*p21.z, 2);
+    double F = C;
+    cv::Point3f diff = p11 - p21;
+    double L = cv::norm(diff);
+    return threshold*sqrt(p11.z*p11.z*(A+B+C) + p21.z*p21.z*(D+E+F)) / (L*f);
+  }
 
   void calculateConsistMatrix(const vector<cv::DMatch>& matches, const frame_common::Frame& prevFrame,
                               const frame_common::Frame& frame, cv::Mat& consistMatrix)
@@ -209,8 +230,14 @@ private:
 
             cv::Point3f diff1 = p11 - p21;
             cv::Point3f diff2 = p12 - p22;
-            if (abs(norm(diff1) - norm(diff2)) < threshold)
+            //if (abs(norm(diff1) - norm(diff2)) < threshold)
+            //  consistent = 1;
+            double L1 = cv::norm(diff1), L2 = cv::norm(diff2);
+            double dL1 = calcDeltaL(p11, p21, prevFrame.cam.tx, prevFrame.cam.fx, threshold);
+            double dL2 = calcDeltaL(p12, p22, frame.cam.tx, frame.cam.fx, threshold);
+            if (fabs(L1 - L2) < 3*sqrt(dL1*dL1+dL2*dL2))
               consistent = 1;
+
           }
           consistMatrix.at<unsigned char>(row, col) = consistMatrix.at<unsigned char>(col, row) = consistent;
         }
