@@ -1,5 +1,6 @@
 all: g2o
 
+# tarball download
 #TARBALL = build/g2o.tar.gz
 #TARBALL_URL = http://pr.willowgarage.com/downloads/g2o.tar.gz
 #TARBALL_URL = file:///home/konolige/devel/g2o.tar.gz
@@ -7,6 +8,7 @@ all: g2o
 #MD5SUM_FILE = g2o.tar.gz.md5sum
 #include $(shell rospack find mk)/download_unpack_build.mk
 
+# svn download
 SVN_DIR = build/g2o-svn
 SVN_URL =  https://aissvn.informatik.uni-freiburg.de/svn/projects-g2o
 # revision as of May 11, 2011
