@@ -13,7 +13,7 @@ SVN_DIR = build/g2o-svn
 SVN_URL =  https://aissvn.informatik.uni-freiburg.de/svn/projects-g2o
 # revision as of May 11, 2011
 SVN_REVISION = -r233
-SVN_CMDLINE = svn --trust-server-cert
+SVN_CMDLINE = svn --trust-server-cert --non-interactive
 include $(shell rospack find mk)/svn_checkout.mk
 
 SOURCE_DIR = build/g2o-svn
