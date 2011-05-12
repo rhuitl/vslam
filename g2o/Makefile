@@ -1,24 +1,27 @@
 all: g2o
 
+SOURCE_DIR = build/g2o
+SVN_DIR = $(SOURCE_DIR)
+TOP_DIR = $(PWD)
+
 # tarball download
-TARBALL = build/g2o.tar.gz
+#TARBALL = build/g2o.tar.gz
 #TARBALL_URL = http://pr.willowgarage.com/downloads/g2o.tar.gz
-TARBALL_URL = http://vault.willowgarage.com/wgdata1/vol1/g2o/g2o.tar.gz
+#TARBALL_URL = http://vault.willowgarage.com/wgdata1/vol1/g2o/g2o.tar.gz
 #TARBALL_URL = file:///home/konolige/devel/g2o.tar.gz
 #TARBALL_PATCH = makefile.patch
 #MD5SUM_FILE = g2o.tar.gz.md5sum
-SOURCE_DIR = build/g2o
-include $(shell rospack find mk)/download_unpack_build.mk
+#include $(shell rospack find mk)/download_unpack_build.mk
 
 # svn download
-#SVN_DIR = build/g2o
-#SVN_URL =  https://aissvn.informatik.uni-freiburg.de/svn/projects-g2o
-# revision as of May 11, 2011
+SVN_URL =  https://svn.openslam.org/data/svn/g2o/trunk
 #SVN_REVISION = -r233
-#SVN_CMDLINE = svn --trust-server-cert --non-interactive
-#include $(shell rospack find mk)/svn_checkout.mk
+#SVN_CMDLINE = svn --no-auth-cache --trust-server-cert --non-interactive
+SVN_CMDLINE = svn --non-interactive --config-dir $(TOP_DIR)/svnconf
+include $(shell rospack find mk)/svn_checkout.mk
 
-g2o: $(SOURCE_DIR)/unpacked
+#g2o: $(SOURCE_DIR)/unpacked
+g2o: $(SOURCE_DIR)
 	-rm -rf lib include bin
 	mkdir -p $(SOURCE_DIR)/build
 	mkdir -p lib
@@ -59,4 +62,3 @@ wipe: clean
 	-rm -rf build g2o
 
 
-# svn co https://svn.openslam.org/data/svn/g2o/
