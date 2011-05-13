@@ -13,4 +13,9 @@
   <depend stack="ros_comm" /> <!-- std_msgs, roscpp, message_filters -->
   <depend stack="vision_opencv" /> <!-- image_geometry, opencv2, cv_bridge -->
 
+  <platform os="ubuntu" version="9.04"/>
+  <platform os="ubuntu" version="9.10"/>
+  <platform os="ubuntu" version="10.04"/>
+  <platform os="ubuntu" version="10.10"/>
+
 </stack>
