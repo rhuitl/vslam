@@ -40,10 +40,12 @@ g2o: $(SOURCE_DIR)
 	mkdir -p include/g2o/types/slam2d
 	mkdir -p include/g2o/types/slam3d
 	mkdir -p include/g2o/math_groups
+	mkdir -p include/g2o/stuff
 	cd $(SOURCE_DIR)/build && cmake ../ && make
 	cp $(SOURCE_DIR)/lib/*.so lib
 	cp $(SOURCE_DIR)/bin/* bin
 	cp $(SOURCE_DIR)/g2o/core/*.h include/g2o/core
+	cp $(SOURCE_DIR)/g2o/core/*.hpp include/g2o/core
 	cp $(SOURCE_DIR)/g2o/solvers/csparse/*.h include/g2o/solvers/csparse
 	cp $(SOURCE_DIR)/g2o/solvers/dense/*.h include/g2o/solvers/dense
 	cp $(SOURCE_DIR)/g2o/solvers/cholmod/*.h include/g2o/solvers/cholmod
@@ -54,6 +56,8 @@ g2o: $(SOURCE_DIR)
 	cp $(SOURCE_DIR)/g2o/types/slam2d/*.h include/g2o/types/slam2d
 	cp $(SOURCE_DIR)/g2o/types/slam3d/*.h include/g2o/types/slam3d
 	cp $(SOURCE_DIR)/g2o/math_groups/*.h include/g2o/math_groups
+	cp $(SOURCE_DIR)/g2o/math_groups/*.hpp include/g2o/math_groups
+	cp $(SOURCE_DIR)/g2o/stuff/*.h include/g2o/stuff
 	touch g2o
 
 clean:
