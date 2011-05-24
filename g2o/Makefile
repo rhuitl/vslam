@@ -44,7 +44,7 @@ g2o: $(SOURCE_DIR)
 	cd $(SOURCE_DIR)/build && cmake ../ && make
 	cp $(SOURCE_DIR)/lib/*.so lib
 	cp $(SOURCE_DIR)/bin/* bin
-	cp $(SOURCE_DIR)/g2o/config.h include/g2o
+	cp $(SOURCE_DIR)/build/g2o/config.h include/g2o
 	cp $(SOURCE_DIR)/g2o/core/*.h include/g2o/core
 	cp $(SOURCE_DIR)/g2o/core/*.hpp include/g2o/core
 	cp $(SOURCE_DIR)/g2o/solvers/csparse/*.h include/g2o/solvers/csparse
