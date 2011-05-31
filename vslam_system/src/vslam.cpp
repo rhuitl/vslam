@@ -44,14 +44,18 @@ namespace vslam {
 VslamSystem::VslamSystem(const std::string& vocab_tree_file, const std::string& vocab_weights_file,
   int min_keyframe_inliers, double min_keyframe_distance, double min_keyframe_angle)
   : frame_processor_(10),
-  #ifdef HOWARD
-  vo_(boost::shared_ptr<pe::PoseEstimator>(new pe::PoseEstimatorH(1000, true, 3.0, 4.0, 4.0, 0.025, 40, 17)),
-  #else
+#ifdef HOWARD
+  vo_(boost::shared_ptr<pe::PoseEstimator>(new pe::PoseEstimatorH(10, true, 6.0, 4.0, 4.0, 0.05, 10, 17)),
+#else
   vo_(boost::shared_ptr<pe::PoseEstimator>(new pe::PoseEstimator3d(1000,true,6.0,8.0,8.0)),
-  #endif
+#endif
     40, 10, min_keyframe_inliers, min_keyframe_distance, min_keyframe_angle), // 40 frames, 10 fixed
     place_recognizer_(vocab_tree_file, vocab_weights_file),
+#ifdef HOWARD
+    pose_estimator_(10, true, 6.0, 8.0, 8.0, 0.05, 10, 17)
+#else
     pose_estimator_(5000, true, 10.0, 3.0, 3.0)
+#endif
 {
   sba_.useCholmod(true);
   /// @todo Don't use windowed matching for place rec
@@ -75,10 +79,10 @@ bool VslamSystem::addFrame(const frame_common::CamParams& camera_parameters,
   next_frame.setCamParams(camera_parameters); // this sets the projection and reprojection matrices
   frame_processor_.setStereoFrame(next_frame, left, right, nfrac, setPointCloud);
   next_frame.frameId = sba_.nodes.size(); // index
-  #ifndef HOWARD
+#ifndef HOWARD
   next_frame.img = cv::Mat();   // remove the images
+#endif
   next_frame.imgRight = cv::Mat();
-  #endif
   
   if (setPointCloud && pointcloud_processor_ && doPointPlane)
     {
@@ -111,10 +115,10 @@ bool VslamSystem::addFrame(const frame_common::CamParams& camera_parameters,
   next_frame.setCamParams(camera_parameters); // this sets the projection and reprojection matrices
   frame_processor_.setStereoFrame(next_frame, left, right, nfrac);
   next_frame.frameId = sba_.nodes.size(); // index
-  #ifndef HOWARD
+#ifndef HOWARD
   next_frame.img = cv::Mat();   // remove the images
+#endif
   next_frame.imgRight = cv::Mat();
-  #endif
   if (pointcloud_processor_ && doPointPlane)
   {
     pointcloud_processor_->setPointcloud(next_frame, ptcloud);

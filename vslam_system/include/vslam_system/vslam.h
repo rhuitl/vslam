@@ -21,7 +21,11 @@ class VslamSystem
     sba::SysSBA sba_;	 ///< Large-scale SBA system.
     vslam::voSt vo_;   ///< Visual odometry processor.
     vslam::PlaceRecognizer place_recognizer_; ///< Place recognizer
+#ifndef HOWARD
     pe::PoseEstimator3d pose_estimator_;      ///< For place recognition matches
+#else
+    pe::PoseEstimatorH pose_estimator_;
+#endif
     
     /// Pointer to pointcloud processor.
     boost::shared_ptr<frame_common::PointcloudProc> pointcloud_processor_;
