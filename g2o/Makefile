@@ -24,47 +24,10 @@ include $(shell rospack find mk)/svn_checkout.mk
 g2o: $(SOURCE_DIR)
 	-rm -rf lib include bin
 	mkdir -p $(SOURCE_DIR)/build
-	mkdir -p lib
-	mkdir -p bin
-	mkdir -p include/g2o
-	mkdir -p include/g2o/core
-	mkdir -p include/g2o/solvers
-	mkdir -p include/g2o/solvers/csparse
-	mkdir -p include/g2o/solvers/dense
-	mkdir -p include/g2o/solvers/cholmod
-	mkdir -p include/g2o/solvers/pcg
-	mkdir -p include/g2o/types
-	mkdir -p include/g2o/types/icp
-	mkdir -p include/g2o/types/sba
-	mkdir -p include/g2o/types/sim3
-	mkdir -p include/g2o/types/slam2d
-	mkdir -p include/g2o/types/slam3d
-	mkdir -p include/g2o/math_groups
-	mkdir -p include/g2o/stuff
-	cd $(SOURCE_DIR)/build && cmake ../ -DCMAKE_INSTALL_PREFIX=../ && make
-	cp $(SOURCE_DIR)/lib/*.so lib
-	cp $(SOURCE_DIR)/bin/* bin
-	cp $(SOURCE_DIR)/build/g2o/config.h include/g2o
-	cp $(SOURCE_DIR)/g2o/core/*.h include/g2o/core
-	cp $(SOURCE_DIR)/g2o/core/*.hpp include/g2o/core
-	cp $(SOURCE_DIR)/g2o/solvers/csparse/*.h include/g2o/solvers/csparse
-	cp $(SOURCE_DIR)/g2o/solvers/dense/*.h include/g2o/solvers/dense
-	cp $(SOURCE_DIR)/g2o/solvers/cholmod/*.h include/g2o/solvers/cholmod
-	cp $(SOURCE_DIR)/g2o/solvers/pcg/*.h include/g2o/solvers/pcg
-	cp $(SOURCE_DIR)/g2o/solvers/pcg/*.hpp include/g2o/solvers/pcg
-	cp $(SOURCE_DIR)/g2o/types/icp/*.h include/g2o/types/icp
-	cp $(SOURCE_DIR)/g2o/types/sba/*.h include/g2o/types/sba
-	cp $(SOURCE_DIR)/g2o/types/sim3/*.h include/g2o/types/sim3
-	cp $(SOURCE_DIR)/g2o/types/slam2d/*.h include/g2o/types/slam2d
-	cp $(SOURCE_DIR)/g2o/types/slam3d/*.h include/g2o/types/slam3d
-	cp $(SOURCE_DIR)/g2o/math_groups/*.h include/g2o/math_groups
-	cp $(SOURCE_DIR)/g2o/math_groups/*.hpp include/g2o/math_groups
-	cp $(SOURCE_DIR)/g2o/stuff/*.h include/g2o/stuff
+	cd $(SOURCE_DIR)/build && cmake ../ -DCMAKE_INSTALL_PREFIX=$(TOP_DIR) && make install
 	touch g2o
 
 clean:
 	rm -rf lib bin include $(SOURCE_DIR)
 wipe: clean
 	-rm -rf build g2o
-
-
