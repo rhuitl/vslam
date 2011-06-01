@@ -41,7 +41,7 @@ g2o: $(SOURCE_DIR)
 	mkdir -p include/g2o/types/slam3d
 	mkdir -p include/g2o/math_groups
 	mkdir -p include/g2o/stuff
-	cd $(SOURCE_DIR)/build && cmake ../ && make
+	cd $(SOURCE_DIR)/build && cmake ../ -DCMAKE_INSTALL_PREFIX=../ && make
 	cp $(SOURCE_DIR)/lib/*.so lib
 	cp $(SOURCE_DIR)/bin/* bin
 	cp $(SOURCE_DIR)/build/g2o/config.h include/g2o
@@ -51,6 +51,7 @@ g2o: $(SOURCE_DIR)
 	cp $(SOURCE_DIR)/g2o/solvers/dense/*.h include/g2o/solvers/dense
 	cp $(SOURCE_DIR)/g2o/solvers/cholmod/*.h include/g2o/solvers/cholmod
 	cp $(SOURCE_DIR)/g2o/solvers/pcg/*.h include/g2o/solvers/pcg
+	cp $(SOURCE_DIR)/g2o/solvers/pcg/*.hpp include/g2o/solvers/pcg
 	cp $(SOURCE_DIR)/g2o/types/icp/*.h include/g2o/types/icp
 	cp $(SOURCE_DIR)/g2o/types/sba/*.h include/g2o/types/sba
 	cp $(SOURCE_DIR)/g2o/types/sim3/*.h include/g2o/types/sim3
