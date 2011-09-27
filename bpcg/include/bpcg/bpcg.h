@@ -96,7 +96,7 @@ namespace sba
  
       // uses internal linear storage
       void mMV2(vector< Matrix<double,N,N>, aligned_allocator<Matrix<double,N,N> > > &diag,
-                const VectorXd &vin,
+                VectorXd &vin,
                 VectorXd &vout);
  
       void mD(vector< Matrix<double,N,N>, aligned_allocator<Matrix<double,N,N> > > &diag,
@@ -142,7 +142,7 @@ namespace sba
 
   template <int N>
     void jacobiBPCG<N>::mMV2(vector< Matrix<double,N,N>, aligned_allocator<Matrix<double,N,N> > > &diag,
-                             const VectorXd &vin,
+                             VectorXd &vin,
                              VectorXd &vout)
     {
       // linear storage for matrices
